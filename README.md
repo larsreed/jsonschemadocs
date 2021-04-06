@@ -1,0 +1,13 @@
+# Writing schemas
+* JSON Schema ...
+* Additional tags ...
+
+# Producing documentation
+* Extracting schema for validation ...
+* Creating documentation ...
+    * HTML
+    * Wiki
+    
+# Maintenance
+* Code style :)
+* Lack of tests :(
