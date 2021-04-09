@@ -1,3 +1,9 @@
+# About this code
+
+A prototype of a simple utility to be able to embed more comprehensive documentation within a JSON Schema.
+
+Written by Lars Reed, april 2021. I'm happy for attribution if you use this code for anything ;)
+
 # Writing schemas
 * JSON Schema
 
