@@ -3,6 +3,9 @@ package net.kalars.jsondoc;
 import java.util.LinkedList;
 import java.util.List;
 
+// This file contains all the node types resulting from parsing
+
+
 // FIXME handle "type": ["string", "null"],
 
 /** Common for all nodes -- depth in the parse tree, qualified name (parent.child.child...) and required/optional. */
@@ -167,3 +170,17 @@ class JsonKeyValue extends JsonValue {
 
     @Override void visit(final JsonNodeVisitor visitor) { visitor.keyValue(this); }
 }
+
+//   Copyright 2021, Lars Reed -- lars-at-kalars.net
+//
+//           Licensed under the Apache License, Version 2.0 (the "License");
+//           you may not use this file except in compliance with the License.
+//           You may obtain a copy of the License at
+//
+//           http://www.apache.org/licenses/LICENSE-2.0
+//
+//           Unless required by applicable law or agreed to in writing, software
+//           distributed under the License is distributed on an "AS IS" BASIS,
+//           WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//           See the License for the specific language governing permissions and
+//           limitations under the License.
