@@ -2,7 +2,13 @@ package net.kalars.jsondoc;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /** Callbacks for iterating over a JSON structure. */
 interface JsonNodeVisitor {
@@ -122,10 +128,10 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
         if (EXCLUDE_PREFIXES.stream().anyMatch(object.name::startsWith)) return;
         final var indent = makeIndent(object, 0);
         if (object instanceof JsonSchemaObject ) {
-            final var props = ((JsonSchemaObject) object).props;
+            final var props = ((JsonSchemaObject) object).props.copyProps();
             props.forEach((k, v) ->
                     this.sb.append(indent)
-                            .append(" //")
+                            .append(" ")
                             .append(k)
                             .append(" = ")
                             .append(v)
@@ -161,7 +167,9 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
 /** Prints schema documentation. */
 abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
-    public static final String SEPARATOR = " > ";
+    protected static final String SEPARATOR = " > ";
+    protected static final String SEE_TOKEN = "§§§";
+    private static final List<String> EXCLUDE_PREFIXES = Arrays.asList(JsonDocNames.IGNORE_PREFIX);
 
     /** One documentation table instance. */
     final static class DocTable {
@@ -172,6 +180,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         final List<String> fields = new LinkedList<>(ALWAYS_COLUMNS);
         int currentRow = -1;
         final String name;
+        boolean done = false;
         final Map<String, String> data = new LinkedHashMap<>();
 
         private DocTable(final String name) { this.name = name;}
@@ -188,13 +197,23 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         }
     }
 
-    private static final List<String> EXCLUDE_PREFIXES = Arrays.asList(JsonDocNames.IGNORE_PREFIX);
-
+    protected final int embedUpToRows;
     protected final Deque<DocTable> tables = new LinkedList<>();
     private final Deque<DocTable> stack = new LinkedList<>();
+    protected Map<String, DocTable> tableMap = new HashMap<>();
 
+    JsonDocPrintVisitor(final int embedUpToRows) { this.embedUpToRows = embedUpToRows; }
     @Override public boolean topNode(final JsonTopNode topNode) { return object(topNode); }
     @Override public void topNodeLeave(final JsonTopNode topNode) { objectLeave(topNode); }
+
+    protected String nameToId(final String name) { return name.replaceAll("[^a-zA-Z0-9]", "_"); }
+
+    protected String keyToTitle(final String key) {
+        final var no_ = key.replaceAll("_", " ");
+        if (no_.length()>=1)  return no_.substring(0,1 ).toUpperCase() + no_.substring(1);
+        return key;
+    }
+
 
     @Override
     public boolean object(final JsonObject object) {
@@ -210,8 +229,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
             top.addRow();
             top.addValue(JsonDocNames.FIELD, object.name);
             if (object.hasChildren())
-                top.addValue(JsonDocNames.DESCRIPTION,
-                    "See " + tableName + SEPARATOR + object.name);
+                top.addValue(JsonDocNames.DESCRIPTION, SEE_TOKEN + tableName);
             if (object.isRequired()) {
                 if (object instanceof JsonSchemaObject){
                     ((JsonSchemaObject) object).addProp(JsonDocNames.REQUIRED, "true");
@@ -220,6 +238,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
             }
         }
         this.tables.add(docTable);
+        this.tableMap.put(tableName, docTable);
         this.stack.push(docTable);
 
         if (object instanceof JsonSchemaObject) {
@@ -265,7 +284,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         table.addRow();
         table.addValue(JsonDocNames.FIELD, array.name);
         table.addValue(JsonDocNames.TYPE, JsonDocNames.ARRAY);
-        final StringBuffer contents = new StringBuffer();
+        final var contents = new StringBuilder();
         contents.append("[ ");
         array.childList().stream()
                 .filter(c -> c instanceof JsonNode)
@@ -276,66 +295,145 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         return false;
     }
 
-    @Override
-    public void arrayLeave(final JsonArray array) { /*EMPTY*/ }
+    @Override public void arrayLeave(final JsonArray array) { /*EMPTY*/ }
 }
 
 class JsonDocWikiVisitor extends JsonDocPrintVisitor {
 
-    JsonDocWikiVisitor() { super(); }
+    JsonDocWikiVisitor() { super(0); }
+
     @Override
     public String toString() {
-        final StringBuffer buffer = new StringBuffer();
-        this.tables.stream().filter(t -> t.currentRow >= 0).forEach(t -> {
-            buffer.append("\n\nh").append(t.level()).append(". ").append(t.name).append("\n||");
-            for (final var c : t.fields) buffer.append(c).append("||");
-            buffer.append("\n");
-            for (int i = 0; i <= t.currentRow; i++) {
-                buffer.append("|");
-                for (final var c : t.fields) {
-                    final var content = t.data.get(DocTable.toKey(i, c));
-                    buffer.append(content==null? " " : content).append("|");
-                }
-                buffer.append("\n");
-            }
-        });
+        final var buffer = new StringBuilder();
+        this.tables.stream().filter(t -> t.currentRow >= 0).forEach(t -> formatTable(buffer, t));
         return buffer.toString();
+    }
+
+    private void formatTable(final StringBuilder buffer, final DocTable t) {
+        buffer.append(heading(t));
+        buffer.append(headingRow(t));
+        for (int i = 0; i <= t.currentRow; i++) {
+            buffer.append("|");
+            for (final var c : t.fields) {
+                var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
+                if (cell.matches(SEE_TOKEN + ".*")) {
+                    final var key = cell.substring(SEE_TOKEN.length());
+                    cell = "[" + key + "|#" + nameToId(key) + "]";
+                }
+                else cell = quote(cell);
+                buffer.append(cell).append("|");
+            }
+            buffer.append("\n");
+        }
+    }
+
+    private String quote(final String s) {
+        return s.replaceAll("([]\\[{}!\\\\])", "\\\\$1");
+    }
+
+    private String headingRow(final DocTable t) {
+        final var buffer = new StringBuilder();
+        for (final var c : t.fields) buffer.append(keyToTitle(c)).append("||");
+        buffer.append("\n");
+        return buffer.toString();
+    }
+
+    private String heading(final DocTable t) {
+        return "\n\n" +
+                "{anchor:" +
+                nameToId(t.name) +
+                "}\n" +
+                "h" +
+                t.level() + ". " +
+                t.name +
+                "\n||";
     }
 }
 
 class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
 
+    private static final String STYLE =
+            "<style>\n" +
+            "  h1, h2, h3, h4, h5, h6 {font-family : \"Roboto Black\", serif; }\n" +
+            "  table, th, td {border: 1px solid #ddd; padding: 8px; }\n" +
+            "  table {border-collapse: collapse;" +
+            " font-family: Roboto, Calibri, Helvetica, Arial, sans-serif; }\n" +
+            "  tr:nth-child(even){ background-color: #f2f2f2; }\n" +
+            "  tr:hover { background-color: #ddd; }\n" +
+            "  th { padding-top: 12px;" +
+            " padding-bottom: 12px;" +
+            " text-align: left;" +
+            " background-color: #12404F;" +
+            " color: white; }\n" +
+            "</style>\n" +
+            "</head>\n" +
+            "<body>";
+
+    JsonDocHtmlVisitor(final int embedUpToRows) { super(embedUpToRows); }
+
     private String q(final String s) { return StringEscapeUtils.escapeXml11(s); }
 
     @Override
     public String toString() {
-        final StringBuffer buffer = new StringBuffer();
-        buffer.append("<!doctype html>\n"+
-                  "<html><head><meta charset=utf-8>\n"+
-                  "<style>\n" +
-                  "table, th, td {border: 1px solid black;}\n" +
-                  "table {border-collapse: collapse;}\\n" +
-                  "</style>\n" +
-                  "</head>\n" +
-                  "<body>");
-        this.tables.stream().filter(t -> t.currentRow >= 0).forEach(t -> {
-            buffer.append("\n\n<h").append(t.level()).append(">")
-                    .append(q(t.name))
-                    .append("</h2>\n<table><thead><tr>\n  ");
-            for (final var c : t.fields) buffer.append("<th>").append(q(c)).append("</th>");
-            buffer.append("\n</tr></thead><tbody>\n");
-            for (int i = 0; i <= t.currentRow; i++) {
-                buffer.append("  <tr>");
-                for (final var c : t.fields) {
-                    buffer.append("<td>")
-                            .append(q(t.data.getOrDefault(DocTable.toKey(i, c), " ")))
-                            .append("</td>");
-                }
-                buffer.append("</tr>\n");
-            }
-            buffer.append("</tbody></table>\n\n");
-        });
+        final var buffer = new StringBuilder();
+        buffer.append("<!doctype html>\n" + "<html><head><meta charset=utf-8>\n");
+        buffer.append(STYLE);
+        this.tables.stream()
+                .filter(t -> t.currentRow >= 0)
+                .forEach(t -> buffer.append(formatTable(t, 0)));
         buffer.append("</body></html>");
+        return buffer.toString();
+    }
+
+    private String formatTable(final DocTable t, final int level) {
+        if (t.done) return ""; // already processed recursively
+        t.done = true;
+
+        final var buffer = new StringBuilder();
+        if (level==0) buffer.append(headingWithId(t));// Only heading for tables that are not embedded
+        buffer.append("<table><thead><tr>\n  ");
+        buffer.append(headerRow(t));
+        buffer.append("\n</tr></thead><tbody>\n");
+
+        for (int i = 0; i <= t.currentRow; i++) {
+            buffer.append("  <tr>");
+            for (final var c : t.fields) {
+                var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
+                if (cell.matches(SEE_TOKEN + ".*")) {
+                    final var key = cell.substring(SEE_TOKEN.length());
+                    final var tbl = this.tableMap.get(key);
+                    // if we have a reference to a single line table, optionally embed it
+                    if (tbl!=null && tbl.currentRow < this.embedUpToRows)  cell = formatTable(tbl, level+1);
+                    else cell = "<a href=\"#" + nameToId(key) + "\">" + key + "&gt;</a";
+                }
+                else cell = q(cell);
+                buffer.append("<td>").append(cell).append("</td>");
+            }
+            buffer.append("</tr>\n");
+        }
+
+        buffer.append("</tbody></table>\n\n");
+        return buffer.toString();
+    }
+
+    private String headingWithId(final DocTable t) {
+        return "\n\n<h" +
+                t.level() +
+                " id=\"" +
+                nameToId(t.name) +
+                "\">" +
+                q(t.name) +
+                "</h" +
+                t.level() +
+                ">\n";
+    }
+
+    private String headerRow(final DocTable t) {
+        final var buffer = new StringBuilder();
+        for (final var c : t.fields)
+            buffer.append("<th>")
+                    .append(q(keyToTitle(c)))
+                    .append("</th>");
         return buffer.toString();
     }
 }

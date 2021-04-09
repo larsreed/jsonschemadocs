@@ -1,32 +1,36 @@
 package net.kalars.jsondoc;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class DocParserTest {
     private static final String fileName = "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample.json";
 
     @Test
-    void sampleRun() {
-        final var parser0 = new JsonGenParser();
-        final var parser1 = new JsonSchemaParser();
-
-        final var node0 = parser0.parseFile(fileName);
-        final var node1 = parser1.parseFile(fileName);
-
-        final var visitor0 = new DebugVisitor();
-        final var visitor1 = new JsonSchemaPrintVisitor();
-        final var visitor2 = new JsonDocWikiVisitor();
-        final var visitor3 = new JsonDocHtmlVisitor();
-
-        node1.visit(visitor0);
-        node1.visit(visitor1);
-        node1.visit(visitor2);
-        node1.visit(visitor3);
-
+    void htmlOutput() {
+        final var visitor3 = new JsonDocHtmlVisitor(2);
+        new JsonSchemaParser().parseFile(fileName).visit(visitor3);
         System.out.println(visitor3);
-        System.out.println(visitor2);
-        System.out.println(visitor1);
-        System.out.println(visitor0);
     }
 
+    @Test
+    void wikiOutput() {
+        final var visitor2 = new JsonDocWikiVisitor();
+        new JsonSchemaParser().parseFile(fileName).visit(visitor2);
+        System.out.println(visitor2);
+    }
+
+    @Test
+    void schemaOutput() {
+        final var visitor1 = new JsonSchemaPrintVisitor();
+        new JsonGenParser().parseFile(fileName).visit(visitor1);
+        System.out.println(visitor1);
+    }
+
+    @Test @Disabled
+    void debugOutput() {
+        final var visitor0 = new DebugVisitor();
+        new JsonGenParser().parseFile(fileName).visit(visitor0);
+        System.out.println(visitor0);
+    }
 }

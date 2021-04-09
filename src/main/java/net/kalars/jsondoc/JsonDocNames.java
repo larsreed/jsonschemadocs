@@ -2,7 +2,7 @@ package net.kalars.jsondoc;
 
 @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
 interface JsonDocNames {
-    String XDOC_PREFIX = "xdoc-";
+    String XDOC_PREFIX = "x-";
     String IGNORE_PREFIX = "ignore-";
     String FORMAT = "format";
     String MINIMUM = "minimum";

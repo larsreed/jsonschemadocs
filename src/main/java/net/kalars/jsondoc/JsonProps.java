@@ -1,6 +1,10 @@
 package net.kalars.jsondoc;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
 
@@ -30,6 +34,8 @@ class JsonProps {
         copy.props.forEach(method);
     }
 
+    Map<String, String> copyProps() {return new LinkedHashMap<String, String>(this.props);  }
+
     private void defineType() {
         format();
         minMax();
@@ -49,7 +55,7 @@ class JsonProps {
     }
 
     private void mergeType(final String value) {
-        this.props.merge(JsonDocNames.TYPE, value,  (org, add) -> org.contains(add)? org : org + "\n" + add);
+        this.props.merge(JsonDocNames.TYPE, value,  (org, add) -> org.contains(add)? org : org + "  " + add);
     }
 
     private void minMax() {
