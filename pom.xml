@@ -16,9 +16,9 @@
 	<description>Enhanced JSON docs</description>
 
 	<properties>
-		<java.version>14</java.version>
-        <maven.compiler.source>14</maven.compiler.source>
-        <maven.compiler.target>14</maven.compiler.target>
+		<java.version>16</java.version>
+        <maven.compiler.source>16</maven.compiler.source>
+        <maven.compiler.target>16</maven.compiler.target>
 		<jackson.version>2.12.1</jackson.version>
 	</properties>
 

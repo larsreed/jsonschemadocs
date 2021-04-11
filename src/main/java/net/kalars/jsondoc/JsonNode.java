@@ -8,19 +8,21 @@ import java.util.List;
 
 // FIXME handle "type": ["string", "null"],
 
-/** Common for all nodes -- depth in the parse tree, qualified name (parent.child.child...) and required/optional. */
+/** Common for all nodes -- depth in the parse tree, name, qualified name (parent.child.child...) and required/optional. */
 abstract class JsonBasicNode {
+    final String name;
     final int tokenDepth;
     final String qName;
     private boolean required = false;
 
-    protected JsonBasicNode(final String qName, final int tokenDepth) {
+    protected JsonBasicNode(final String name, final String qName, final int tokenDepth) {
+        this.name = name;
         this.qName = qName;
         this.tokenDepth = tokenDepth;
     }
 
     void makeRequired() { this.required = true; }
-    boolean isRequired() {return this.required; }
+    boolean isRequired() { return this.required; }
     abstract void visit(final JsonNodeVisitor visitor);
 
     @Override
@@ -29,15 +31,13 @@ abstract class JsonBasicNode {
     }
 }
 
-/** Parent node for objects/arrays - has a name and 0 or more children
+/** Parent node for objects/arrays - has 0 or more children
  *  (the children are attributes/arrays/array entries/objects). */
 abstract class JsonNode extends JsonBasicNode {
-    final String name;
     private final List<JsonBasicNode> children = new LinkedList<>();
 
     JsonNode(final String name, final String qName, final int tokenDepth) {
-        super(qName, tokenDepth);
-        this.name = name;
+        super(name, qName, tokenDepth);
     }
 
     void addChild(final JsonBasicNode node) { this.children.add(node); }
@@ -75,15 +75,15 @@ class JsonSchemaObject extends JsonObject {
 
     @SuppressWarnings("SameParameterValue")
     private static String removePrefix(final String s, final String pfx) { return s.replaceAll("^" + pfx, ""); }
-    void addProp(final String key, final String value) { this.props.add(key, value);}
+    void addProp(final String key, final String value) { this.props.add(key, value); }
 
     @Override
     void addChild(final JsonBasicNode orgNode) {
         if (orgNode instanceof JsonKeyValue) {
-            final var node = (JsonKeyValue) orgNode;
-            if (JsonProps.KEYWORDS.contains(node.key)) this.props.add(node.key, node.value);
+            final JsonKeyValue node = (JsonKeyValue) orgNode;
+            if (JsonProps.KEYWORDS.contains(node.key)) addProp(node.key, node.value);
             else if (node.key.startsWith(JsonDocNames.XDOC_PREFIX)) {
-                this.props.add(removePrefix(node.key, JsonDocNames.XDOC_PREFIX), node.value);
+                addProp(removePrefix(node.key, JsonDocNames.XDOC_PREFIX), node.value);
             }
             else super.addChild(orgNode);
             return;
@@ -106,8 +106,8 @@ class JsonTopNode extends JsonSchemaObject {
 
     @Override
     void addChild(final JsonBasicNode orgNode) {
-        if (orgNode instanceof JsonKeyValue) {
-            final var node = (JsonKeyValue) orgNode;
+        if (orgNode instanceof JsonKeyValue) { // Creates dependency cycle within this file, we can live with that
+            final JsonKeyValue node = (JsonKeyValue) orgNode;
             if (JsonProps.KEYWORDS.contains(node.key)) addProp(node.key, node.value);
             else super.addChild(orgNode);
             return;
@@ -144,6 +144,17 @@ class JsonArray extends JsonNode {
     @Override void visitLeave(final JsonNodeVisitor visitor) {
         visitor.arrayLeave(this);
     }
+
+    @Override
+    public String toString() {
+        // Lists children as {a, b, c, d } (without quotes)
+        final var sb = new StringBuilder();
+        sb.append("{ ");
+        childList().forEach(n -> sb.append(n.name.replaceAll("(^\")|(\"$)", "")).append(", "));
+        sb.setLength(sb.length()-2);
+        sb.append(" }");
+        return sb.toString();
+    }
 }
 
 /** A value in an array. */
@@ -151,7 +162,7 @@ class JsonValue extends JsonBasicNode {
     final String value;
 
     JsonValue(final String value, final String qName, final int tokenDepth) {
-        super(qName, tokenDepth);
+        super(value, qName, tokenDepth);
         this.value = value;
     }
 

@@ -25,7 +25,7 @@ class JsonProps {
         return s.replaceAll("^\"", "").replaceAll("\"$", "");
     }
 
-    void add(final String key, final String value) { this.props.put(key, unquote(value));  }
+    void add(final String key, final String value) { this.props.put(key, unquote(value)); }
 
     void forEach(final BiConsumer<? super String, ? super String> method) {
         // Redefine the type description before iterating over it
@@ -35,7 +35,7 @@ class JsonProps {
         copy.props.forEach(method);
     }
 
-    Map<String, String> copyProps() {return new LinkedHashMap<String, String>(this.props);  }
+    Map<String, String> copyProps() {return new LinkedHashMap<>(this.props);  }
 
     private void defineType() {
         format();

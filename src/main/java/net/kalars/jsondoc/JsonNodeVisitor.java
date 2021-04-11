@@ -40,7 +40,7 @@ abstract class AbstractPrintVisitor implements JsonNodeVisitor {
 }
 
 
-@SuppressWarnings("UnnecessaryReturnStatement")
+@SuppressWarnings({"UnnecessaryReturnStatement", "EmptyMethod", "SameReturnValue"})
 class DebugVisitor extends AbstractPrintVisitor {
 
     private boolean printer(final JsonBasicNode node, final String s1, final String s2, final String s3) {
@@ -202,7 +202,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
     protected final int embedUpToRows;
     protected final Deque<DocTable> tables = new LinkedList<>();
     private final Deque<DocTable> stack = new LinkedList<>();
-    protected Map<String, DocTable> tableMap = new HashMap<>();
+    protected final Map<String, DocTable> tableMap = new HashMap<>();
 
     JsonDocPrintVisitor(final int embedUpToRows) { this.embedUpToRows = embedUpToRows; }
     @Override public boolean topNode(final JsonTopNode topNode) { return object(topNode); }
@@ -216,7 +216,6 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         return key;
     }
 
-
     @Override
     public boolean object(final JsonObject object) {
         if (EXCLUDE_PREFIXES.stream().anyMatch(object.name::startsWith)) return false;
@@ -225,13 +224,16 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         final String pfx;
         if (top==null || top.name.equals("")) pfx = "";
         else pfx = top.name + SEPARATOR;
+
         final var tableName = pfx + object.name;
         final var docTable = new DocTable(tableName);
         if (top != null) {
             top.addRow();
             top.addValue(JsonDocNames.FIELD, object.name);
-            if (object.hasChildren())
-                top.addValue(JsonDocNames.DESCRIPTION, SEE_TOKEN + tableName);
+            if (typeAsAnArray(object)) {
+                ((JsonSchemaObject) object).addProp(JsonDocNames.TYPE, object.childList().get(0).toString());
+            }
+            else if (object.hasChildren()) top.addValue(JsonDocNames.DESCRIPTION, SEE_TOKEN + tableName);
             if (object.isRequired()) {
                 if (object instanceof JsonSchemaObject){
                     ((JsonSchemaObject) object).addProp(JsonDocNames.REQUIRED, "true");
@@ -250,6 +252,14 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         }
 
         return true;
+    }
+
+    // hack... to handle "type" : [ "string", "null"] type constructs
+    private boolean typeAsAnArray(final JsonObject object) {
+        return object instanceof JsonSchemaObject
+                && object.childList().size() == 1
+                && object.childList().get(0) instanceof JsonArray
+                && JsonDocNames.TYPE.equals(((JsonArray) object.childList().get(0)).name);
     }
 
     @Override
@@ -352,24 +362,21 @@ class JsonDocWikiVisitor extends JsonDocPrintVisitor {
     }
 }
 
+@SuppressWarnings("SameParameterValue")
 class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
 
-    private static final String STYLE =
-            "<style>\n" +
-            "  h1, h2, h3, h4, h5, h6 {font-family : \"Roboto Black\", serif; }\n" +
-            "  table, th, td {border: 1px solid #ddd; padding: 8px; }\n" +
-            "  table {border-collapse: collapse;" +
-            " font-family: Roboto, Calibri, Helvetica, Arial, sans-serif; }\n" +
-            "  tr:nth-child(even){ background-color: #f2f2f2; }\n" +
-            "  tr:hover { background-color: #ddd; }\n" +
-            "  th { padding-top: 12px;" +
-            " padding-bottom: 12px;" +
-            " text-align: left;" +
-            " background-color: #12404F;" +
-            " color: white; }\n" +
-            "</style>\n" +
-            "</head>\n" +
-            "<body>";
+    private static final String STYLE = """
+        <style>
+          h1, h2, h3, h4, h5, h6 {font-family : "Roboto Black", serif; }
+          table, th, td {border: 1px solid #ddd; padding: 8px; }
+          table {border-collapse: collapse; font-family: Roboto, Calibri, Helvetica, Arial, sans-serif; }
+          tr:nth-child(even){ background-color: #f2f2f2; }
+          tr:hover { background-color: #ddd; }
+          th { padding-top: 12px; padding-bottom: 12px; text-align: left; background-color: #12404F; color: white; }
+        </style>
+        </head>
+        <body>
+        """;
 
     JsonDocHtmlVisitor(final int embedUpToRows) { super(embedUpToRows); }
 
@@ -378,7 +385,10 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
     @Override
     public String toString() {
         final var buffer = new StringBuilder();
-        buffer.append("<!doctype html>\n" + "<html><head><meta charset=utf-8>\n");
+        buffer.append("""
+                <!doctype html>
+                <html><head><meta charset=utf-8>
+                """);
         buffer.append(STYLE);
         this.tables.stream()
                 .filter(t -> t.currentRow >= 0)

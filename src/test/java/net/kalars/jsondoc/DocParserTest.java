@@ -1,6 +1,5 @@
 package net.kalars.jsondoc;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class DocParserTest {
@@ -27,7 +26,7 @@ class DocParserTest {
         System.out.println(visitor1);
     }
 
-    @Test @Disabled
+    @Test
     void debugOutput() {
         final var visitor0 = new DebugVisitor();
         new JsonGenParser().parseFile(fileName).visit(visitor0);

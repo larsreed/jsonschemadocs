@@ -8,6 +8,7 @@ package net.kalars.jsondoc;
 interface JsonDocNames {
     String XDOC_PREFIX = "x-";
     String IGNORE_PREFIX = "ignore-";
+
     String FORMAT = "format";
     String MINIMUM = "minimum";
     String EXCLUSIVE_MINIMUM = "exclusiveMinimum";

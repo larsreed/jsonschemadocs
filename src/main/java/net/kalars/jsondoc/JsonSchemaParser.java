@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 // This file contains all the "parsers" (actual parsing done by imported code)
 
 /** A general parser class -- translating output for general JSON. */
-public class JsonGenParser {
+class JsonGenParser {
 
     protected final JsonFactory jFactory = new JsonFactory();
     protected final List<JsonNode> stackBackingList = new LinkedList<>();
