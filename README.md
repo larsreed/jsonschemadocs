@@ -2,9 +2,10 @@
 
 A prototype of a simple utility to be able to embed more comprehensive documentation within a JSON Schema.
 
-Written by Lars Reed, april 2021. I'm happy for attribution if you use this code for anything ;)
+Written by Lars Reed, april 2021. I'd be happy for an attribution if you use this code for anything ;)
 
 # Writing schemas
+
 * JSON Schema
 
     Start off by creating your actual schema, as per https://json-schema.org/
@@ -94,5 +95,5 @@ So the code here is not entirely idiomatic - but it's mine.
 
 ## **Lack of tests**
 
-Yes, that is actually bad.  The code was created as a kind of discovery process, didn't think I'd even keep it,
+Yes, that *is* actually bad.  The code was created as a kind of discovery process, didn't think I'd even keep it,
 but now that I did, there should be some structured tests...

@@ -130,8 +130,7 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
         if (EXCLUDE_PREFIXES.stream().anyMatch(object.name::startsWith)) return;
         final var indent = makeIndent(object, 0);
         if (object instanceof JsonSchemaObject ) {
-            final var props = ((JsonSchemaObject) object).props.copyProps();
-            props.forEach((k, v) ->
+            object.props.copyProps().forEach((k, v) ->
                     this.sb.append(indent)
                             .append(" ")
                             .append(k)
@@ -167,6 +166,7 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
 
 
 /** Prints schema documentation. */
+@SuppressWarnings({"ArraysAsListWithZeroOrOneArgument", "FeatureEnvy"})
 abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
     protected static final String SEPARATOR = " > ";
@@ -200,13 +200,30 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
     }
 
     protected final int embedUpToRows;
+    protected String topTitle = "";
     protected final Deque<DocTable> tables = new LinkedList<>();
     private final Deque<DocTable> stack = new LinkedList<>();
     protected final Map<String, DocTable> tableMap = new HashMap<>();
 
     JsonDocPrintVisitor(final int embedUpToRows) { this.embedUpToRows = embedUpToRows; }
-    @Override public boolean topNode(final JsonTopNode topNode) { return object(topNode); }
+
     @Override public void topNodeLeave(final JsonTopNode topNode) { objectLeave(topNode); }
+
+    @Override public boolean topNode(final JsonTopNode topNode) {
+        this.topTitle = topNode.props.getProp(JsonDocNames.TITLE);
+        if (this.topTitle ==null) {
+            final var any =
+                    topNode.childList().stream()
+                            .filter(n-> n.name.equals(JsonDocNames.TITLE))
+                            .map(n -> {
+                                if (n instanceof JsonValue) return ((JsonValue) n).value;
+                                return "";
+                            })
+                            .findAny();
+            this.topTitle = any.orElse("").replaceAll("\"", "");
+        }
+        return object(topNode);
+    }
 
     protected String nameToId(final String name) { return name.replaceAll("[^a-zA-Z0-9]", "_"); }
 
@@ -225,19 +242,19 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         if (top==null || top.name.equals("")) pfx = "";
         else pfx = top.name + SEPARATOR;
 
+
         final var tableName = pfx + object.name;
         final var docTable = new DocTable(tableName);
         if (top != null) {
             top.addRow();
             top.addValue(JsonDocNames.FIELD, object.name);
             if (typeAsAnArray(object)) {
-                ((JsonSchemaObject) object).addProp(JsonDocNames.TYPE, object.childList().get(0).toString());
+                object.addProp(JsonDocNames.TYPE,
+                        JsonDocNames.ARRAY + "\n" + object.childList().get(0).toString());
             }
             else if (object.hasChildren()) top.addValue(JsonDocNames.DESCRIPTION, SEE_TOKEN + tableName);
             if (object.isRequired()) {
-                if (object instanceof JsonSchemaObject){
-                    ((JsonSchemaObject) object).addProp(JsonDocNames.REQUIRED, "true");
-                }
+                if (object instanceof JsonSchemaObject) object.addProp(JsonDocNames.REQUIRED, "true");
                 else top.addValue(JsonDocNames.REQUIRED, "true");
             }
         }
@@ -246,9 +263,8 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         this.stack.push(docTable);
 
         if (object instanceof JsonSchemaObject) {
-            final var props = ((JsonSchemaObject) object).props;
             final var target = (top==null)? docTable : top;
-            props.forEach(target::addValue);
+            object.props.forEach(target::addValue);
         }
 
         return true;
@@ -259,7 +275,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         return object instanceof JsonSchemaObject
                 && object.childList().size() == 1
                 && object.childList().get(0) instanceof JsonArray
-                && JsonDocNames.TYPE.equals(((JsonArray) object.childList().get(0)).name);
+                && JsonDocNames.TYPE.equals(object.childList().get(0).name);
     }
 
     @Override
@@ -291,6 +307,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
     @Override
     public boolean array(final JsonArray array) {
         if (EXCLUDE_PREFIXES.stream().anyMatch(array.name::startsWith)) return false;
+        if (JsonDocNames.TYPE.equals(array.name)) return false;
         final var table = this.stack.peek();
         if (table == null) return false;
         table.addRow();
@@ -300,7 +317,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         contents.append("[ ");
         array.childList().stream()
                 .filter(c -> c instanceof JsonNode)
-                .forEach(child -> contents.append(((JsonNode)child).name).append(", "));
+                .forEach(child -> contents.append(child.name).append(", "));
         contents.setLength(contents.length()-2);
         contents.append("]");
         table.addValue(JsonDocNames.DESCRIPTION, contents.toString());
@@ -351,13 +368,14 @@ class JsonDocWikiVisitor extends JsonDocPrintVisitor {
     }
 
     private String heading(final DocTable t) {
+        final var name = "".equals(t.name)? this.topTitle : t.name;
         return "\n\n" +
                 "{anchor:" +
-                nameToId(t.name) +
+                nameToId(name) +
                 "}\n" +
                 "h" +
                 t.level() + ". " +
-                t.name +
+                name +
                 "\n||";
     }
 }
@@ -429,12 +447,13 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
     }
 
     private String headingWithId(final DocTable t) {
+        final var name = "".equals(t.name)? this.topTitle : t.name;
         return "\n\n<h" +
                 t.level() +
                 " id=\"" +
-                nameToId(t.name) +
+                nameToId(name) +
                 "\">" +
-                q(t.name) +
+                q(name) +
                 "</h" +
                 t.level() +
                 ">\n";

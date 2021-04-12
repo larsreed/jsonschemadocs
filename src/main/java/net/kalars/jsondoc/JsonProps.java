@@ -26,6 +26,7 @@ class JsonProps {
     }
 
     void add(final String key, final String value) { this.props.put(key, unquote(value)); }
+    String getProp(final String key) { return this.props.get(key); }
 
     void forEach(final BiConsumer<? super String, ? super String> method) {
         // Redefine the type description before iterating over it

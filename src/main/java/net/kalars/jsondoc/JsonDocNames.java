@@ -1,7 +1,6 @@
 package net.kalars.jsondoc;
 
-// This file contains all the node types resulting from parsing
-//
+// This file contains all fixed schema names
 
 
 @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
@@ -25,6 +24,7 @@ interface JsonDocNames {
     String DESCRIPTION = "description";
     String REQUIRED = "required";
     String TYPE = "type";
+    String TITLE = "title";
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net

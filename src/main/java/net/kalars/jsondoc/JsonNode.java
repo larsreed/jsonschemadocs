@@ -6,9 +6,8 @@ import java.util.List;
 // This file contains all the node types resulting from parsing
 
 
-// FIXME handle "type": ["string", "null"],
-
-/** Common for all nodes -- depth in the parse tree, name, qualified name (parent.child.child...) and required/optional. */
+/** Common for all nodes -- depth in the parse tree, name, qualified name (parent.child.child...)
+ *  and required/optional. */
 abstract class JsonBasicNode {
     final String name;
     final int tokenDepth;
@@ -34,12 +33,12 @@ abstract class JsonBasicNode {
 /** Parent node for objects/arrays - has 0 or more children
  *  (the children are attributes/arrays/array entries/objects). */
 abstract class JsonNode extends JsonBasicNode {
+    final JsonProps props = new JsonProps();
     private final List<JsonBasicNode> children = new LinkedList<>();
 
-    JsonNode(final String name, final String qName, final int tokenDepth) {
-        super(name, qName, tokenDepth);
-    }
+    JsonNode(final String name, final String qName, final int tokenDepth) { super(name, qName, tokenDepth); }
 
+    void addProp(final String key, final String value) { this.props.add(key, value); }
     void addChild(final JsonBasicNode node) { this.children.add(node); }
     @SuppressWarnings("UnusedReturnValue")
     boolean removeChild(final JsonBasicNode node) { return this.children.remove(node); }
@@ -59,15 +58,15 @@ abstract class JsonNode extends JsonBasicNode {
 
 /** A standard JSON object. */
 class JsonObject extends JsonNode {
+
     JsonObject(final String name, final String qName, final int tokenDepth) { super(name, qName, tokenDepth); }
     @Override boolean visitThis(final JsonNodeVisitor visitor) { return visitor.object(this); }
     @Override void visitLeave(final JsonNodeVisitor visitor) { visitor.objectLeave(this); }
+
 }
 
 /** An object in JsonSchema. */
 class JsonSchemaObject extends JsonObject {
-
-    final JsonProps props = new JsonProps();
 
     JsonSchemaObject(final String name, final String qName, final int tokenDepth) {
         super(name, qName, tokenDepth);
@@ -75,7 +74,6 @@ class JsonSchemaObject extends JsonObject {
 
     @SuppressWarnings("SameParameterValue")
     private static String removePrefix(final String s, final String pfx) { return s.replaceAll("^" + pfx, ""); }
-    void addProp(final String key, final String value) { this.props.add(key, value); }
 
     @Override
     void addChild(final JsonBasicNode orgNode) {
@@ -132,9 +130,9 @@ class JsonArray extends JsonNode {
     void addChild(final JsonBasicNode node) {
         final JsonValue jVal = (JsonValue) node;
         final var nodeVal = jVal.value;
-        final var fullName = jVal.qName.replaceAll("[.][^.]+$", "")
-                + "." + nodeVal.replaceAll("\"", "");
-        final var newNode = new JsonValue(nodeVal, fullName, jVal.tokenDepth);
+        final var unq = nodeVal.replaceAll("\"", "");
+        final var fullName = jVal.qName.replaceAll("[.][^.]+$", "") + "." + unq;
+        final var newNode = new JsonValue(unq, nodeVal, fullName, jVal.tokenDepth);
         super.addChild(newNode);
     }
 
@@ -161,8 +159,8 @@ class JsonArray extends JsonNode {
 class JsonValue extends JsonBasicNode {
     final String value;
 
-    JsonValue(final String value, final String qName, final int tokenDepth) {
-        super(value, qName, tokenDepth);
+    JsonValue(final String name, final String value, final String qName, final int tokenDepth) {
+        super(name, qName, tokenDepth);
         this.value = value;
     }
 
@@ -175,7 +173,7 @@ class JsonKeyValue extends JsonValue {
     final String key;
 
     JsonKeyValue(final String key, final String value, final String qName, final int tokenDepth) {
-        super(value, qName, tokenDepth);
+        super(key, value, qName, tokenDepth);
         this.key = key;
     }
 

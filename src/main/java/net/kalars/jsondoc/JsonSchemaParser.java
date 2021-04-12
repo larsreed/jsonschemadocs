@@ -123,9 +123,9 @@ class JsonGenParser {
     protected void addKeyVal(final String vs) {
         final JsonValue node;
         if (this.arrayMode == ArrayMode.ReadingRegularArray) {
-            final var qn = qualifiedName().replaceAll("[.][^.]+$", "")
-                    + "." + vs.replaceAll("\"", "");
-            node = new JsonValue(vs, qn, this.tokenDepth);
+            final var unq = vs.replaceAll("\"", "");
+            final var qn = qualifiedName().replaceAll("[.][^.]+$", "") + "." + unq;
+            node = new JsonValue(unq, vs, qn, this.tokenDepth);
         }
         else node = new JsonKeyValue(this.nextName, vs, qualifiedName(), this.tokenDepth);
         currentNode().addChild(node);
