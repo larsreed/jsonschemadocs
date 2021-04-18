@@ -7,7 +7,7 @@ class DocParserTest {
 
     @Test
     void htmlOutput() {
-        final var visitor3 = new JsonDocHtmlVisitor(2);
+        final var visitor3 = new JsonDocHtmlVisitor(1);
         new JsonSchemaParser().parseFile(fileName).visit(visitor3);
         System.out.println(visitor3);
     }
@@ -17,6 +17,13 @@ class DocParserTest {
         final var visitor2 = new JsonDocWikiVisitor();
         new JsonSchemaParser().parseFile(fileName).visit(visitor2);
         System.out.println(visitor2);
+    }
+
+    @Test
+    void dotOutput() {
+        final var visitor4 = new JsonDocDotVisitor();
+        new JsonSchemaParser().parseFile(fileName).visit(visitor4);
+        System.out.println(visitor4);
     }
 
     @Test

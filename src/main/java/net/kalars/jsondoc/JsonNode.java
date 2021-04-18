@@ -79,7 +79,7 @@ class JsonSchemaObject extends JsonObject {
     void addChild(final JsonBasicNode orgNode) {
         if (orgNode instanceof JsonKeyValue) {
             final JsonKeyValue node = (JsonKeyValue) orgNode;
-            if (JsonProps.KEYWORDS.contains(node.key)) addProp(node.key, node.value);
+            if (JsonDocNames.PROP_KEYWORDS.contains(node.key)) addProp(node.key, node.value);
             else if (node.key.startsWith(JsonDocNames.XDOC_PREFIX)) {
                 addProp(removePrefix(node.key, JsonDocNames.XDOC_PREFIX), node.value);
             }
@@ -106,7 +106,7 @@ class JsonTopNode extends JsonSchemaObject {
     void addChild(final JsonBasicNode orgNode) {
         if (orgNode instanceof JsonKeyValue) { // Creates dependency cycle within this file, we can live with that
             final JsonKeyValue node = (JsonKeyValue) orgNode;
-            if (JsonProps.KEYWORDS.contains(node.key)) addProp(node.key, node.value);
+            if (JsonDocNames.PROP_KEYWORDS.contains(node.key)) addProp(node.key, node.value);
             else super.addChild(orgNode);
             return;
         }

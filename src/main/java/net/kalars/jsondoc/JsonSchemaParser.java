@@ -151,8 +151,6 @@ class JsonGenParser {
 
 /** A more specialised parser for JSON Schema. */
 class JsonSchemaParser extends JsonGenParser {
-    private static final String REQUIRED = "required";
-    private static final String PROPERTIES = "properties";
 
     /** Introduce concept of JsonTopNode. */
     @Override
@@ -166,7 +164,7 @@ class JsonSchemaParser extends JsonGenParser {
 
     @Override
     protected Optional<JsonNode> endObject() {
-        if (PROPERTIES.equals(currentNode().name)) removeThisNode();
+        if (JsonDocNames.PROPERTIES.equals(currentNode().name)) removeThisNode();
         return super.endObject();
     }
 
@@ -182,7 +180,7 @@ class JsonSchemaParser extends JsonGenParser {
 
     @Override
     protected void startArray() {
-        if (REQUIRED.equals(this.nextName)) this.arrayMode = ArrayMode.ReadingRequiredArray;
+        if (JsonDocNames.REQUIRED.equals(this.nextName)) this.arrayMode = ArrayMode.ReadingRequiredArray;
         else super.startArray();
     }
 
@@ -195,7 +193,7 @@ class JsonSchemaParser extends JsonGenParser {
     @Override
     protected void addKeyVal(final String vs) {
         if (this.arrayMode == ArrayMode.ReadingRequiredArray) {
-            final var qName = (currentNode().qName + "." + PROPERTIES + "." + vs)
+            final var qName = (currentNode().qName + "." + JsonDocNames.PROPERTIES + "." + vs)
                     .replaceAll("\"", "")
                     .replaceFirst("^[.]", "");
             final var fieldNode = this.qNameMap.get(qName);

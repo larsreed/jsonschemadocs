@@ -3,6 +3,9 @@ package net.kalars.jsondoc;
 // This file contains all fixed schema names
 
 
+import java.util.Arrays;
+import java.util.List;
+
 @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
 interface JsonDocNames {
     String XDOC_PREFIX = "x-";
@@ -25,6 +28,15 @@ interface JsonDocNames {
     String REQUIRED = "required";
     String TYPE = "type";
     String TITLE = "title";
+    String PROPERTIES = "properties";
+
+    List<String> PROP_KEYWORDS = Arrays.asList(
+            DESCRIPTION, TYPE,
+            MINIMUM, EXCLUSIVE_MINIMUM,
+            MAXIMUM, EXCLUSIVE_MAXIMUM,
+            MIN_LENGTH, MAX_LENGTH,
+            MIN_ITEMS, MAX_ITEMS, UNIQUE_ITEMS,
+            FORMAT, PATTERN);
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net

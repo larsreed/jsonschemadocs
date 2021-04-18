@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 // This file defines visitors to traverse the generated data structures to generate output
 
@@ -170,7 +171,10 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
 abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
     protected static final String SEPARATOR = " > ";
-    protected static final String SEE_TOKEN = "§§§";
+    protected static final String SEE_PFX = "§§§/";
+    protected static final String SEE_SFX = "/§§§";
+    protected static final String SEE_QUICK_RE = SEE_PFX+"([^§]+)"+SEE_SFX;
+    protected static final Pattern SEE_REGEXP = Pattern.compile(".*"+SEE_QUICK_RE+".*", Pattern.DOTALL);
     private static final List<String> EXCLUDE_PREFIXES = Arrays.asList(JsonDocNames.IGNORE_PREFIX);
 
     /** One documentation table instance. */
@@ -183,6 +187,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         int currentRow = -1;
         final String name;
         boolean done = false;
+        String cardinality;
         final Map<String, String> data = new LinkedHashMap<>();
 
         private DocTable(final String name) { this.name = name;}
@@ -195,8 +200,11 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
             final var colVal = JsonProps.unquote(orgValue);
             if (this.currentRow < 0) this.currentRow++;
             if (!this.fields.contains(colName)) this.fields.add(colName);
-            this.data.put(toKey(this.currentRow, colName), colVal);
+            this.data.merge(toKey(this.currentRow, colName), colVal,
+                    (org, add) ->  org + " " + add);
         }
+
+        void hasCardinality(final String cardinality) { this.cardinality = cardinality; }
     }
 
     protected final int embedUpToRows;
@@ -252,12 +260,13 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
                 object.addProp(JsonDocNames.TYPE,
                         JsonDocNames.ARRAY + "\n" + object.childList().get(0).toString());
             }
-            else if (object.hasChildren()) top.addValue(JsonDocNames.DESCRIPTION, SEE_TOKEN + tableName);
+            else if (object.hasChildren()) top.addValue(JsonDocNames.DESCRIPTION, SEE_PFX + tableName + SEE_SFX);
             if (object.isRequired()) {
                 if (object instanceof JsonSchemaObject) object.addProp(JsonDocNames.REQUIRED, "true");
                 else top.addValue(JsonDocNames.REQUIRED, "true");
             }
         }
+        docTable.hasCardinality(object.props.cardinality());
         this.tables.add(docTable);
         this.tableMap.put(tableName, docTable);
         this.stack.push(docTable);
@@ -345,9 +354,10 @@ class JsonDocWikiVisitor extends JsonDocPrintVisitor {
             buffer.append("|");
             for (final var c : t.fields) {
                 var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
-                if (cell.matches(SEE_TOKEN + ".*")) {
-                    final var key = cell.substring(SEE_TOKEN.length());
-                    cell = "[" + key + "|#" + nameToId(key) + "]";
+                final var match = SEE_REGEXP.matcher(cell);
+                if (match.matches()) {
+                    final var key = match.group(1);
+                    cell = cell.replaceAll(SEE_QUICK_RE,  "[" + key + "|#" + nameToId(key) + "]").trim() + " ";
                 }
                 else cell = quote(cell);
                 buffer.append(cell).append("|");
@@ -398,7 +408,11 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
 
     JsonDocHtmlVisitor(final int embedUpToRows) { super(embedUpToRows); }
 
-    private String q(final String s) { return StringEscapeUtils.escapeXml11(s); }
+    private String q(final String s) {
+        return StringEscapeUtils.escapeXml11(s)
+                .replaceAll("\t", "&nbsp;&nbsp")
+                .replaceAll("\n", "<br/>");
+    }
 
     @Override
     public String toString() {
@@ -429,12 +443,14 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
             buffer.append("  <tr>");
             for (final var c : t.fields) {
                 var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
-                if (cell.matches(SEE_TOKEN + ".*")) {
-                    final var key = cell.substring(SEE_TOKEN.length());
+                final var match = SEE_REGEXP.matcher(cell);
+                if (match.matches()) {
+                    final var key = match.group(1);
                     final var tbl = this.tableMap.get(key);
+                    cell = cell.replaceAll(SEE_QUICK_RE, " ").trim() + " ";
                     // if we have a reference to a single line table, optionally embed it
-                    if (tbl!=null && tbl.currentRow < this.embedUpToRows)  cell = formatTable(tbl, level+1);
-                    else cell = "<a href=\"#" + nameToId(key) + "\">" + key + "&gt;</a";
+                    if (tbl!=null && tbl.currentRow < this.embedUpToRows)  cell = cell + formatTable(tbl, level+1);
+                    else cell = cell + "<a href=\"#" + nameToId(key) + "\">" + key + "&gt;</a>";
                 }
                 else cell = q(cell);
                 buffer.append("<td>").append(cell).append("</td>");
@@ -467,6 +483,84 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
                     .append("</th>");
         return buffer.toString();
     }
+}
+
+class JsonDocDotVisitor extends JsonDocPrintVisitor {
+
+    JsonDocDotVisitor() { super(0); }
+
+    private String q(final String s) { return "\"" + s + "\""; }
+    private String only(final String s) { return s.replaceAll(".*> ", ""); }
+
+    @Override
+    public String toString() {
+        final var buffer = new StringBuilder();
+        buffer.append("""
+digraph G {
+        fontname = "Calibri"
+        fontsize = 10
+
+        node [
+                fontname = "Calibri"
+                fontsize = 10
+                shape = "record"
+        ]
+
+        edge [
+                fontname = "Calibri"
+                fontsize = 9
+        ]
+
+                """);
+        this.tables.stream()
+                .filter(t -> t.currentRow >= 0)
+                .forEach(t -> buffer.append(formatTable(t)));
+        buffer.append("}");
+        return buffer.toString();
+    }
+
+    private String formatTable(final DocTable t) {
+        if (t.done) return ""; // already processed recursively
+        t.done = true;
+
+        final var buffer = new StringBuilder();
+        final var name = "".equals(t.name)? this.topTitle : t.name;
+        buffer.append("        ").append(q(name)).append(" [\n")
+              .append("                ").append("label = \"{").append(only(name)).append("|\\l}\"\n")
+              .append("        ").append("]\n\n");
+
+        for (int i = 0; i <= t.currentRow; i++) {
+            for (final var c : t.fields) {
+                final var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
+                final var match = SEE_REGEXP.matcher(cell);
+                if (match.matches()) {
+                    final var key = match.group(1);
+                    final var tbl = this.tableMap.get(key);
+                    // if we have a reference to a single line table, optionally embed it
+                    if (tbl!=null)  {
+                        buffer.append(formatTable(tbl))
+                              .append("\n")
+//                              .append("        edge [\n")
+//                              .append("                headlabel = \"")
+//                              .append(tbl.cardinality)
+//                              .append("\"\n")
+//                              .append("        ]\n\n")
+                              .append("        ")
+                              .append(q(name))
+                              .append(" -> ")
+                              .append(q(tbl.name))
+                              .append(" [ label = \"")
+                              .append(tbl.cardinality)
+                              .append("\" ]")
+                              .append("\n\n");
+                    }
+                }
+            }
+        }
+
+        return buffer.toString();
+    }
+
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net

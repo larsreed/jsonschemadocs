@@ -1,8 +1,6 @@
 package net.kalars.jsondoc;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -11,21 +9,17 @@ import java.util.function.BiConsumer;
 /** A class for handling the defined JSON Schema properties for a type. */
 class JsonProps {
 
-    static final List<String> KEYWORDS = Arrays.asList(
-            JsonDocNames.DESCRIPTION, JsonDocNames.TYPE,
-            JsonDocNames.MINIMUM, JsonDocNames.EXCLUSIVE_MINIMUM,
-            JsonDocNames.MAXIMUM, JsonDocNames.EXCLUSIVE_MAXIMUM,
-            JsonDocNames.MIN_LENGTH, JsonDocNames.MAX_LENGTH,
-            JsonDocNames.MIN_ITEMS, JsonDocNames.MAX_ITEMS, JsonDocNames.UNIQUE_ITEMS,
-            JsonDocNames.FORMAT, JsonDocNames.PATTERN);
-
     private final Map<String, String> props= new LinkedHashMap<>();
 
     static String unquote(final String s) {
         return s.replaceAll("^\"", "").replaceAll("\"$", "");
     }
 
-    void add(final String key, final String value) { this.props.put(key, unquote(value)); }
+    void add(final String key, final String value) {
+        this.props.merge(key, unquote(value),  (org, add) -> org.contains(add)? org : org + "\n" + add);
+    }
+
+    @SuppressWarnings("SameParameterValue")
     String getProp(final String key) { return this.props.get(key); }
 
     void forEach(final BiConsumer<? super String, ? super String> method) {
@@ -47,17 +41,21 @@ class JsonProps {
         pattern();
     }
 
-    private Optional<String> extract(final String key) {
+    private Optional<String> getOpt(final String key) {
         final var found = this.props.get(key);
-        if (found!=null) {
-            this.props.remove(key);
-            return Optional.of(found);
-        }
+        if (found!=null)  return Optional.of(found);
         return Optional.empty();
     }
 
+    private Optional<String> extract(final String key) {
+        final var found = getOpt(key);
+        if (found.isPresent()) this.props.remove(key);
+        return found;
+    }
+
+
     private void mergeType(final String value) {
-        this.props.merge(JsonDocNames.TYPE, value,  (org, add) -> org.contains(add)? org : org + "  " + add);
+        this.props.merge(JsonDocNames.TYPE, value,  (org, add) -> org.contains(add)? org : org + "\t" + add);
     }
 
     private void minMax() {
@@ -107,10 +105,10 @@ class JsonProps {
         mergeType(min.orElse("") + max.orElse(""));
     }
 
-    private void minMaxItems() {
-        var min = extract(JsonDocNames.MIN_ITEMS);
-        var max = extract(JsonDocNames.MAX_ITEMS);
-        final var req = extract(JsonDocNames.REQUIRED);
+    String cardinality() {
+        var min = getOpt(JsonDocNames.MIN_ITEMS);
+        var max = getOpt(JsonDocNames.MAX_ITEMS);
+        final var req = getOpt(JsonDocNames.REQUIRED);
 
         if (min.isPresent() && max.isPresent() && min.get().equals(max.get())) { // Exact value
             min = Optional.of("[" + min.get() + "]");
@@ -120,15 +118,23 @@ class JsonProps {
             if (min.isPresent()) min = Optional.of("[" + min.get() + ", ");
             if (max.isPresent()) {
                 max = Optional.of(max.get() + "]");
-                if (req.isPresent()) min = Optional.of("<1, ");
-                else min = Optional.of("<0, ");
+                if (req.isPresent()) min = Optional.of("[1, ");
+                else min = Optional.of("[0, ");
             }
         }
 
-        if (min.isPresent()) {
-            mergeType(min.orElse("") + max.orElse(""));
-        }
-        else if (req.isPresent()) mergeType(JsonDocNames.REQUIRED);
+        if (min.isPresent()) return min.orElse("") + max.orElse("");
+        else if (req.isPresent()) return JsonDocNames.REQUIRED;
+        else return "";
+    }
+
+    private void minMaxItems() {
+        final var cardinality = cardinality();
+        mergeType(cardinality);
+        // remove these
+        extract(JsonDocNames.MIN_ITEMS);
+        extract(JsonDocNames.MAX_ITEMS);
+        extract(JsonDocNames.REQUIRED);
     }
 
     private void uniqueItems() {
