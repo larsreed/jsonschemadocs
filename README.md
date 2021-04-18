@@ -45,12 +45,13 @@ for use in e.g. validators, like this:
  
 ## **Creating documentation**
   
-Currently, two types of documentation are supported
+Currently, three types of documentation are supported
 
 1. HTML
    
     To create an HTML document documenting the schema, run a visitor like this
 (the "2" parameter signifies that we want to embed tables of up to 2 rows).
+
 ```java
          final var visitor3 = new JsonDocHtmlVisitor(2);
          new JsonSchemaParser().parseFile(fileName).visit(visitor3);
@@ -60,10 +61,29 @@ Currently, two types of documentation are supported
 2. Wiki
 
    Like the HTML version, but no embedding of tables.
+
 ```java
         final var visitor2 = new JsonDocWikiVisitor();
         new JsonSchemaParser().parseFile(fileName).visit(visitor2);
         final String wikiDoc = visitor2.toString();
+```
+
+3. Diagram
+
+    Requires Graphviz -- https://graphviz.org/download/
+
+    First: create the dot input
+
+```java
+        final var visitor4 = new JsonDocDotVisitor();
+        new JsonSchemaParser().parseFile(fileName).visit(visitor4);
+        final String dotDoc = visitor4.toString();
+```
+
+    Then: create a diagram from the dot script:
+
+```PowerSHell
+        & 'C:\Program Files\Graphviz\bin\dot' -T png -o diagram.png dotscript.txt
 ```
 
 
