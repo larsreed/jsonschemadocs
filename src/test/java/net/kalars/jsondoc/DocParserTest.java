@@ -3,7 +3,9 @@ package net.kalars.jsondoc;
 import org.junit.jupiter.api.Test;
 
 class DocParserTest {
-    private static final String fileName = "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample.json";
+    private static final String fileName =
+//            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample.json";
+            "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample.json";
 
     @Test
     void htmlOutput() {

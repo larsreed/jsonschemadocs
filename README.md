@@ -36,13 +36,8 @@ Written by Lars Reed, april 2021. I'd be happy for an attribution if you use thi
 
 The schema, without the documentation and ignored properties, can be recreated
 for use in e.g. validators, like this:
+`java -jar jsondoc.jar SCHEMA /path/to/input/myExtendSchema.json > myBasicSchema.json`
 
-```java
-        final var visitor1 = new JsonSchemaPrintVisitor();
-        new JsonGenParser().parseFile(fileName).visit(visitor1);
-        final String schema = visitor1.toString();
-```
- 
 ## **Creating documentation**
   
 Currently, three types of documentation are supported
@@ -50,41 +45,32 @@ Currently, three types of documentation are supported
 1. HTML
    
     To create an HTML document documenting the schema, run a visitor like this
-(the "2" parameter signifies that we want to embed tables of up to 2 rows).
-
-```java
-         final var visitor3 = new JsonDocHtmlVisitor(2);
-         new JsonSchemaParser().parseFile(fileName).visit(visitor3);
-         final String htmlDoc = visitor3.toString();
-```
+(the "1" parameter signifies that we want to embed tables of up to 1 rows).
+   `java -jar jsondoc.jar HTML /path/to/input/myExtendSchema.json 1 > mySchema.html`
+   
+    Sample output:
+   
+    ![example](sample-html.png)
 
 2. Wiki
 
-   Like the HTML version, but no embedding of tables.
-
-```java
-        final var visitor2 = new JsonDocWikiVisitor();
-        new JsonSchemaParser().parseFile(fileName).visit(visitor2);
-        final String wikiDoc = visitor2.toString();
-```
+    Like the HTML version, but no embedding of tables.
+   `java -jar jsondoc.jar WIKI /path/to/input/myExtendSchema.json > mySchema.wiki`
+   This option is currently not completely implemented,,,
 
 3. Diagram
 
     Requires Graphviz -- https://graphviz.org/download/
 
-    First: create the dot input
-
-```java
-        final var visitor4 = new JsonDocDotVisitor();
-        new JsonSchemaParser().parseFile(fileName).visit(visitor4);
-        final String dotDoc = visitor4.toString();
-```
+    First: create the dot input:
+   `java -jar jsondoc.jar GRAPH /path/to/input/myExtendSchema.json > mySchema.txt`
 
     Then: create a diagram from the dot script:
+    `& 'C:\Program Files\Graphviz\bin\dot' -T png -o mySchema.png mySchema.txt`
 
-```PowerSHell
-        & 'C:\Program Files\Graphviz\bin\dot' -T png -o diagram.png dotscript.txt
-```
+   Sample output:
+   
+   ![example](sample-graph.png)
 
 
 # Maintenance

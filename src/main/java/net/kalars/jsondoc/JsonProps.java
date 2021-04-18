@@ -76,6 +76,9 @@ class JsonProps {
             max = extract(JsonDocNames.EXCLUSIVE_MAXIMUM);
             if (max.isPresent()) max = Optional.of(max.get() + ">");
         }
+        if (max.isEmpty()){
+            if (min.isPresent()) max = Optional.of(" ...]");
+        }
         else max = Optional.of(max.get() + "]");
 
         if (min.isPresent()) min = Optional.of(min.get() + ", ");
@@ -115,7 +118,10 @@ class JsonProps {
             max = Optional.empty();
         }
         else {
-            if (min.isPresent()) min = Optional.of("[" + min.get() + ", ");
+            if (min.isPresent()) {
+                min = Optional.of("[" + min.get() + ", ");
+                if (max.isEmpty()) max = Optional.of(" ...");
+            }
             if (max.isPresent()) {
                 max = Optional.of(max.get() + "]");
                 if (req.isPresent()) min = Optional.of("[1, ");
