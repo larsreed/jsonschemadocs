@@ -21,7 +21,7 @@ Written by Lars Reed, april 2021. I'd be happy for an attribution if you use thi
 
 * Sample:
 ```json
-        "eventId": {
+        "eventId" : {
           "type": "string",
           "description": "UUID v4 format",
           "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
@@ -56,7 +56,7 @@ Currently, three types of documentation are supported
 
     Like the HTML version, but no embedding of tables.
    `java -jar jsondoc.jar WIKI /path/to/input/myExtendSchema.json > mySchema.wiki`
-   This option is currently not completely implemented,,,
+   This option is currently not completely implemented...
 
 3. Diagram
 
@@ -75,20 +75,25 @@ Currently, three types of documentation are supported
 
 # Maintenance
 
-## **Code style**
+## JSON Schema
+
+The parser does not yet promise to support all of JSON Schema, it has only been tested on the parts 
+I have been working with.
+
+## Code style
 
 Having coded mostly in Scala (and a little Kotlin) lately, some classical Java conventions seem cumbersome...
 So the code here is not entirely idiomatic - but it's mine. 
 
 * *What? Multiple classes in the same file, and hardly anything public?*
 
-      This is a small utility, and all classes fit nicely within a package. What should `public` do for me?
-      And I think it's quite nice to find all the parser code in one file, all data structure nodes in one, etc.
+    This is a small utility, and all classes fit nicely within a package. What should `public` do for me?
+    And I think it's quite nice to find all the parser code in one file, all data structure nodes in one, etc.
 
 * *Single line methods*
 
-      Why does a single, short Java statement have to occupy 3+ lines in a file?
-      It shouldn't...
+    Why does a single, short Java statement have to occupy 3+ lines in a file?
+    It shouldn't...
 
 * *Direct variable access*
 
@@ -99,7 +104,7 @@ So the code here is not entirely idiomatic - but it's mine.
 
     Live with it :-) 
 
-## **Lack of tests**
+## Lack of tests
 
 Yes, that *is* actually bad.  The code was created as a kind of discovery process, didn't think I'd even keep it,
 but now that I did, there should be some structured tests...
