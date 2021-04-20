@@ -174,7 +174,7 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
 
 
 /** Prints schema documentation. */
-@SuppressWarnings({"ArraysAsListWithZeroOrOneArgument", "FeatureEnvy"})
+@SuppressWarnings("FeatureEnvy")
 abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
     protected static final String SEPARATOR = " > ";
@@ -182,7 +182,8 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
     protected static final String SEE_SFX = "/§§§";
     protected static final String SEE_QUICK_RE = SEE_PFX+"([^§]+)"+SEE_SFX;
     protected static final Pattern SEE_REGEXP = Pattern.compile(".*"+SEE_QUICK_RE+".*", Pattern.DOTALL);
-    private static final List<String> EXCLUDE_PREFIXES = Arrays.asList(JsonDocNames.IGNORE_PREFIX);
+    private static final List<String> EXCLUDE_PREFIXES =
+            Arrays.asList(JsonDocNames.IGNORE_PREFIX, JsonDocNames.XIFNOT_PREFIX, JsonDocNames.XIF_PREFIX);
 
     /** One documentation table instance. */
     final static class DocTable {
@@ -190,20 +191,26 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
                 JsonDocNames.FIELD,
                 JsonDocNames.DESCRIPTION,
                 JsonDocNames.TYPE);
-        final List<String> fields = new LinkedList<>(ALWAYS_COLUMNS);
+        final List<String> fields = new LinkedList<>();
         int currentRow = -1;
         final String name;
+        private final JsonContext context;
         boolean done = false;
         String cardinality;
         final Map<String, String> data = new LinkedHashMap<>();
 
-        private DocTable(final String name) { this.name = name;}
+        private DocTable(final String name, final JsonContext context) {
+            this.name = name;
+            this.context = context;
+            ALWAYS_COLUMNS.forEach(c -> { if (!this.context.isExcluded(c)) this.fields.add(c); });
+        }
 
         void addRow() { this.currentRow++; }
         static String toKey(final int r, final String c) { return String.format("%d\t%s", r, c); }
         int level() { return 1 + (int) this.name.chars().filter(c-> c=='>').count(); }
 
         void addValue(final String colName, final String orgValue) {
+            if (this.context.isExcluded(colName)) return;
             final var colVal = JsonProps.unquote(orgValue);
             if (this.currentRow < 0) this.currentRow++;
             if (!this.fields.contains(colName)) this.fields.add(colName);
@@ -253,13 +260,12 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
     @Override
     public boolean object(final JsonObject object) {
-        if (EXCLUDE_PREFIXES.stream().anyMatch(object.name::startsWith)) return false;
-
         final var exclude = object.props.copyProps().entrySet().stream()
                 .filter(e -> e.getKey().startsWith(JsonDocNames.XIF_PREFIX) ||
                         e.getKey().startsWith(JsonDocNames.XIFNOT_PREFIX))
                 .anyMatch(this::excludeThis);
         if (exclude) return false;
+        if (EXCLUDE_PREFIXES.stream().anyMatch(object.name::startsWith)) return false;
 
         final var top = this.stack.peek();
         final String pfx;
@@ -267,7 +273,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         else pfx = top.name + SEPARATOR;
 
         final var tableName = pfx + object.name;
-        final var docTable = new DocTable(tableName);
+        final var docTable = new DocTable(tableName, this.context);
         if (top != null) {
             top.addRow();
             top.addValue(JsonDocNames.FIELD, object.name);
@@ -554,7 +560,7 @@ digraph G {
         final var buffer = new StringBuilder();
         final var name = "".equals(t.name)? this.topTitle : t.name;
         buffer.append("        ").append(q(name)).append(" [\n")
-              .append("                ").append("label = \"{").append(only(name)).append("|\\l}\"\n")
+              .append("                ").append("label = \"{").append(only(name)).append("|\\n}\"\n")
               .append("        ").append("]\n\n");
 
         for (int i = 0; i <= t.currentRow; i++) {

@@ -7,7 +7,8 @@
   "properties": {
     "productId": {
       "description": "The unique identifier for a product",
-      "type": "integer"
+      "type": "integer",
+      "x-custom": "additional documentation"
     },
     "productName": {
       "description": "Name of the product",

@@ -66,23 +66,34 @@ can be given after the input file name with `-Dname=value`, e.g.
 
 ## **Creating documentation**
   
-Currently, three types of documentation are supported
+Currently, three types of documentation are supported.
 
 1. HTML
-   
+
     To create an HTML document documenting the schema, run a visitor like this
-(the "1" parameter signifies that we want to embed tables of up to 1 rows).
+
    `java -jar jsondoc.jar HTML /path/to/input/myExtendSchema.json -DembedUpToRows=1 > mySchema.html`
-   
+
     Sample output:
-   
+
     ![example](sample-html.png)
+
+    The definition `-DexcludedColumns=foo,bar` may be appended
+    defining one or more (comma separated) columns to exclude from the result.
+
+    The definition `-DembedUpToRows=n` (where 'n' is a number) may be appended,
+    denoting that tables of up to N rows should be embedded in its parent.
+
+    A sample with such definitions:
+    `java -jar jsondoc.jar HTML myExtendSchema.json -DembedUpToRows=1 -DexcludedColumns=sample,note > myLittleSchema.html`
+
 
 2. Wiki
 
     Like the HTML version, but no embedding of tables.
    `java -jar jsondoc.jar WIKI /path/to/input/myExtendedSchema.json > mySchema.wiki`
    This option is currently not completely implemented...
+
 
 3. Diagram
 
@@ -95,9 +106,28 @@ Currently, three types of documentation are supported
     `& 'C:\Program Files\Graphviz\bin\dot' -T png -o mySchema.png mySchema.txt`
 
    Sample output:
-   
+
    ![example](sample-graph.png)
 
+## Command line help
+Run `java -jar jsondoc.jar HELP` to get online help.
+
+```text
+JSON SCHEMA DOCUMENTATION TOOL -- Lars Reed, 2021
+Usage: java -jar jsondoc.jar TYPE INPUTFILE [DEFINITIONS] > resultfile
+
+TYPE: one of SCHEMA, HTML, GRAPH, WIKI
+    SCHEMA: output a clean schema file, without additional attributes
+    HTML:   output HTML-formatted documentation
+    DOT:    output a script to create a graph using graphviz/dot
+    WIKI:   output in Confluence wiki format (not working yet)
+INPUTFILE: name of extended JSON Schema file
+DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE
+    e.g. -Dvariant=variant could define a context for "xif-variant": "variant"
+    -DexcludeColumns="col1,col2,..." to exclude named columns
+    -DembedUpToRows="n" defines embedding in HTML tables
+Output is written to stdout and must be redirected.
+```
 
 # Maintenance
 

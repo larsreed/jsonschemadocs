@@ -11,7 +11,9 @@ class JsonContext {
 
     public static final String MODE = "mode";
     public static final String EMBED_ROWS = "embedUpToRows";
-    public static final String TARGET = "target";
+    public static final String VARIANT = "variant";
+    public static final String EXCLUDED_COLUMNS = "excludeColumns";
+
     private final Map<String, String> map = new LinkedHashMap<>();
 
     JsonContext(final String mode) { this.map.put(MODE, mode); }
@@ -28,8 +30,13 @@ class JsonContext {
     boolean matches(final String key, final boolean notMatched, final String... candidates) {
         final var hit = this.map.get(key);
         if (hit==null) return notMatched; // it is considered a match if no values at all are given for this key
-        final var first = Arrays.stream(candidates).filter(hit::equals).findFirst();
-        return first.isPresent();
+        return Arrays.stream(candidates).anyMatch(hit::equalsIgnoreCase);
+    }
+
+    boolean isExcluded(final String column) {
+        final var excluded = this.map.get(EXCLUDED_COLUMNS);
+        if (excluded==null) return false; // no columns excluded
+        return Arrays.stream(excluded.split(", *")).anyMatch(excl -> excl.equalsIgnoreCase(column));
     }
 }
 

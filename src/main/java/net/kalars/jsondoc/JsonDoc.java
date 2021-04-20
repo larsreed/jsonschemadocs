@@ -65,9 +65,10 @@ final public class JsonDoc {
         System.out.println("    WIKI:   output in Confluence wiki format (not working yet)");
         System.out.println("INPUTFILE: name of extended JSON Schema file");
         System.out.println("DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE");
-        System.out.println("    e.g. -D" + JsonContext.TARGET + "=variant could define a context for \""
-                + JsonDocNames.XIF_PREFIX + JsonContext.TARGET + "\": \"variant\"");
-        System.out.println("    -D" + JsonContext.EMBED_ROWS + "=n defines embedding in HTML tables");
+        System.out.println("    e.g. -D" + JsonContext.VARIANT + "=variant could define a context for \""
+                + JsonDocNames.XIF_PREFIX + JsonContext.VARIANT + "\": \"variant\"");
+        System.out.println("    -D" + JsonContext.EXCLUDED_COLUMNS + "=\"col1,col2,...\" to exclude named columns");
+        System.out.println("    -D" + JsonContext.EMBED_ROWS + "=\"n\" defines embedding in HTML tables");
         System.out.println("Output is written to stdout and must be redirected.");
         System.exit(err);
     }
