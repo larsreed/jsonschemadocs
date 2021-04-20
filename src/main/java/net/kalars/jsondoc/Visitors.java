@@ -61,7 +61,7 @@ class DebugVisitor extends AbstractPrintVisitor {
                 .append("\n");
         if (node instanceof JsonSchemaObject) {
             final var props = ((JsonSchemaObject) node).props;
-            props.forEach((k, v) ->
+            props.iterateOver((k, v) ->
                     this.sb.append(makeIndent(node, 1))
                             .append("[")
                             .append(k)
@@ -138,7 +138,7 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
         if (EXCLUDE_PREFIXES.stream().anyMatch(object.name::startsWith)) return;
         final var indent = makeIndent(object, 0);
         if (object instanceof JsonSchemaObject ) {
-            object.props.copyProps().forEach((k, v) ->
+            object.props.propCopy().forEach((k, v) ->
                     this.sb.append(indent)
                             .append(" ")
                             .append(k)
@@ -177,11 +177,13 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
 @SuppressWarnings("FeatureEnvy")
 abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
-    protected static final String SEPARATOR = " > ";
-    protected static final String SEE_PFX = "§§§/";
-    protected static final String SEE_SFX = "/§§§";
-    protected static final String SEE_QUICK_RE = SEE_PFX+"([^§]+)"+SEE_SFX;
+    protected static final String SEPARATOR = " > "; // Separator in headings
+
+    protected static final String SEE_PFX = "§§§/"; // Prefixes a reference injected in the Description column
+    protected static final String SEE_SFX = "/§§§"; // Suffixes the same
+    protected static final String SEE_QUICK_RE = SEE_PFX+"([^§]+)"+SEE_SFX; // Regex to find an extract such links
     protected static final Pattern SEE_REGEXP = Pattern.compile(".*"+SEE_QUICK_RE+".*", Pattern.DOTALL);
+
     private static final List<String> EXCLUDE_PREFIXES =
             Arrays.asList(JsonDocNames.IGNORE_PREFIX, JsonDocNames.XIFNOT_PREFIX, JsonDocNames.XIF_PREFIX);
 
@@ -260,7 +262,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
     @Override
     public boolean object(final JsonObject object) {
-        final var exclude = object.props.copyProps().entrySet().stream()
+        final var exclude = object.props.propCopy().entrySet().stream()
                 .filter(e -> e.getKey().startsWith(JsonDocNames.XIF_PREFIX) ||
                         e.getKey().startsWith(JsonDocNames.XIFNOT_PREFIX))
                 .anyMatch(this::excludeThis);
@@ -294,7 +296,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
         if (object instanceof JsonSchemaObject) {
             final var target = (top==null)? docTable : top;
-            object.props.forEach(target::addValue);
+            object.props.iterateOver(target::addValue);
         }
 
         return true;
@@ -313,7 +315,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         return false; // i.e. excluded
     }
 
-    // hack... to handle "type" : [ "string", "null"] type constructs
+    // hack... to handle "type" : [ "string", "null" ] type constructs
     private boolean typeAsAnArray(final JsonObject object) {
         return object instanceof JsonSchemaObject
                 && object.childList().size() == 1
@@ -351,11 +353,14 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
     public boolean array(final JsonArray array) {
         if (EXCLUDE_PREFIXES.stream().anyMatch(array.name::startsWith)) return false;
         if (JsonDocNames.TYPE.equals(array.name)) return false;
+
         final var table = this.stack.peek();
         if (table == null) return false;
+
         table.addRow();
         table.addValue(JsonDocNames.FIELD, array.name);
         table.addValue(JsonDocNames.TYPE, JsonDocNames.ARRAY);
+
         final var contents = new StringBuilder();
         contents.append("[ ");
         array.childList().stream()
@@ -364,7 +369,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         contents.setLength(contents.length()-2);
         contents.append("]");
         table.addValue(JsonDocNames.DESCRIPTION, contents.toString());
-        return false;
+        return false;  // do not process further
     }
 
     @Override public void arrayLeave(final JsonArray array) { /*EMPTY*/ }
@@ -407,8 +412,7 @@ class JsonDocWikiVisitor extends JsonDocPrintVisitor {
     private String headingRow(final DocTable t) {
         final var buffer = new StringBuilder();
         for (final var c : t.fields) buffer.append(keyToTitle(c)).append("||");
-        buffer.append("\n");
-        return buffer.toString();
+        return buffer.append("\n").toString();
     }
 
     private String heading(final DocTable t) {
@@ -454,13 +458,12 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
         buffer.append("""
                 <!doctype html>
                 <html><head><meta charset=utf-8>
-                """);
-        buffer.append(STYLE);
+                """)
+                .append(STYLE);
         this.tables.stream()
                 .filter(t -> t.currentRow >= 0)
                 .forEach(t -> buffer.append(formatTable(t, 0)));
-        buffer.append("</body></html>");
-        return buffer.toString();
+        return buffer.append("</body></html>").toString();
     }
 
     private String formatTable(final DocTable t, final int level) {
@@ -469,9 +472,9 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
 
         final var buffer = new StringBuilder();
         if (level==0) buffer.append(headingWithId(t));// Only heading for tables that are not embedded
-        buffer.append("<table><thead><tr>\n  ");
-        buffer.append(headerRow(t));
-        buffer.append("\n</tr></thead><tbody>\n");
+        buffer.append("<table><thead><tr>\n  ")
+              .append(headerRow(t))
+              .append("\n</tr></thead><tbody>\n");
 
         for (int i = 0; i <= t.currentRow; i++) {
             buffer.append("  <tr>");
@@ -492,8 +495,7 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
             buffer.append("</tr>\n");
         }
 
-        buffer.append("</tbody></table>\n\n");
-        return buffer.toString();
+        return buffer.append("</tbody></table>\n\n").toString();
     }
 
     private String headingWithId(final DocTable t) {
@@ -511,8 +513,7 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
 
     private String headerRow(final DocTable t) {
         final var buffer = new StringBuilder();
-        for (final var c : t.fields)
-            buffer.append("<th>")
+        for (final var c : t.fields) buffer.append("<th>")
                     .append(q(keyToTitle(c)))
                     .append("</th>");
         return buffer.toString();
@@ -549,8 +550,7 @@ digraph G {
         this.tables.stream()
                 .filter(t -> t.currentRow >= 0)
                 .forEach(t -> buffer.append(formatTable(t)));
-        buffer.append("}");
-        return buffer.toString();
+        return buffer.append("}").toString();
     }
 
     private String formatTable(final DocTable t) {
@@ -574,19 +574,13 @@ digraph G {
                     if (tbl!=null)  {
                         buffer.append(formatTable(tbl))
                               .append("\n")
-//                              .append("        edge [\n")
-//                              .append("                headlabel = \"")
-//                              .append(tbl.cardinality)
-//                              .append("\"\n")
-//                              .append("        ]\n\n")
                               .append("        ")
                               .append(q(name))
                               .append(" -> ")
                               .append(q(tbl.name))
                               .append(" [ label = \"")
                               .append(tbl.cardinality)
-                              .append("\" ]")
-                              .append("\n\n");
+                              .append("\" ]\n\n");
                     }
                 }
             }

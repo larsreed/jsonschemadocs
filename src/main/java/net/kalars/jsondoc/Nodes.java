@@ -95,7 +95,7 @@ class JsonSchemaObject extends JsonObject {
     @Override
     public String toString() {
         final var sb= new StringBuilder().append("JsonDocNode{ qName='").append(this.qName);
-        this.props.forEach((k, v) -> sb.append(" ").append(k).append("=").append(v));
+        this.props.iterateOver((k, v) -> sb.append(" ").append(k).append("=").append(v));
         return sb.toString();
     }
 }

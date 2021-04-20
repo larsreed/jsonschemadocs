@@ -2,6 +2,7 @@ package net.kalars.jsondoc;
 
 import java.util.regex.Pattern;
 
+/** The CLI main class. */
 @SuppressWarnings("FeatureEnvy")
 public final class JsonDoc {
     private static final Pattern pattern = Pattern.compile("^-D([^=]+)=([^=]+)$");

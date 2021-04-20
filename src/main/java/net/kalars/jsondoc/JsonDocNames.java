@@ -6,6 +6,7 @@ package net.kalars.jsondoc;
 import java.util.Arrays;
 import java.util.List;
 
+/** Strings for attributes etc. */
 @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
 interface JsonDocNames {
     String XDOC_PREFIX = "x-";

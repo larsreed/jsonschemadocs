@@ -23,7 +23,7 @@ class JsonProps {
     @SuppressWarnings("SameParameterValue")
     String getProp(final String key) { return this.props.get(key); }
 
-    void forEach(final BiConsumer<? super String, ? super String> method) {
+    void iterateOver(final BiConsumer<? super String, ? super String> method) {
         // Redefine the type description before iterating over it
         final var copy = new JsonProps();
         copy.props.putAll(this.props);
@@ -32,7 +32,7 @@ class JsonProps {
         copy.props.forEach(method);
     }
 
-    Map<String, String> copyProps() {return new LinkedHashMap<>(this.props);  }
+    Map<String, String> propCopy() {return new LinkedHashMap<>(this.props);  }
 
     private void defineType() {
         format();
