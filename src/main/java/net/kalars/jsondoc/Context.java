@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /** Map-based implementation of a Context. */
 @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
-class JsonContext {
+class Context {
 
     public static final String MODE = "mode";
     public static final String EMBED_ROWS = "embedUpToRows";
@@ -16,10 +16,10 @@ class JsonContext {
 
     private final Map<String, String> map = new LinkedHashMap<>();
 
-    JsonContext(final String mode) { this.map.put(MODE, mode); }
+    Context(final String mode) { this.map.put(MODE, mode); }
 
     @SuppressWarnings("UnusedReturnValue")
-    JsonContext add(final String key, final String value) {
+    Context add(final String key, final String value) {
         this.map.put(key, value);
         return this;
     }

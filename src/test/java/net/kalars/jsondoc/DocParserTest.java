@@ -7,8 +7,8 @@ class DocParserTest {
             "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample.json";
 //            "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample.json";
 
-    private JsonContext ctx(final String mode) {
-        return new JsonContext(mode)
+    private Context ctx(final String mode) {
+        return new Context(mode)
                 .add("test", "true")
 //                .add("variant", "tags")
 //                .add(JsonContext.EXCLUDED_COLUMNS, "description, custom")

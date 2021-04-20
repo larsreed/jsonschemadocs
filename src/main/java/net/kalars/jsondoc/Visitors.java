@@ -32,9 +32,9 @@ interface JsonNodeVisitor {
 /** Base class for print visitors. */
 abstract class AbstractPrintVisitor implements JsonNodeVisitor {
     protected final StringBuilder sb = new StringBuilder();
-    protected final JsonContext context;
+    protected final Context context;
 
-    AbstractPrintVisitor(final JsonContext context) { this.context = context; }
+    AbstractPrintVisitor(final Context context) { this.context = context; }
     @Override public String toString() { return this.sb.toString(); }
 
     String makeIndent(final JsonBasicNode node, final int extra) {
@@ -46,7 +46,7 @@ abstract class AbstractPrintVisitor implements JsonNodeVisitor {
 @SuppressWarnings({"UnnecessaryReturnStatement", "EmptyMethod", "SameReturnValue"})
 class DebugVisitor extends AbstractPrintVisitor {
 
-    DebugVisitor(final JsonContext context) { super(context); }
+    DebugVisitor(final Context context) { super(context); }
 
     private boolean printer(final JsonBasicNode node, final String s1, final String s2, final String s3) {
         this.sb.append(makeIndent(node, 0))
@@ -90,7 +90,7 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
             Arrays.asList(JsonDocNames.IGNORE_PREFIX, JsonDocNames.XDOC_PREFIX, JsonDocNames.XIF_PREFIX,
                     JsonDocNames.XIFNOT_PREFIX);
 
-    JsonSchemaPrintVisitor(final JsonContext context) { super(context); }
+    JsonSchemaPrintVisitor(final Context context) { super(context); }
 
     @Override
     public void value(final JsonValue value) {
@@ -194,12 +194,12 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         final List<String> fields = new LinkedList<>();
         int currentRow = -1;
         final String name;
-        private final JsonContext context;
+        private final Context context;
         boolean done = false;
         String cardinality;
         final Map<String, String> data = new LinkedHashMap<>();
 
-        private DocTable(final String name, final JsonContext context) {
+        private DocTable(final String name, final Context context) {
             this.name = name;
             this.context = context;
             ALWAYS_COLUMNS.forEach(c -> { if (!this.context.isExcluded(c)) this.fields.add(c); });
@@ -227,9 +227,9 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
     private final Deque<DocTable> stack = new LinkedList<>();
     protected final Map<String, DocTable> tableMap = new HashMap<>();
 
-    JsonDocPrintVisitor(final JsonContext context) {
+    JsonDocPrintVisitor(final Context context) {
         super(context);
-        this.embedUpToRows = Integer.parseInt(context.value(JsonContext.EMBED_ROWS).orElse("0"));
+        this.embedUpToRows = Integer.parseInt(context.value(Context.EMBED_ROWS).orElse("0"));
     }
 
     @Override public void topNodeLeave(final JsonTopNode topNode) { objectLeave(topNode); }
@@ -372,7 +372,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
 class JsonDocWikiVisitor extends JsonDocPrintVisitor {
 
-    JsonDocWikiVisitor(final JsonContext context) { super(context); }
+    JsonDocWikiVisitor(final Context context) { super(context); }
 
     @Override
     public String toString() {
@@ -440,7 +440,7 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
         <body>
         """;
 
-    JsonDocHtmlVisitor(final JsonContext context) { super(context); }
+    JsonDocHtmlVisitor(final Context context) { super(context); }
 
     private String q(final String s) {
         return StringEscapeUtils.escapeXml11(s)
@@ -521,7 +521,7 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
 
 class JsonDocDotVisitor extends JsonDocPrintVisitor {
 
-    JsonDocDotVisitor(final JsonContext context) { super(context); }
+    JsonDocDotVisitor(final Context context) { super(context); }
 
     private String q(final String s) { return "\"" + s + "\""; }
     private String only(final String s) { return s.replaceAll(".*> ", ""); }

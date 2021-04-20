@@ -3,7 +3,7 @@ package net.kalars.jsondoc;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("FeatureEnvy")
-final public class JsonDoc {
+public final class JsonDoc {
     private static final Pattern pattern = Pattern.compile("^-D([^=]+)=([^=]+)$");
 
     public static void main(final String[] args) {
@@ -14,8 +14,8 @@ final public class JsonDoc {
         final var inputFile = args[1];
 
         // Context with defaults
-        final var context = new JsonContext(action);
-        context.add(JsonContext.EMBED_ROWS, "1");
+        final var context = new Context(action);
+        context.add(Context.EMBED_ROWS, "1");
 
         for (int i = 2; i < args.length; i++) {
             final var arg = args[i];
@@ -27,7 +27,7 @@ final public class JsonDoc {
         runWith(args[0], inputFile, context);
     }
 
-    private static void runWith(final String outType, final String inputfile, final JsonContext context) {
+    private static void runWith(final String outType, final String inputfile, final Context context) {
         switch (outType.toUpperCase()) {
             case "HTML" -> {
                 final var visitor3 = new JsonDocHtmlVisitor(context);
@@ -65,10 +65,10 @@ final public class JsonDoc {
         System.out.println("    WIKI:   output in Confluence wiki format (not working yet)");
         System.out.println("INPUTFILE: name of extended JSON Schema file");
         System.out.println("DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE");
-        System.out.println("    e.g. -D" + JsonContext.VARIANT + "=variant could define a context for \""
-                + JsonDocNames.XIF_PREFIX + JsonContext.VARIANT + "\": \"variant\"");
-        System.out.println("    -D" + JsonContext.EXCLUDED_COLUMNS + "=\"col1,col2,...\" to exclude named columns");
-        System.out.println("    -D" + JsonContext.EMBED_ROWS + "=\"n\" defines embedding in HTML tables");
+        System.out.println("    e.g. -D" + Context.VARIANT + "=variant could define a context for \""
+                + JsonDocNames.XIF_PREFIX + Context.VARIANT + "\": \"variant\"");
+        System.out.println("    -D" + Context.EXCLUDED_COLUMNS + "=\"col1,col2,...\" to exclude named columns");
+        System.out.println("    -D" + Context.EMBED_ROWS + "=\"n\" defines embedding in HTML tables");
         System.out.println("Output is written to stdout and must be redirected.");
         System.exit(err);
     }
