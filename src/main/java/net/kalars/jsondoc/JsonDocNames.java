@@ -9,6 +9,8 @@ import java.util.List;
 @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
 interface JsonDocNames {
     String XDOC_PREFIX = "x-";
+    String XIF_PREFIX = "xif-";
+    String XIFNOT_PREFIX = "xifnot-";
     String IGNORE_PREFIX = "ignore-";
 
     String FORMAT = "format";

@@ -79,7 +79,10 @@ class JsonSchemaObject extends JsonObject {
     void addChild(final JsonBasicNode orgNode) {
         if (orgNode instanceof JsonKeyValue) {
             final JsonKeyValue node = (JsonKeyValue) orgNode;
-            if (JsonDocNames.PROP_KEYWORDS.contains(node.key)) addProp(node.key, node.value);
+            if (JsonDocNames.PROP_KEYWORDS.contains(node.key) ||
+                    node.key.startsWith(JsonDocNames.XIF_PREFIX) ||
+                    node.key.startsWith(JsonDocNames.XIFNOT_PREFIX))
+                addProp(node.key, node.value);
             else if (node.key.startsWith(JsonDocNames.XDOC_PREFIX)) {
                 addProp(removePrefix(node.key, JsonDocNames.XDOC_PREFIX), node.value);
             }

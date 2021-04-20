@@ -20,6 +20,7 @@
     },
     "tags": {
       "description": "Tags for the product",
+      "xif-variant" : "tags, all",
       "type": "array",
       "items": {
         "type": "string"
@@ -29,6 +30,7 @@
     },
     "dimensions": {
       "type": "object",
+      "xifnot-variant" : "tags",
       "properties": {
         "length": {
           "type": "number"

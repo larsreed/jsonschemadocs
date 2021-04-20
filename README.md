@@ -9,7 +9,7 @@ Written by Lars Reed, april 2021. I'd be happy for an attribution if you use thi
 * JSON Schema
 
     Start off by creating your actual schema, as per https://json-schema.org/
-  
+
 * Additional information
 
     * Decide on the headings you want for additional information, e.g. "Sample values".
@@ -30,13 +30,39 @@ Written by Lars Reed, april 2021. I'd be happy for an attribution if you use thi
         },
 ```
 
+* Introduce conditionals
+
+    You can introduce conditions. Give your condition a name, e.g. `variant` 
+    and a set of possible values, e.g. `complete` and `concise`. 
+    Then you can add one of the following conditionals to exclude a given node -- **and** all its children -- thus: 
+
+    1. `"xif-variant" : "foo"` (where "variant" is your chosen condition name), 
+       the node (with children) will be included if 'variant' is undefined or defined and equal to "foo".
+       
+    2. `"xif-variant" : "foo, bar"` like the previous, but both "foo" and "bar" are acceptable values.
+       Legal values are separated by a comma ("foo, bar, baz" etc).
+    
+    3. `"xifnot-variant" : "foo"`, the node will be included if 'variant' is undefined 
+       or if it is given, but not as "foo".
+
+    4. `"xifnot-variant" : "foo, bar, baz"`, like the previous, but a list of values are accepted here as well.
+
+    More below on how to define conditions.
+
 # Producing documentation
 
 ## **Extracting schema for validation:**
 
 The schema, without the documentation and ignored properties, can be recreated
 for use in e.g. validators, like this:
-`java -jar jsondoc.jar SCHEMA /path/to/input/myExtendSchema.json > myBasicSchema.json`
+
+`java -jar jsondoc.jar SCHEMA /path/to/input/myExtendedSchema.json > myBasicSchema.json`
+
+For this, and all following examples, definitions (e.g. conditionals), 
+can be given after the input file name with `-Dname=value`, e.g.
+
+`java -jar jsondoc.jar SCHEMA myExtendedSchema.json -Dvariant=plain > myPlainSchema.json`
+
 
 ## **Creating documentation**
   
@@ -46,7 +72,7 @@ Currently, three types of documentation are supported
    
     To create an HTML document documenting the schema, run a visitor like this
 (the "1" parameter signifies that we want to embed tables of up to 1 rows).
-   `java -jar jsondoc.jar HTML /path/to/input/myExtendSchema.json 1 > mySchema.html`
+   `java -jar jsondoc.jar HTML /path/to/input/myExtendSchema.json -DembedUpToRows=1 > mySchema.html`
    
     Sample output:
    
@@ -55,7 +81,7 @@ Currently, three types of documentation are supported
 2. Wiki
 
     Like the HTML version, but no embedding of tables.
-   `java -jar jsondoc.jar WIKI /path/to/input/myExtendSchema.json > mySchema.wiki`
+   `java -jar jsondoc.jar WIKI /path/to/input/myExtendedSchema.json > mySchema.wiki`
    This option is currently not completely implemented...
 
 3. Diagram
@@ -63,7 +89,7 @@ Currently, three types of documentation are supported
     Requires Graphviz -- https://graphviz.org/download/
 
     First: create the dot input:
-   `java -jar jsondoc.jar GRAPH /path/to/input/myExtendSchema.json > mySchema.txt`
+   `java -jar jsondoc.jar GRAPH /path/to/input/myExtendedSchema.json > mySchema.txt`
 
     Then: create a diagram from the dot script:
     `& 'C:\Program Files\Graphviz\bin\dot' -T png -o mySchema.png mySchema.txt`

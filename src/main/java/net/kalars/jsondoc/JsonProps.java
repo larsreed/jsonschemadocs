@@ -1,5 +1,6 @@
 package net.kalars.jsondoc;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +28,7 @@ class JsonProps {
         final var copy = new JsonProps();
         copy.props.putAll(this.props);
         copy.defineType();
+        copy.removeIfs();
         copy.props.forEach(method);
     }
 
@@ -39,6 +41,13 @@ class JsonProps {
         minMaxItems();
         uniqueItems();
         pattern();
+    }
+
+    private void removeIfs() {
+        final var keys = new HashSet<>(this.props.keySet());
+        keys.stream()
+                .filter(t -> t.startsWith(JsonDocNames.XIF_PREFIX) || t.startsWith(JsonDocNames.XIFNOT_PREFIX))
+                .forEach(this.props::remove);
     }
 
     private Optional<String> getOpt(final String key) {

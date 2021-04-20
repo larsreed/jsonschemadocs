@@ -32,7 +32,9 @@ interface JsonNodeVisitor {
 /** Base class for print visitors. */
 abstract class AbstractPrintVisitor implements JsonNodeVisitor {
     protected final StringBuilder sb = new StringBuilder();
+    protected final JsonContext context;
 
+    AbstractPrintVisitor(final JsonContext context) { this.context = context; }
     @Override public String toString() { return this.sb.toString(); }
 
     String makeIndent(final JsonBasicNode node, final int extra) {
@@ -43,6 +45,8 @@ abstract class AbstractPrintVisitor implements JsonNodeVisitor {
 
 @SuppressWarnings({"UnnecessaryReturnStatement", "EmptyMethod", "SameReturnValue"})
 class DebugVisitor extends AbstractPrintVisitor {
+
+    DebugVisitor(final JsonContext context) { super(context); }
 
     private boolean printer(final JsonBasicNode node, final String s1, final String s2, final String s3) {
         this.sb.append(makeIndent(node, 0))
@@ -83,7 +87,10 @@ class DebugVisitor extends AbstractPrintVisitor {
 /** Copies the input, except for elements with a given set of prefixes. */
 class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
     private static final List<String> EXCLUDE_PREFIXES =
-            Arrays.asList(JsonDocNames.IGNORE_PREFIX, JsonDocNames.XDOC_PREFIX);
+            Arrays.asList(JsonDocNames.IGNORE_PREFIX, JsonDocNames.XDOC_PREFIX, JsonDocNames.XIF_PREFIX,
+                    JsonDocNames.XIFNOT_PREFIX);
+
+    JsonSchemaPrintVisitor(final JsonContext context) { super(context); }
 
     @Override
     public void value(final JsonValue value) {
@@ -213,7 +220,10 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
     private final Deque<DocTable> stack = new LinkedList<>();
     protected final Map<String, DocTable> tableMap = new HashMap<>();
 
-    JsonDocPrintVisitor(final int embedUpToRows) { this.embedUpToRows = embedUpToRows; }
+    JsonDocPrintVisitor(final JsonContext context) {
+        super(context);
+        this.embedUpToRows = Integer.parseInt(context.value(JsonContext.EMBED_ROWS).orElse("0"));
+    }
 
     @Override public void topNodeLeave(final JsonTopNode topNode) { objectLeave(topNode); }
 
@@ -245,11 +255,16 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
     public boolean object(final JsonObject object) {
         if (EXCLUDE_PREFIXES.stream().anyMatch(object.name::startsWith)) return false;
 
+        final var exclude = object.props.copyProps().entrySet().stream()
+                .filter(e -> e.getKey().startsWith(JsonDocNames.XIF_PREFIX) ||
+                        e.getKey().startsWith(JsonDocNames.XIFNOT_PREFIX))
+                .anyMatch(this::excludeThis);
+        if (exclude) return false;
+
         final var top = this.stack.peek();
         final String pfx;
         if (top==null || top.name.equals("")) pfx = "";
         else pfx = top.name + SEPARATOR;
-
 
         final var tableName = pfx + object.name;
         final var docTable = new DocTable(tableName);
@@ -277,6 +292,19 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         }
 
         return true;
+    }
+
+    private boolean excludeThis(final Map.Entry<String, String> e) {
+        final var values = e.getValue().split(", *");
+        if (e.getKey().startsWith(JsonDocNames.XIF_PREFIX)) {
+            final var guard = e.getKey().substring(JsonDocNames.XIF_PREFIX.length()); // e.g. target
+            return !this.context.matches(guard, true, values); // excluded
+        }
+        else if (e.getKey().startsWith(JsonDocNames.XIFNOT_PREFIX)) {
+            final var guard = e.getKey().substring(JsonDocNames.XIFNOT_PREFIX.length());
+            return this.context.matches(guard, false, values);
+        }
+        return false; // i.e. excluded
     }
 
     // hack... to handle "type" : [ "string", "null"] type constructs
@@ -338,7 +366,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
 class JsonDocWikiVisitor extends JsonDocPrintVisitor {
 
-    JsonDocWikiVisitor() { super(0); }
+    JsonDocWikiVisitor(final JsonContext context) { super(context); }
 
     @Override
     public String toString() {
@@ -406,7 +434,7 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
         <body>
         """;
 
-    JsonDocHtmlVisitor(final int embedUpToRows) { super(embedUpToRows); }
+    JsonDocHtmlVisitor(final JsonContext context) { super(context); }
 
     private String q(final String s) {
         return StringEscapeUtils.escapeXml11(s)
@@ -487,7 +515,7 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
 
 class JsonDocDotVisitor extends JsonDocPrintVisitor {
 
-    JsonDocDotVisitor() { super(0); }
+    JsonDocDotVisitor(final JsonContext context) { super(context); }
 
     private String q(final String s) { return "\"" + s + "\""; }
     private String only(final String s) { return s.replaceAll(".*> ", ""); }
