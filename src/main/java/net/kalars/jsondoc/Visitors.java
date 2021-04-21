@@ -111,21 +111,17 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
                 .append(",\n");
     }
 
-    @Override
-    public boolean topNode(final JsonTopNode topNode) {
-        this.buffer.append("{\n");
-        return true;
-    }
+    @Override public boolean topNode(final JsonTopNode topNode) { throw new RuntimeException("Not expected"); }
 
-    @Override
-    public void topNodeLeave(final JsonTopNode topNode) {
-        this.buffer.setLength((this.buffer.length()-2));
-        this.buffer.append("\n}\n");
-    }
+    @Override public void topNodeLeave(final JsonTopNode topNode) { throw new RuntimeException("Not expected"); }
 
     @Override
     public boolean object(final JsonObject object) {
         if (EXCLUDE_PREFIXES.stream().anyMatch(object.name::startsWith)) return false;
+        else if ("".equals(object.name)) {
+            this.buffer.append("{\n");
+            return true;
+        }
         this.buffer.append(makeIndent(object, 0))
                 .append("\"")
                 .append(object.name)
@@ -147,9 +143,8 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
                             .append("\n"));
         }
         this.buffer.setLength((this.buffer.length()-2));
-        this.buffer.append("\n")
-                .append(indent)
-                .append("},\n");
+        if ( "".equals(object.name)) this.buffer.append("\n}\n");
+        else this.buffer.append("\n").append(indent) .append("},\n");
     }
 
     @Override
