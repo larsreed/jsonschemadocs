@@ -47,7 +47,7 @@ Written by Lars Reed, april 2021. I'd be happy for an attribution if you use thi
 
     4. `"xifnot-variant" : "foo, bar, baz"`, like the previous, but a list of values are accepted here as well.
 
-    More below on how to define conditions.
+    More below on how to define conditions, as well as how to exclude tables/graph nodes and columns.
 
 # Producing documentation
 
