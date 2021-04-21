@@ -123,9 +123,9 @@ TYPE: one of SCHEMA, HTML, GRAPH, WIKI
     WIKI:   output in Confluence wiki format (not working yet)
 INPUTFILE: name of extended JSON Schema file
 DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE
-    e.g. -Dvariant=variant could define a context for "xif-variant": "variant"
-    -DexcludeColumns="col1,col2,..." to exclude named columns
-    -DembedUpToRows="n" defines embedding in HTML tables
+    e.g. -Dvariant=foo could define a context for "xif-variant": "foo"
+    -DexcludeColumns=col1,col2,... to exclude named columns
+    -DembedUpToRows=n defines embedding in HTML tables
 Output is written to stdout and must be redirected.
 ```
 

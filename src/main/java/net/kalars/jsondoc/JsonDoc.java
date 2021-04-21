@@ -56,20 +56,21 @@ public final class JsonDoc {
 
     private static void help(final String message, final int err) {
         System.err.println(message);
-        System.out.println("JSON SCHEMA DOCUMENTATION TOOL -- Lars Reed, 2021");
-        System.out.println("Usage: java -jar jsondoc.jar TYPE INPUTFILE [DEFINITIONS] > resultfile");
-        System.out.println();
-        System.out.println("TYPE: one of SCHEMA, HTML, GRAPH, WIKI");
-        System.out.println("    SCHEMA: output a clean schema file, without additional attributes");
-        System.out.println("    HTML:   output HTML-formatted documentation");
-        System.out.println("    DOT:    output a script to create a graph using graphviz/dot");
-        System.out.println("    WIKI:   output in Confluence wiki format (not working yet)");
-        System.out.println("INPUTFILE: name of extended JSON Schema file");
-        System.out.println("DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE");
-        System.out.println("    e.g. -D" + Context.VARIANT + "=variant could define a context for \""
-                + JsonDocNames.XIF_PREFIX + Context.VARIANT + "\": \"variant\"");
-        System.out.println("    -D" + Context.EXCLUDED_COLUMNS + "=\"col1,col2,...\" to exclude named columns");
-        System.out.println("    -D" + Context.EMBED_ROWS + "=\"n\" defines embedding in HTML tables");
+        System.out.println("""
+        JSON SCHEMA DOCUMENTATION TOOL -- Lars Reed, 2021
+        Usage: java -jar jsondoc.jar TYPE INPUTFILE [DEFINITIONS] > resultfile
+        
+        TYPE: one of SCHEMA, HTML, GRAPH, WIKI
+            SCHEMA: output a clean schema file, without additional attributes
+            HTML:   output HTML-formatted documentation
+            DOT:    output a script to create a graph using graphviz/dot
+            WIKI:   output in Confluence wiki format (not working yet)
+        INPUTFILE: name of extended JSON Schema file
+        DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE""");
+        System.out.println("    e.g. -D" + Context.VARIANT + "=foo could define a context for \""
+                + JsonDocNames.XIF_PREFIX + Context.VARIANT + "\": \"foo\"");
+        System.out.println("    -D" + Context.EXCLUDED_COLUMNS + "=col1,col2,... to exclude named columns");
+        System.out.println("    -D" + Context.EMBED_ROWS + "=n defines embedding in HTML tables");
         System.out.println("Output is written to stdout and must be redirected.");
         System.exit(err);
     }

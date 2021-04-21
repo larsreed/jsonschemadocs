@@ -269,37 +269,37 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         if (exclude) return false;
         if (EXCLUDE_PREFIXES.stream().anyMatch(object.name::startsWith)) return false;
 
-        final var top = this.stack.peek();
-        final String pfx;
-        if (top==null || top.name.equals("")) pfx = "";
-        else pfx = top.name + SEPARATOR;
+        final var current = this.stack.peek();
+        final String pfx = (current==null || current.name.equals(""))? "" : current.name + SEPARATOR;
 
         final var tableName = pfx + object.name;
         final var docTable = new DocTable(tableName, this.context);
-        if (top != null) {
-            top.addRow();
-            top.addValue(JsonDocNames.FIELD, object.name);
-            if (typeAsAnArray(object)) {
-                object.addProp(JsonDocNames.TYPE,
-                        JsonDocNames.ARRAY + "\n" + object.childList().get(0).toString());
-            }
-            else if (object.hasChildren()) top.addValue(JsonDocNames.DESCRIPTION, SEE_PFX + tableName + SEE_SFX);
-            if (object.isRequired()) {
-                if (object instanceof JsonSchemaObject) object.addProp(JsonDocNames.REQUIRED, "true");
-                else top.addValue(JsonDocNames.REQUIRED, "true");
-            }
-        }
+        if (current != null)  addToCurrent(object, current, tableName);
         docTable.hasCardinality(object.props.cardinality());
         this.tables.add(docTable);
         this.tableMap.put(tableName, docTable);
         this.stack.push(docTable);
 
         if (object instanceof JsonSchemaObject) {
-            final var target = (top==null)? docTable : top;
+            final var target = (current==null)? docTable : current;
             object.props.iterateOver(target::addValue);
         }
 
         return true;
+    }
+
+    private void addToCurrent(final JsonObject object, final DocTable current, final String tableName) {
+        current.addRow();
+        current.addValue(JsonDocNames.FIELD, object.name);
+        if (typeAsAnArray(object)) {
+            object.addProp(JsonDocNames.TYPE,
+                    JsonDocNames.ARRAY + "\n" + object.childList().get(0).toString());
+        }
+        else if (object.hasChildren()) current.addValue(JsonDocNames.DESCRIPTION, SEE_PFX + tableName + SEE_SFX);
+        if (object.isRequired()) {
+            if (object instanceof JsonSchemaObject) object.addProp(JsonDocNames.REQUIRED, "true");
+            else current.addValue(JsonDocNames.REQUIRED, "true");
+        }
     }
 
     private boolean excludeThis(final Map.Entry<String, String> e) {
@@ -479,23 +479,26 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
         for (int i = 0; i <= t.currentRow; i++) {
             buffer.append("  <tr>");
             for (final var c : t.fields) {
-                var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
-                final var match = SEE_REGEXP.matcher(cell);
-                if (match.matches()) {
-                    final var key = match.group(1);
-                    final var tbl = this.tableMap.get(key);
-                    cell = cell.replaceAll(SEE_QUICK_RE, " ").trim() + " ";
-                    // if we have a reference to a single line table, optionally embed it
-                    if (tbl!=null && tbl.currentRow < this.embedUpToRows)  cell = cell + formatTable(tbl, level+1);
-                    else cell = cell + "<a href=\"#" + nameToId(key) + "\">" + key + "&gt;</a>";
-                }
-                else cell = q(cell);
-                buffer.append("<td>").append(cell).append("</td>");
+                final var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
+                buffer.append("<td>").append(createCell(level, cell)).append("</td>");
             }
             buffer.append("</tr>\n");
         }
 
         return buffer.append("</tbody></table>\n\n").toString();
+    }
+
+    private String createCell(final int level, final String content) {
+        final var match = SEE_REGEXP.matcher(content);
+        if (match.matches()) {
+            final var key = match.group(1);
+            final var tbl = this.tableMap.get(key);
+            final var cell = content.replaceAll(SEE_QUICK_RE, " ").trim() + " ";
+            // if we have a reference to a single line table, optionally embed it
+            if (tbl!=null && tbl.currentRow < this.embedUpToRows)  return cell + formatTable(tbl, level +1);
+            else return cell + "<a href=\"#" + nameToId(key) + "\">" + key + "&gt;</a>";
+        }
+        else return q(content);
     }
 
     private String headingWithId(final DocTable t) {
@@ -559,34 +562,35 @@ digraph G {
 
         final var buffer = new StringBuilder();
         final var name = "".equals(t.name)? this.topTitle : t.name;
-        buffer.append("        ").append(q(name)).append(" [\n")
-              .append("                ").append("label = \"{").append(only(name)).append("|\\n}\"\n")
-              .append("        ").append("]\n\n");
+        createNode(buffer, name);
 
         for (int i = 0; i <= t.currentRow; i++) {
             for (final var c : t.fields) {
                 final var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
-                final var match = SEE_REGEXP.matcher(cell);
-                if (match.matches()) {
-                    final var key = match.group(1);
-                    final var tbl = this.tableMap.get(key);
-                    // if we have a reference to a single line table, optionally embed it
-                    if (tbl!=null)  {
-                        buffer.append(formatTable(tbl))
-                              .append("\n")
-                              .append("        ")
-                              .append(q(name))
-                              .append(" -> ")
-                              .append(q(tbl.name))
-                              .append(" [ label = \"")
-                              .append(tbl.cardinality)
-                              .append("\" ]\n\n");
-                    }
-                }
+                createEdge(buffer, name, cell);
             }
         }
 
         return buffer.toString();
+    }
+
+    private void createNode(final StringBuilder buffer, final String name) {
+        buffer.append("        ").append(q(name)).append(" [\n")
+              .append("                ").append("label = \"{").append(only(name)).append("|\\n}\"\n")
+              .append("        ").append("]\n\n");
+    }
+
+    private void createEdge(final StringBuilder buffer, final String name, final String cell) {
+        final var match = SEE_REGEXP.matcher(cell);
+        if (!match.matches())  return;
+        final var key = match.group(1);
+        final var tbl = this.tableMap.get(key);
+        if (tbl == null)  return;
+        buffer.append(formatTable(tbl))
+              .append("\n        ")
+              .append(q(name)).append(" -> ").append(q(tbl.name))
+              .append(" [ label = \"").append(tbl.cardinality).append("\" ]")
+              .append("\n\n");
     }
 
 }
