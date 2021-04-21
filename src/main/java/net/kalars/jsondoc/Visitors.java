@@ -31,11 +31,11 @@ interface JsonNodeVisitor {
 
 /** Base class for print visitors. */
 abstract class AbstractPrintVisitor implements JsonNodeVisitor {
-    protected final StringBuilder sb = new StringBuilder();
+    protected final StringBuilder buffer = new StringBuilder();
     protected final Context context;
 
     AbstractPrintVisitor(final Context context) { this.context = context; }
-    @Override public String toString() { return this.sb.toString(); }
+    @Override public String toString() { return this.buffer.toString(); }
 
     String makeIndent(final JsonBasicNode node, final int extra) {
         return " ".repeat(extra + 2 * node.tokenDepth);
@@ -49,7 +49,7 @@ class DebugVisitor extends AbstractPrintVisitor {
     DebugVisitor(final Context context) { super(context); }
 
     private boolean printer(final JsonBasicNode node, final String s1, final String s2, final String s3) {
-        this.sb.append(makeIndent(node, 0))
+        this.buffer.append(makeIndent(node, 0))
                 .append(s1)
                 .append(":")
                 .append(node.isRequired()? " * " : " ")
@@ -62,7 +62,7 @@ class DebugVisitor extends AbstractPrintVisitor {
         if (node instanceof JsonSchemaObject) {
             final var props = ((JsonSchemaObject) node).props;
             props.iterateOver((k, v) ->
-                    this.sb.append(makeIndent(node, 1))
+                    this.buffer.append(makeIndent(node, 1))
                             .append("[")
                             .append(k)
                             .append("=")
@@ -95,7 +95,7 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
     @Override
     public void value(final JsonValue value) {
         if (EXCLUDE_PREFIXES.stream().anyMatch(value.value::startsWith)) return;
-        this.sb.append(makeIndent(value, 2))
+        this.buffer.append(makeIndent(value, 2))
                 .append(value.value)
                 .append(",\n");
     }
@@ -103,7 +103,7 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
     @Override
     public void keyValue(final JsonKeyValue node) {
         if (EXCLUDE_PREFIXES.stream().anyMatch(node.key::startsWith)) return;
-        this.sb.append(makeIndent(node, 0))
+        this.buffer.append(makeIndent(node, 0))
                 .append("\"")
                 .append(node.key)
                 .append("\": ")
@@ -113,20 +113,20 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
 
     @Override
     public boolean topNode(final JsonTopNode topNode) {
-        this.sb.append("{\n");
+        this.buffer.append("{\n");
         return true;
     }
 
     @Override
     public void topNodeLeave(final JsonTopNode topNode) {
-        this.sb.setLength((this.sb.length()-2));
-        this.sb.append("\n}\n");
+        this.buffer.setLength((this.buffer.length()-2));
+        this.buffer.append("\n}\n");
     }
 
     @Override
     public boolean object(final JsonObject object) {
         if (EXCLUDE_PREFIXES.stream().anyMatch(object.name::startsWith)) return false;
-        this.sb.append(makeIndent(object, 0))
+        this.buffer.append(makeIndent(object, 0))
                 .append("\"")
                 .append(object.name)
                 .append("\": {\n");
@@ -139,15 +139,15 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
         final var indent = makeIndent(object, 0);
         if (object instanceof JsonSchemaObject ) {
             object.props.propCopy().forEach((k, v) ->
-                    this.sb.append(indent)
+                    this.buffer.append(indent)
                             .append(" ")
                             .append(k)
                             .append(" = ")
                             .append(v)
                             .append("\n"));
         }
-        this.sb.setLength((this.sb.length()-2));
-        this.sb.append("\n")
+        this.buffer.setLength((this.buffer.length()-2));
+        this.buffer.append("\n")
                 .append(indent)
                 .append("},\n");
     }
@@ -155,7 +155,7 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
     @Override
     public boolean array(final JsonArray array) {
         if (EXCLUDE_PREFIXES.stream().anyMatch(array.name::startsWith)) return false;
-        this.sb.append(makeIndent(array, 0))
+        this.buffer.append(makeIndent(array, 0))
                 .append("\"")
                 .append(array.name)
                 .append("\": [\n");
@@ -165,8 +165,8 @@ class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
     @Override
     public void arrayLeave(final JsonArray array) {
         if (EXCLUDE_PREFIXES.stream().anyMatch(array.name::startsWith)) return;
-        this.sb.setLength((this.sb.length()-2));
-        this.sb.append("\n")
+        this.buffer.setLength((this.buffer.length()-2));
+        this.buffer.append("\n")
                 .append(makeIndent(array, 0))
                 .append("],\n");
     }
@@ -381,16 +381,15 @@ class JsonDocWikiVisitor extends JsonDocPrintVisitor {
 
     @Override
     public String toString() {
-        final var buffer = new StringBuilder();
-        this.tables.stream().filter(t -> t.currentRow >= 0).forEach(t -> formatTable(buffer, t));
-        return buffer.toString();
+        this.tables.stream().filter(t -> t.currentRow >= 0).forEach(this::formatTable);
+        return this.buffer.toString();
     }
 
-    private void formatTable(final StringBuilder buffer, final DocTable t) {
-        buffer.append(heading(t));
-        buffer.append(headingRow(t));
+    private void formatTable(final DocTable t) {
+        this.buffer.append(heading(t));
+        this.buffer.append(headingRow(t));
         for (int i = 0; i <= t.currentRow; i++) {
-            buffer.append("|");
+            this.buffer.append("|");
             for (final var c : t.fields) {
                 var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
                 final var match = SEE_REGEXP.matcher(cell);
@@ -399,9 +398,9 @@ class JsonDocWikiVisitor extends JsonDocPrintVisitor {
                     cell = cell.replaceAll(SEE_QUICK_RE,  "[" + key + "|#" + nameToId(key) + "]").trim() + " ";
                 }
                 else cell = quote(cell);
-                buffer.append(cell).append("|");
+                this.buffer.append(cell).append("|");
             }
-            buffer.append("\n");
+            this.buffer.append("\n");
         }
     }
 
@@ -410,9 +409,9 @@ class JsonDocWikiVisitor extends JsonDocPrintVisitor {
     }
 
     private String headingRow(final DocTable t) {
-        final var buffer = new StringBuilder();
-        for (final var c : t.fields) buffer.append(keyToTitle(c)).append("||");
-        return buffer.append("\n").toString();
+        final var sb = new StringBuilder();
+        for (final var c : t.fields) sb.append(keyToTitle(c)).append("||");
+        return sb.append("\n").toString();
     }
 
     private String heading(final DocTable t) {
@@ -454,38 +453,36 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
 
     @Override
     public String toString() {
-        final var buffer = new StringBuilder();
-        buffer.append("""
+        this.buffer.append("""
                 <!doctype html>
-                <html><head><meta charset=utf-8>
-                """)
+                <html><head><meta charset=utf-8>""")
                 .append(STYLE);
         this.tables.stream()
                 .filter(t -> t.currentRow >= 0)
-                .forEach(t -> buffer.append(formatTable(t, 0)));
-        return buffer.append("</body></html>").toString();
+                .forEach(t -> this.buffer.append(formatTable(t, 0)));
+        return this.buffer.append("</body></html>").toString();
     }
 
     private String formatTable(final DocTable t, final int level) {
         if (t.done) return ""; // already processed recursively
         t.done = true;
 
-        final var buffer = new StringBuilder();
-        if (level==0) buffer.append(headingWithId(t));// Only heading for tables that are not embedded
-        buffer.append("<table><thead><tr>\n  ")
+        final var sb = new StringBuilder();
+        if (level==0) sb.append(headingWithId(t));// Only heading for tables that are not embedded
+        sb.append("<table><thead><tr>\n  ")
               .append(headerRow(t))
               .append("\n</tr></thead><tbody>\n");
 
         for (int i = 0; i <= t.currentRow; i++) {
-            buffer.append("  <tr>");
+            sb.append("  <tr>");
             for (final var c : t.fields) {
                 final var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
-                buffer.append("<td>").append(createCell(level, cell)).append("</td>");
+                sb.append("<td>").append(createCell(level, cell)).append("</td>");
             }
-            buffer.append("</tr>\n");
+            sb.append("</tr>\n");
         }
 
-        return buffer.append("</tbody></table>\n\n").toString();
+        return sb.append("</tbody></table>\n\n").toString();
     }
 
     private String createCell(final int level, final String content) {
@@ -515,11 +512,11 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
     }
 
     private String headerRow(final DocTable t) {
-        final var buffer = new StringBuilder();
-        for (final var c : t.fields) buffer.append("<th>")
+        final var sb = new StringBuilder();
+        for (final var c : t.fields) sb.append("<th>")
                     .append(q(keyToTitle(c)))
                     .append("</th>");
-        return buffer.toString();
+        return sb.toString();
     }
 }
 
@@ -532,8 +529,7 @@ class JsonDocDotVisitor extends JsonDocPrintVisitor {
 
     @Override
     public String toString() {
-        final var buffer = new StringBuilder();
-        buffer.append("""
+        this.buffer.append("""
 digraph G {
         fontname = "Calibri"
         fontsize = 10
@@ -552,26 +548,26 @@ digraph G {
                 """);
         this.tables.stream()
                 .filter(t -> t.currentRow >= 0)
-                .forEach(t -> buffer.append(formatTable(t)));
-        return buffer.append("}").toString();
+                .forEach(t -> this.buffer.append(formatTable(t)));
+        return this.buffer.append("}").toString();
     }
 
     private String formatTable(final DocTable t) {
         if (t.done) return ""; // already processed recursively
         t.done = true;
 
-        final var buffer = new StringBuilder();
+        final var sb = new StringBuilder();
         final var name = "".equals(t.name)? this.topTitle : t.name;
-        createNode(buffer, name);
+        createNode(sb, name);
 
         for (int i = 0; i <= t.currentRow; i++) {
             for (final var c : t.fields) {
                 final var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
-                createEdge(buffer, name, cell);
+                createEdge(sb, name, cell);
             }
         }
 
-        return buffer.toString();
+        return sb.toString();
     }
 
     private void createNode(final StringBuilder buffer, final String name) {
