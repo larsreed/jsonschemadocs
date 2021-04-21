@@ -70,6 +70,7 @@ public final class JsonDoc {
         System.out.println("    e.g. -D" + Context.VARIANT + "=foo could define a context for \""
                 + JsonDocNames.XIF_PREFIX + Context.VARIANT + "\": \"foo\"");
         System.out.println("    -D" + Context.EXCLUDED_COLUMNS + "=col1,col2,... to exclude named columns");
+        System.out.println("    -D" + Context.SKIP_TABLES + "=table1,table2,... to exclude tables with given ID");
         System.out.println("    -D" + Context.EMBED_ROWS + "=n defines embedding in HTML tables");
         System.out.println("Output is written to stdout and must be redirected.");
         System.exit(err);

@@ -199,7 +199,12 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         private DocTable(final String name, final Context context) {
             this.name = name;
             this.context = context;
+            // Add non-excluded default columns
             ALWAYS_COLUMNS.forEach(c -> { if (!this.context.isExcluded(c)) this.fields.add(c); });
+            // Skip this table if excluded
+            final var searchFor = ("".equals(name))? "_" : nameToId(name);
+            if (context.anyMatch(Context.SKIP_TABLES, searchFor)) this.done = true;
+            // FIXME not tested
         }
 
         void addRow() { this.currentRow++; }
@@ -247,7 +252,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         return object(topNode);
     }
 
-    protected String nameToId(final String name) { return name.replaceAll("[^a-zA-Z0-9]", "_"); }
+    protected static String nameToId(final String name) { return name.replaceAll("[^a-zA-Z0-9]", "_"); }
 
     protected String keyToTitle(final String key) {
         final var no_ = key.replaceAll("_", " ");

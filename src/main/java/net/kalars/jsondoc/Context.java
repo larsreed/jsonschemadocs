@@ -6,13 +6,14 @@ import java.util.Map;
 import java.util.Optional;
 
 /** Map-based implementation of a Context. */
-@SuppressWarnings("StaticMethodOnlyUsedInOneClass")
+@SuppressWarnings({"StaticMethodOnlyUsedInOneClass", "SameParameterValue"})
 class Context {
 
-    public static final String MODE = "mode";
-    public static final String EMBED_ROWS = "embedUpToRows";
-    public static final String VARIANT = "variant";
-    public static final String EXCLUDED_COLUMNS = "excludeColumns";
+    static final String MODE = "mode";
+    static final String EMBED_ROWS = "embedUpToRows";
+    static final String VARIANT = "variant";
+    static final String EXCLUDED_COLUMNS = "excludeColumns";
+    static final String SKIP_TABLES = "skipTables";
 
     private final Map<String, String> map = new LinkedHashMap<>();
 
@@ -24,13 +25,17 @@ class Context {
         return this;
     }
 
-    @SuppressWarnings("SameParameterValue")
     Optional<String> value(final String key) { return Optional.ofNullable(this.map.get(key)); }
 
     boolean matches(final String key, final boolean notMatched, final String... candidates) {
         final var hit = this.map.get(key);
         if (hit==null) return notMatched; // it is considered a match if no values at all are given for this key
         return Arrays.stream(candidates).anyMatch(hit::equalsIgnoreCase);
+    }
+
+    boolean anyMatch(final String key, final String toMatch) {
+        final var hit = this.map.get(key);
+        return Arrays.stream((hit==null? "" : hit).split(", *")).anyMatch(k -> k.equalsIgnoreCase(toMatch));
     }
 
     boolean isExcluded(final String column) {
