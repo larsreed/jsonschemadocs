@@ -10,6 +10,7 @@ class DocParserTest {
     private Context ctx(final String mode) {
         return new Context(mode)
                 .add("test", "true")
+//                .add(Context.SKIP_TABLES,"metadata,data")
 //                .add("variant", "tags")
 //                .add(JsonContext.EXCLUDED_COLUMNS, "description, custom")
                 ;

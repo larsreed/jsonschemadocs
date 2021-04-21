@@ -47,7 +47,7 @@ Written by Lars Reed, april 2021. I'd be happy for an attribution if you use thi
 
     4. `"xifnot-variant" : "foo, bar, baz"`, like the previous, but a list of values are accepted here as well.
 
-    More below on how to define conditions.
+    More below on how to define conditions, as well as how to exclude tables/graph nodes and columns.
 
 # Producing documentation
 
@@ -83,6 +83,7 @@ Currently, three types of documentation are supported.
 
     The definition `-DskipTables=foo,bar` may be appended
     defining one or more (comma separated) table IDs to exclude from the result.
+    Note that these are the `id`-tags, look in the generated code if you are uncertain.
 
     The definition `-DembedUpToRows=n` (where 'n' is a number) may be appended,
     denoting that tables of up to N rows should be embedded in its parent.
@@ -128,7 +129,7 @@ INPUTFILE: name of extended JSON Schema file
 DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE
     e.g. -Dvariant=foo could define a context for "xif-variant": "foo"
     -DexcludeColumns=col1,col2,... to exclude named columns
-    -DskipTables=table1,table2,... to exclude tables with given ID
+    -DskipTables=table1,table2,... to exclude tables with given IDs
     -DembedUpToRows=n defines embedding in HTML tables
 Output is written to stdout and must be redirected.
 ```

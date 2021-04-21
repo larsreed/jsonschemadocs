@@ -204,7 +204,6 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
             // Skip this table if excluded
             final var searchFor = ("".equals(name))? "_" : nameToId(name);
             if (context.anyMatch(Context.SKIP_TABLES, searchFor)) this.done = true;
-            // FIXME not tested
         }
 
         void addRow() { this.currentRow++; }
