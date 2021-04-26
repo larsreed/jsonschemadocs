@@ -72,7 +72,24 @@ public final class JsonDoc {
         System.out.println("    -D" + Context.EXCLUDED_COLUMNS + "=col1,col2,... to exclude named columns");
         System.out.println("    -D" + Context.SKIP_TABLES + "=table1,table2,... to exclude tables with given IDs");
         System.out.println("    -D" + Context.EMBED_ROWS + "=n defines embedding in HTML tables");
-        System.out.println("Output is written to stdout and must be redirected.");
+        System.out.println("""
+                Output is written to stdout and must be redirected.
+                
+                TODO:
+                - Handle array of anything but simple values
+                - enum - array of legal values
+                - const - single legal value
+                - multipleOf  -- integer constraint
+                - maxContains, minContains, contains
+                - maxProperties, minProperties
+                - dependentRequired
+                - contentEncoding, contentMediaType, contentSchema
+                - keyword: default  = value
+                - keyword: deprecated   = true
+                - keyword: writeOnly & readOnly = true
+                - keyword: examples = array
+                - $defs & $ref
+                """);
         System.exit(err);
     }
 }

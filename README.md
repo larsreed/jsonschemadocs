@@ -10,6 +10,8 @@ Written by Lars Reed, april 2021. I'd be happy for an attribution if you use thi
 
     Start off by creating your actual schema, as per https://json-schema.org/
 
+    For precise vocabulary, see https://tools.ietf.org/html/draft-bhutton-json-schema-validation-00
+
 * Additional information
 
     * Decide on the headings you want for additional information, e.g. "Sample values".
@@ -139,6 +141,22 @@ Output is written to stdout and must be redirected.
 
 The parser does not yet promise to support all of JSON Schema, it has only been tested on the parts 
 I have been working with.
+
+                TODO:
+                - Handle array of anything but simple values
+                - enum - array of legal values
+                - const - single legal value
+                - multipleOf  -- integer constraint
+                - maxContains, minContains, contains
+                - maxProperties, minProperties
+                - dependentRequired
+                - contentEncoding, contentMediaType, contentSchema
+                - keyword: default  = value
+                - keyword: deprecated   = true
+                - keyword: writeOnly & readOnly = true
+                - keyword: examples = array
+                - $defs & $ref
+
 
 ## Code style
 
