@@ -24,13 +24,12 @@ class DocParserTest {
         System.out.println(visitor3);
     }
 
-
     @Test
-    void wikiOutput() {
-        final var context = ctx("WIKI");
-        final var visitor2 = new JsonDocWikiVisitor(context);
-        new JsonSchemaParser().parseFile(fileName).visit(visitor2);
-        System.out.println(visitor2);
+    void wikiHtmlOutput() {
+        final var context = ctx("HTML");
+        final var visitor5 = new JsonDocWikiHtmlVisitor(context);
+        new JsonSchemaParser().parseFile(fileName).visit(visitor5);
+        System.out.println(visitor5);
     }
 
     @Test

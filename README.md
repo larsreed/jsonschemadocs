@@ -94,9 +94,8 @@ Currently, three types of documentation are supported.
 
 2. Wiki
 
-    Like the HTML version, but no embedding of tables.
-   `java -jar jsondoc.jar WIKI /path/to/input/myExtendedSchema.json > mySchema.wiki`
-   This option is currently not completely implemented...
+    Like the HTML version, but using Confluence wiki link syntax.
+   `java -jar jsondoc.jar WIKI /path/to/input/myExtendedSchema.json > mySchema.xhtml`
 
 
 3. Diagram
@@ -124,7 +123,7 @@ TYPE: one of SCHEMA, HTML, GRAPH, WIKI
     SCHEMA: output a clean schema file, without additional attributes
     HTML:   output HTML-formatted documentation
     DOT:    output a script to create a graph using graphviz/dot
-    WIKI:   output in Confluence wiki format (not working yet)
+    WIKI:   output in Confluence wiki XHTML format
 INPUTFILE: name of extended JSON Schema file
 DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE
     e.g. -Dvariant=foo could define a context for "xif-variant": "foo"

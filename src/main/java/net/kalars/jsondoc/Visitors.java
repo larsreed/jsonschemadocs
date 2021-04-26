@@ -374,57 +374,6 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
     @Override public void arrayLeave(final JsonArray array) { /*EMPTY*/ }
 }
 
-class JsonDocWikiVisitor extends JsonDocPrintVisitor {
-
-    JsonDocWikiVisitor(final Context context) { super(context); }
-
-    @Override
-    public String toString() {
-        this.tables.stream().filter(t -> t.currentRow >= 0).forEach(this::formatTable);
-        return this.buffer.toString();
-    }
-
-    private void formatTable(final DocTable t) {
-        this.buffer.append(heading(t));
-        this.buffer.append(headingRow(t));
-        for (int i = 0; i <= t.currentRow; i++) {
-            this.buffer.append("|");
-            for (final var c : t.fields) {
-                var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
-                final var match = SEE_REGEXP.matcher(cell);
-                if (match.matches()) {
-                    final var key = match.group(1);
-                    cell = cell.replaceAll(SEE_QUICK_RE,  "[" + key + "|#" + nameToId(key) + "]").trim() + " ";
-                }
-                else cell = quote(cell);
-                this.buffer.append(cell).append("|");
-            }
-            this.buffer.append("\n");
-        }
-    }
-
-    private String quote(final String s) {
-        return s.replaceAll("([]\\[{}!\\\\])", "\\\\$1");
-    }
-
-    private String headingRow(final DocTable t) {
-        final var sb = new StringBuilder();
-        for (final var c : t.fields) sb.append(keyToTitle(c)).append("||");
-        return sb.append("\n").toString();
-    }
-
-    private String heading(final DocTable t) {
-        final var name = "".equals(t.name)? this.topTitle : t.name;
-        return "\n\n" +
-                "{anchor:" +
-                nameToId(name) +
-                "}\n" +
-                "h" +
-                t.level() + ". " +
-                name +
-                "\n||";
-    }
-}
 
 @SuppressWarnings("SameParameterValue")
 class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
@@ -444,9 +393,9 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
 
     JsonDocHtmlVisitor(final Context context) { super(context); }
 
-    private String q(final String s) {
+    protected String q(final String s) {
         return StringEscapeUtils.escapeXml11(s)
-                .replaceAll("\t", "&nbsp;&nbsp")
+                .replaceAll("\t", "&nbsp;&nbsp;")
                 .replaceAll("\n", "<br/>");
     }
 
@@ -462,7 +411,7 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
         return this.buffer.append("</body></html>").toString();
     }
 
-    private String formatTable(final DocTable t, final int level) {
+    protected String formatTable(final DocTable t, final int level) {
         if (t.done) return ""; // already processed recursively
         t.done = true;
 
@@ -492,12 +441,16 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
             final var cell = content.replaceAll(SEE_QUICK_RE, " ").trim() + " ";
             // if we have a reference to a single line table, optionally embed it
             if (tbl!=null && tbl.currentRow < this.embedUpToRows)  return cell + formatTable(tbl, level +1);
-            else return cell + "<a href=\"#" + nameToId(key) + "\">" + key + "&gt;</a>";
+            else return cell + createLink(key);
         }
         else return q(content);
     }
 
-    private String headingWithId(final DocTable t) {
+    protected String createLink(final String key) {
+        return "<a href=\"#" + nameToId(key) + "\">" + key + "&gt;</a>";
+    }
+
+    protected String headingWithId(final DocTable t) {
         final var name = "".equals(t.name)? this.topTitle : t.name;
         return "\n\n<h" +
                 t.level() +
@@ -516,6 +469,37 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
                     .append(q(keyToTitle(c)))
                     .append("</th>");
         return sb.toString();
+    }
+}
+
+class JsonDocWikiHtmlVisitor extends JsonDocHtmlVisitor {
+
+    JsonDocWikiHtmlVisitor(final Context context) { super(context); }
+
+    @Override
+    public String toString() {
+        this.tables.stream()
+                .filter(t -> t.currentRow >= 0)
+                .forEach(t -> this.buffer.append(formatTable(t, 0)));
+        return this.buffer.toString();
+    }
+
+    @Override
+    protected String createLink(final String key) {
+        return "<ac:link ac:anchor=\"" + nameToId(key) + "\">" +
+               "<ac:plain-text-link-body><![CDATA[" + key + "]]></ac:plain-text-link-body>" +
+               "</ac:link>";
+    }
+
+    @Override
+    protected String headingWithId(final DocTable t) {
+        final var name = "".equals(t.name)? this.topTitle : t.name;
+        return "\n\n<p><ac:structured-macro ac:name=\"anchor\" ac:schema-version=\"1\">" +
+               "<ac:parameter ac:name=\"\">" + nameToId(name) + "</ac:parameter>" +
+               "  </ac:structured-macro></p>\n" +
+               "<h" + t.level() + ">" +
+               q(name) +
+               "</h" + t.level() + ">\n";
     }
 }
 

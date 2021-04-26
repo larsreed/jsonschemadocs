@@ -36,7 +36,7 @@ public final class JsonDoc {
                 System.out.println(visitor3);
             }
             case "WIKI" -> {
-                final var visitor2 = new JsonDocWikiVisitor(context);
+                final var visitor2 = new JsonDocWikiHtmlVisitor(context);
                 new JsonSchemaParser().parseFile(inputfile).visit(visitor2);
                 System.out.println(visitor2);
             }
@@ -64,7 +64,7 @@ public final class JsonDoc {
             SCHEMA: output a clean schema file, without additional attributes
             HTML:   output HTML-formatted documentation
             DOT:    output a script to create a graph using graphviz/dot
-            WIKI:   output in Confluence wiki format (not working yet)
+            WIKI:   output in Confluence wiki XHTML format
         INPUTFILE: name of extended JSON Schema file
         DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE""");
         System.out.println("    e.g. -D" + Context.VARIANT + "=foo could define a context for \""
