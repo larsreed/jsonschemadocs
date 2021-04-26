@@ -10,6 +10,8 @@ Written by Lars Reed, april 2021. I'd be happy for an attribution if you use thi
 
     Start off by creating your actual schema, as per https://json-schema.org/
 
+    For precise vocabulary, see https://tools.ietf.org/html/draft-bhutton-json-schema-validation-00
+
 * Additional information
 
     * Decide on the headings you want for additional information, e.g. "Sample values".

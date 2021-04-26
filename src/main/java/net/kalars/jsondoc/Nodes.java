@@ -94,7 +94,7 @@ class JsonSchemaObject extends JsonObject {
 
     @Override
     public String toString() {
-        final var sb= new StringBuilder().append("JsonDocNode{ qName='").append(this.qName);
+        final var sb= new StringBuilder().append("Node{ qName='").append(this.qName);
         this.props.iterateOver((k, v) -> sb.append(" ").append(k).append("=").append(v));
         return sb.toString();
     }
@@ -125,12 +125,17 @@ class JsonTopNode extends JsonSchemaObject {
 }
 
 
-/** An array containing simple entries. */
+/** An array (list) of entries. */
 class JsonArray extends JsonNode {
     JsonArray(final String name, final String qName, final int tokenDepth) { super(name, qName, tokenDepth); }
 
     @Override
     void addChild(final JsonBasicNode node) {
+        // FIXME only works for simple values  -- test case sample3.json
+        if (!(node instanceof JsonValue)) {
+            super.addChild(node);
+            return;
+        }
         final JsonValue jVal = (JsonValue) node;
         final var nodeVal = jVal.value;
         final var unq = nodeVal.replaceAll("\"", "");
