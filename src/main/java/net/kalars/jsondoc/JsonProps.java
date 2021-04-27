@@ -41,6 +41,7 @@ class JsonProps {
         minMaxItems();
         uniqueItems();
         pattern();
+        enums();
     }
 
     private void removeIfs() {
@@ -84,9 +85,7 @@ class JsonProps {
         if (max.isEmpty()) {
             max = extract(JsonDocNames.EXCLUSIVE_MAXIMUM);
             if (max.isPresent()) max = Optional.of(max.get() + ">");
-        }
-        if (max.isEmpty()){
-            if (min.isPresent()) max = Optional.of(" ...]");
+            else  if (min.isPresent()) max = Optional.of(" ...]");
         }
         else max = Optional.of(max.get() + "]");
 
@@ -165,6 +164,11 @@ class JsonProps {
     private void pattern() {
         final var pattern = extract(JsonDocNames.PATTERN);
         pattern.ifPresent(s -> mergeType(JsonDocNames.PATTERN + "=" + s));
+    }
+
+    private void enums() {
+        final var pattern = extract(JsonDocNames.ENUM); //FIXME
+        pattern.ifPresent(s -> mergeType("{" + s + "}"));
     }
 }
 

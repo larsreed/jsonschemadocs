@@ -32,6 +32,7 @@ interface JsonDocNames {
     String TYPE = "type";
     String TITLE = "title";
     String PROPERTIES = "properties";
+    String ENUM = "enum";
 
     List<String> PROP_KEYWORDS = Arrays.asList(
             DESCRIPTION, TYPE,
@@ -39,7 +40,7 @@ interface JsonDocNames {
             MAXIMUM, EXCLUSIVE_MAXIMUM,
             MIN_LENGTH, MAX_LENGTH,
             MIN_ITEMS, MAX_ITEMS, UNIQUE_ITEMS,
-            FORMAT, PATTERN);
+            FORMAT, PATTERN, ENUM);
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net
