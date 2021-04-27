@@ -68,6 +68,14 @@ class JsonProps {
         return found;
     }
 
+    private Optional<String> extractBoolean(final String key) {
+        final var found = getOpt(key);
+        if (found.isPresent()) {
+            this.props.remove(key);
+            if ("true".equals(found.get())) return found;
+        }
+        return Optional.empty();
+    }
 
     private void mergeType(final String value) {
         this.props.merge(JsonDocNames.TYPE, value,  (org, add) -> org.contains(add)? org : org + "\t" + add);
@@ -159,11 +167,15 @@ class JsonProps {
     private void format() { extract(JsonDocNames.FORMAT).ifPresent(this::mergeType); }
 
     private void miscProps() {
-        extract(JsonDocNames.UNIQUE_ITEMS).ifPresent(s -> mergeType(JsonDocNames.UNIQUE_ITEMS));
+        extractBoolean(JsonDocNames.UNIQUE_ITEMS).ifPresent(s -> mergeType(JsonDocNames.UNIQUE_ITEMS));
+        extractBoolean(JsonDocNames.WRITE_ONLY).ifPresent(s -> mergeType(JsonDocNames.WRITE_ONLY));
+        extractBoolean(JsonDocNames.READ_ONLY).ifPresent(s -> mergeType(JsonDocNames.READ_ONLY));
         extract(JsonDocNames.PATTERN).ifPresent(s -> mergeType(JsonDocNames.PATTERN + "=" + s));
         extract(JsonDocNames.ENUM).ifPresent(this::mergeType);
         extract(JsonDocNames.CONST).ifPresent(s -> mergeType("=" + s));
         extract(JsonDocNames.MULTIPLE_OF).ifPresent(s -> mergeType(JsonDocNames.MULTIPLE_OF + " " + s));
+        extract(JsonDocNames.DEFAULT).ifPresent(s -> mergeType(JsonDocNames.DEFAULT + "=" + s));
+        extract(JsonDocNames.DEPRECATED).ifPresent(s -> mergeType("\n" + JsonDocNames.DEPRECATED.toUpperCase() + "!"));
     }
 }
 

@@ -80,9 +80,6 @@ public final class JsonDoc {
                 - maxProperties, minProperties
                 - dependentRequired
                 - contentEncoding, contentMediaType, contentSchema
-                - keyword: default  = value
-                - keyword: deprecated   = true
-                - keyword: writeOnly & readOnly = true
                 - keyword: examples = array
                 - $defs & $ref
                 """);

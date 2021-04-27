@@ -35,6 +35,10 @@ interface JsonDocNames {
     String ENUM = "enum";
     String CONST = "const";
     String MULTIPLE_OF = "multipleOf";
+    String DEFAULT = "default";
+    String DEPRECATED = "deprecated";
+    String WRITE_ONLY = "writeOnly";
+    String READ_ONLY = "readOnly";
 
     List<String> PROP_KEYWORDS = Arrays.asList(
             DESCRIPTION, TYPE,
@@ -42,7 +46,7 @@ interface JsonDocNames {
             MAXIMUM, EXCLUSIVE_MAXIMUM,
             MIN_LENGTH, MAX_LENGTH,
             MIN_ITEMS, MAX_ITEMS, UNIQUE_ITEMS,
-            FORMAT, PATTERN, ENUM, CONST, MULTIPLE_OF);
+            FORMAT, PATTERN, ENUM, CONST, MULTIPLE_OF, DEFAULT, DEPRECATED, WRITE_ONLY, READ_ONLY);
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net
