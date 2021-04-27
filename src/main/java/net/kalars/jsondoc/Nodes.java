@@ -24,10 +24,7 @@ abstract class JsonBasicNode {
     boolean isRequired() { return this.required; }
     abstract void visit(final JsonNodeVisitor visitor);
 
-    @Override
-    public String toString() {
-        return "JsonBasicNode{ qName='" + this.qName + "', required=" + this.required + '}';
-    }
+    @Override public String toString() { return this.qName + (this.required? "*" : ""); }
 }
 
 /** Parent node for objects/arrays - has 0 or more children
@@ -52,7 +49,6 @@ abstract class JsonNode extends JsonBasicNode {
 
     abstract boolean visitThis(final JsonNodeVisitor visitor);
     abstract void visitLeave(final JsonNodeVisitor visitor);
-
     boolean hasChildren() { return !this.children.isEmpty(); }
 }
 
@@ -63,6 +59,18 @@ class JsonObject extends JsonNode {
     @Override boolean visitThis(final JsonNodeVisitor visitor) { return visitor.object(this); }
     @Override void visitLeave(final JsonNodeVisitor visitor) { visitor.objectLeave(this); }
 
+    @Override
+    public String toString() {
+        final var sb = new StringBuilder();
+        sb.append(this.name).append(toStringStart()).append(this.props);
+        this.childList().forEach(c -> sb.append(c.toString()).append(","));
+        if (!this.childList().isEmpty()) sb.setLength(sb.length()-1); // remove last comma
+        sb.append(toStringStop());
+        return sb.toString();
+    }
+
+    protected String toStringStart() { return " ("; }
+    protected String toStringStop() { return ")"; }
 }
 
 /** An object in JsonSchema. */
@@ -78,32 +86,28 @@ class JsonSchemaObject extends JsonObject {
     @Override
     void addChild(final JsonBasicNode orgNode) {
         if (orgNode instanceof JsonKeyValue) {
-            final JsonKeyValue node = (JsonKeyValue) orgNode;
+            final var node = (JsonKeyValue) orgNode;
             if (JsonDocNames.PROP_KEYWORDS.contains(node.key) ||
                     node.key.startsWith(JsonDocNames.XIF_PREFIX) ||
                     node.key.startsWith(JsonDocNames.XIFNOT_PREFIX))
                 addProp(node.key, node.value);
             else if (node.key.startsWith(JsonDocNames.XDOC_PREFIX)) {
-                addProp(removePrefix(node.key, JsonDocNames.XDOC_PREFIX), node.value);
+                addProp(removePrefix(node.key, JsonDocNames.XDOC_PREFIX),  node.value);
             }
-            else super.addChild(orgNode);
+            else super.addChild(node);
             return;
         }
         super.addChild(orgNode);
     }
 
-    @Override
-    public String toString() {
-        final var sb= new StringBuilder().append("Node{ qName='").append(this.qName);
-        this.props.iterateOver((k, v) -> sb.append(" ").append(k).append("=").append(v));
-        return sb.toString();
-    }
 }
 
 /** The (unnamed) top node in JSON Schema. */
 class JsonTopNode extends JsonSchemaObject {
 
     JsonTopNode() { super("", "", 0); }
+    @Override boolean visitThis(final JsonNodeVisitor visitor) { return visitor.topNode(this); }
+    @Override void visitLeave(final JsonNodeVisitor visitor) { visitor.topNodeLeave(this); }
 
     @Override
     void addChild(final JsonBasicNode orgNode) {
@@ -115,52 +119,16 @@ class JsonTopNode extends JsonSchemaObject {
         }
         super.addChild(orgNode);
     }
-
-    @Override boolean visitThis(final JsonNodeVisitor visitor) { return visitor.topNode(this); }
-    @Override void visitLeave(final JsonNodeVisitor visitor) { visitor.topNodeLeave(this); }
-    @Override
-    public String toString() {
-        return super.toString().replaceAll("^JsonDocNode", "JsonTopNode");
-    }
 }
 
 
 /** An array (list) of entries. */
-class JsonArray extends JsonNode {
+class JsonArray extends JsonObject {
     JsonArray(final String name, final String qName, final int tokenDepth) { super(name, qName, tokenDepth); }
-
-    @Override
-    void addChild(final JsonBasicNode node) {
-        // FIXME only works for simple values  -- test case sample3.json
-        if (!(node instanceof JsonValue)) {
-            super.addChild(node);
-            return;
-        }
-        final JsonValue jVal = (JsonValue) node;
-        final var nodeVal = jVal.value;
-        final var unq = nodeVal.replaceAll("\"", "");
-        final var fullName = jVal.qName.replaceAll("[.][^.]+$", "") + "." + unq;
-        final var newNode = new JsonValue(unq, nodeVal, fullName, jVal.tokenDepth);
-        super.addChild(newNode);
-    }
-
-    @Override boolean visitThis(final JsonNodeVisitor visitor) {
-        return visitor.array(this);
-    }
-    @Override void visitLeave(final JsonNodeVisitor visitor) {
-        visitor.arrayLeave(this);
-    }
-
-    @Override
-    public String toString() {
-        // Lists children as {a, b, c, d } (without quotes)
-        final var sb = new StringBuilder();
-        sb.append("{ ");
-        childList().forEach(n -> sb.append(n.name.replaceAll("(^\")|(\"$)", "")).append(", "));
-        sb.setLength(sb.length()-2);
-        sb.append(" }");
-        return sb.toString();
-    }
+    @Override boolean visitThis(final JsonNodeVisitor visitor) { return visitor.array(this); }
+    @Override void visitLeave(final JsonNodeVisitor visitor) { visitor.arrayLeave(this); }
+    @Override protected String toStringStart() { return " ["; }
+    @Override protected String toStringStop() { return "]"; }
 }
 
 /** A value in an array. */
@@ -173,7 +141,7 @@ class JsonValue extends JsonBasicNode {
     }
 
     @Override void visit(final JsonNodeVisitor visitor) { visitor.value(this); }
-    @Override public String toString() { return "JsonValue{ qName='" + this.qName + "', value='" + this.value + "'}"; }
+    @Override public String toString() { return this.value; }
 }
 
 /** A named attribute in an object. */
@@ -186,6 +154,7 @@ class JsonKeyValue extends JsonValue {
     }
 
     @Override void visit(final JsonNodeVisitor visitor) { visitor.keyValue(this); }
+    @Override public String toString() { return this.key + "=" + this.value; }
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net

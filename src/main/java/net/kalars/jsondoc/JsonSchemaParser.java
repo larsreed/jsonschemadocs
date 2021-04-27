@@ -33,10 +33,16 @@ class JsonGenParser {
 
     protected int tokenDepth = 0;
     protected int arrayDepth = 0;
-    protected String nextName = "";
+    private String nextNameParsed = "";
     protected ArrayMode arrayMode = ArrayMode.Std;
 
     protected JsonNode currentNode() { return this.parseStack.peek(); }
+    protected boolean withinArray() { return currentNode() instanceof JsonArray; }
+
+    protected String nextName() {
+        if (withinArray()) return "";
+        return this.nextNameParsed;
+    }
 
     protected String qualifiedName() {
         final var delimiter = ".";
@@ -44,7 +50,7 @@ class JsonGenParser {
                 .map(node -> node.name)
                 .collect(Collectors.toList());
         Collections.reverse(names); // Why is this not a stream/list function!?!
-        names.add(this.nextName);
+        names.add(this.nextName());
         return String.join(delimiter, names)
                 .replaceAll("^[.]", "");
     }
@@ -83,7 +89,9 @@ class JsonGenParser {
         return Optional.empty();
     }
 
-    protected void fieldName(final JsonParser jParser) throws IOException { this.nextName = jParser.getCurrentName(); }
+    protected void fieldName(final JsonParser jParser) throws IOException {
+        this.nextNameParsed = jParser.getCurrentName();
+    }
 
     protected void startObject() {
         final JsonObject node = createObject();
@@ -93,7 +101,7 @@ class JsonGenParser {
     }
 
     protected JsonObject createObject() {
-        final JsonObject node = new JsonObject(this.nextName, qualifiedName(), this.tokenDepth);
+        final JsonObject node = new JsonObject(this.nextName(), qualifiedName(), this.tokenDepth);
         if (currentNode()!=null) currentNode().addChild(node);
         return node;
     }
@@ -106,7 +114,7 @@ class JsonGenParser {
     }
 
     protected void startArray() {
-        final JsonNode node = new JsonArray(this.nextName, qualifiedName(), this.tokenDepth);
+        final JsonNode node = new JsonArray(this.nextName(), qualifiedName(), this.tokenDepth);
         this.arrayMode = ArrayMode.ReadingRegularArray;
         this.arrayDepth++;
         currentNode().addChild(node);
@@ -127,7 +135,7 @@ class JsonGenParser {
             final var qn = qualifiedName().replaceAll("[.][^.]+$", "") + "." + unq;
             node = new JsonValue(unq, vs, qn, this.tokenDepth);
         }
-        else node = new JsonKeyValue(this.nextName, vs, qualifiedName(), this.tokenDepth);
+        else node = new JsonKeyValue(this.nextName(), vs, qualifiedName(), this.tokenDepth);
         currentNode().addChild(node);
         this.qNameMap.put(node.qName, node);
     }
@@ -157,7 +165,7 @@ class JsonSchemaParser extends JsonGenParser {
     protected JsonObject createObject() {
         final JsonObject node;
         if (this.tokenDepth ==0) return new JsonTopNode();
-        node = new JsonSchemaObject(this.nextName, qualifiedName(), this.tokenDepth);
+        node = new JsonSchemaObject(this.nextName(), qualifiedName(), this.tokenDepth);
         currentNode().addChild(node);
         return node;
     }
@@ -180,7 +188,7 @@ class JsonSchemaParser extends JsonGenParser {
 
     @Override
     protected void startArray() {
-        if (JsonDocNames.REQUIRED.equals(this.nextName)) this.arrayMode = ArrayMode.ReadingRequiredArray;
+        if (JsonDocNames.REQUIRED.equals(this.nextName())) this.arrayMode = ArrayMode.ReadingRequiredArray;
         else super.startArray();
     }
 

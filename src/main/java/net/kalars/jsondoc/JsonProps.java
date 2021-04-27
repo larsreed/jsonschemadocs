@@ -20,6 +20,13 @@ class JsonProps {
         this.props.merge(key, unquote(value),  (org, add) -> org.contains(add)? org : org + "\n" + add);
     }
 
+    @Override
+    public String toString() {
+        final var sb = new StringBuilder();
+        this.props.forEach((k, v) -> sb.append(k).append("=").append(v));
+        return sb.toString();
+    }
+
     @SuppressWarnings("SameParameterValue")
     String getProp(final String key) { return this.props.get(key); }
 
@@ -152,24 +159,15 @@ class JsonProps {
     }
 
     private void uniqueItems() {
-        final var unique = extract(JsonDocNames.UNIQUE_ITEMS);
-        if (unique.isPresent()) mergeType(JsonDocNames.UNIQUE_ITEMS);
-    }
-
-    private void format() {
-        final var format = extract(JsonDocNames.FORMAT);
-        format.ifPresent(this::mergeType);
+        if (extract(JsonDocNames.UNIQUE_ITEMS).isPresent()) mergeType(JsonDocNames.UNIQUE_ITEMS);
     }
 
     private void pattern() {
-        final var pattern = extract(JsonDocNames.PATTERN);
-        pattern.ifPresent(s -> mergeType(JsonDocNames.PATTERN + "=" + s));
+        extract(JsonDocNames.PATTERN).ifPresent(s -> mergeType(JsonDocNames.PATTERN + "=" + s));
     }
 
-    private void enums() {
-        final var pattern = extract(JsonDocNames.ENUM); //FIXME
-        pattern.ifPresent(s -> mergeType("{" + s + "}"));
-    }
+    private void format() { extract(JsonDocNames.FORMAT).ifPresent(this::mergeType); }
+    private void enums() { extract(JsonDocNames.ENUM).ifPresent(this::mergeType); }
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net

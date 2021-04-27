@@ -268,6 +268,8 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         if (exclude) return false;
         if (EXCLUDE_PREFIXES.stream().anyMatch(object.name::startsWith)) return false;
 
+        objectCleanup(object);
+
         final var current = this.stack.peek();
         final String pfx = (current==null || current.name.equals(""))? "" : current.name + SEPARATOR;
 
@@ -279,20 +281,25 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         this.tableMap.put(tableName, docTable);
         this.stack.push(docTable);
 
-        if (object instanceof JsonSchemaObject) {
-            final var target = (current==null)? docTable : current;
-            object.props.iterateOver(target::addValue);
-        }
+        final var target = (current==null)? docTable : current;
+        object.props.iterateOver(target::addValue);
 
         return true;
+    }
+
+    private void objectCleanup(final JsonObject object) {
+        // 'enum' should be a property, not a child
+        object.childList().stream().filter(c -> JsonDocNames.ENUM.equals(c.name)).forEach(c -> {
+            object.props.add(JsonDocNames.ENUM, c.toString());
+            object.removeChild(c);
+        });
     }
 
     private void addToCurrent(final JsonObject object, final DocTable current, final String tableName) {
         current.addRow();
         current.addValue(JsonDocNames.FIELD, object.name);
         if (typeAsAnArray(object)) {
-            object.addProp(JsonDocNames.TYPE,
-                    JsonDocNames.ARRAY + "\n" + object.childList().get(0).toString());
+            object.addProp(JsonDocNames.TYPE, object.childList().get(0).toString());
         }
         else if (object.hasChildren()) current.addValue(JsonDocNames.DESCRIPTION, SEE_PFX + tableName + SEE_SFX);
         if (object.isRequired()) {
@@ -362,10 +369,9 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
         final var contents = new StringBuilder();
         contents.append("[ ");
-        array.childList().stream()
-                .filter(c -> c instanceof JsonNode)
-                .forEach(child -> contents.append(child.name).append(", "));
-        contents.setLength(contents.length()-2);
+        array.childList().forEach(child -> contents.append(child.toString()).append(", "));
+        if (!array.childList().isEmpty()) contents.setLength(contents.length()-2);
+        contents.append(array.props);
         contents.append("]");
         table.addValue(JsonDocNames.DESCRIPTION, contents.toString());
         return false;  // do not process further
