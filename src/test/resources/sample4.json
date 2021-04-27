@@ -1,12 +1,13 @@
 {
   "thing": {
-      "type" : "string",
-      "description" : "A thing",
-      "minimum": 2,
-      "exclusiveMaximum": 32,
-      "uniqueItems": false,
-      "format": "fmt",
-      "pattern": "^.*$",
-      "enum": [ "a", "b", "c"]
-    }
+    "type" : "string",
+    "description" : "A thing",
+    "minimum": 2,
+    "exclusiveMaximum": 32,
+    "uniqueItems": false,
+    "format": "fmt",
+    "pattern": "^.*$",
+    "const": "18",
+    "enum": [ "a", "b", "c"]
+  }
 }

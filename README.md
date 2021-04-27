@@ -143,9 +143,6 @@ The parser does not yet promise to support all of JSON Schema, it has only been 
 I have been working with.
 
                 TODO:
-                - Handle array of anything but simple values
-                - enum - array of legal values
-                - const - single legal value
                 - multipleOf  -- integer constraint
                 - maxContains, minContains, contains
                 - maxProperties, minProperties
@@ -156,6 +153,7 @@ I have been working with.
                 - keyword: writeOnly & readOnly = true
                 - keyword: examples = array
                 - $defs & $ref
+                - better array handling
 
 
 ## Code style

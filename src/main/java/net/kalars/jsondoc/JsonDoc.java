@@ -76,9 +76,6 @@ public final class JsonDoc {
                 Output is written to stdout and must be redirected.
                 
                 TODO:
-                - Handle array of anything but simple values
-                - enum - array of legal values
-                - const - single legal value
                 - multipleOf  -- integer constraint
                 - maxContains, minContains, contains
                 - maxProperties, minProperties

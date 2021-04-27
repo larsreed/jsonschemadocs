@@ -49,6 +49,7 @@ class JsonProps {
         uniqueItems();
         pattern();
         enums();
+        consts();
     }
 
     private void removeIfs() {
@@ -168,6 +169,7 @@ class JsonProps {
 
     private void format() { extract(JsonDocNames.FORMAT).ifPresent(this::mergeType); }
     private void enums() { extract(JsonDocNames.ENUM).ifPresent(this::mergeType); }
+    private void consts() { extract(JsonDocNames.CONST).ifPresent(s -> mergeType("=" + s)); }
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net
