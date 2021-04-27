@@ -76,7 +76,6 @@ public final class JsonDoc {
                 Output is written to stdout and must be redirected.
                 
                 TODO:
-                - multipleOf  -- integer constraint
                 - maxContains, minContains, contains
                 - maxProperties, minProperties
                 - dependentRequired

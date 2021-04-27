@@ -46,10 +46,7 @@ class JsonProps {
         minMax();
         minMaxLen();
         minMaxItems();
-        uniqueItems();
-        pattern();
-        enums();
-        consts();
+        miscProps();
     }
 
     private void removeIfs() {
@@ -159,17 +156,15 @@ class JsonProps {
         extract(JsonDocNames.REQUIRED);
     }
 
-    private void uniqueItems() {
-        if (extract(JsonDocNames.UNIQUE_ITEMS).isPresent()) mergeType(JsonDocNames.UNIQUE_ITEMS);
-    }
-
-    private void pattern() {
-        extract(JsonDocNames.PATTERN).ifPresent(s -> mergeType(JsonDocNames.PATTERN + "=" + s));
-    }
-
     private void format() { extract(JsonDocNames.FORMAT).ifPresent(this::mergeType); }
-    private void enums() { extract(JsonDocNames.ENUM).ifPresent(this::mergeType); }
-    private void consts() { extract(JsonDocNames.CONST).ifPresent(s -> mergeType("=" + s)); }
+
+    private void miscProps() {
+        extract(JsonDocNames.UNIQUE_ITEMS).ifPresent(s -> mergeType(JsonDocNames.UNIQUE_ITEMS));
+        extract(JsonDocNames.PATTERN).ifPresent(s -> mergeType(JsonDocNames.PATTERN + "=" + s));
+        extract(JsonDocNames.ENUM).ifPresent(this::mergeType);
+        extract(JsonDocNames.CONST).ifPresent(s -> mergeType("=" + s));
+        extract(JsonDocNames.MULTIPLE_OF).ifPresent(s -> mergeType(JsonDocNames.MULTIPLE_OF + " " + s));
+    }
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net

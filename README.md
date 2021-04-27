@@ -143,7 +143,6 @@ The parser does not yet promise to support all of JSON Schema, it has only been 
 I have been working with.
 
                 TODO:
-                - multipleOf  -- integer constraint
                 - maxContains, minContains, contains
                 - maxProperties, minProperties
                 - dependentRequired
