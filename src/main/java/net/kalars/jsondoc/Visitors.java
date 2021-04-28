@@ -289,9 +289,19 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
 
     private void objectCleanup(final JsonObject object) {
         // 'enum' should be a property, not a child
-        object.childList().stream().filter(c -> JsonDocNames.ENUM.equals(c.name)).forEach(c -> {
-            object.props.add(JsonDocNames.ENUM, c.toString());
+        convertToProp(object, JsonDocNames.ENUM);
+        // 'examples' should be a property, not a child
+        convertToProp(object, JsonDocNames.EXAMPLES); // FIXME cleaner output
+    }
+
+    private void convertToProp(final JsonObject object, final String propName) {
+        object.childList().stream().filter(c -> propName.equals(c.name)).forEach(c -> {
             object.removeChild(c);
+            if (c instanceof JsonArray a) {
+                a.childList().forEach(child -> object.props.add(propName, child.toString()));
+                a.props.iterateOver((k, v) ->  { if (! "".equals(v)) object.props.add(propName, k + "=" + v); });
+            }
+            else object.props.add(propName, c.toString());
         });
     }
 

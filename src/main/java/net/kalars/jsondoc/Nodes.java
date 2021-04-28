@@ -58,19 +58,15 @@ class JsonObject extends JsonNode {
     JsonObject(final String name, final String qName, final int tokenDepth) { super(name, qName, tokenDepth); }
     @Override boolean visitThis(final JsonNodeVisitor visitor) { return visitor.object(this); }
     @Override void visitLeave(final JsonNodeVisitor visitor) { visitor.objectLeave(this); }
+    @Override public String toString() { return this.name + "(" + childrenToString() + ")"; }
 
-    @Override
-    public String toString() {
+    protected String childrenToString() {
         final var sb = new StringBuilder();
-        sb.append(this.name).append(toStringStart()).append(this.props);
+        sb.append(this.props);
         this.childList().forEach(c -> sb.append(c.toString()).append(","));
         if (!this.childList().isEmpty()) sb.setLength(sb.length()-1); // remove last comma
-        sb.append(toStringStop());
         return sb.toString();
     }
-
-    protected String toStringStart() { return " ("; }
-    protected String toStringStop() { return ")"; }
 }
 
 /** An object in JsonSchema. */
@@ -127,8 +123,7 @@ class JsonArray extends JsonObject {
     JsonArray(final String name, final String qName, final int tokenDepth) { super(name, qName, tokenDepth); }
     @Override boolean visitThis(final JsonNodeVisitor visitor) { return visitor.array(this); }
     @Override void visitLeave(final JsonNodeVisitor visitor) { visitor.arrayLeave(this); }
-    @Override protected String toStringStart() { return " ["; }
-    @Override protected String toStringStop() { return "]"; }
+    @Override public String toString() { return "[" + childrenToString() + "]"; }
 }
 
 /** A value in an array. */

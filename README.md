@@ -147,7 +147,6 @@ I have been working with.
                 - maxProperties, minProperties
                 - dependentRequired
                 - contentEncoding, contentMediaType, contentSchema
-                - keyword: examples = array
                 - $defs & $ref
                 - better array handling
 

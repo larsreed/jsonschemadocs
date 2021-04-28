@@ -171,10 +171,10 @@ class JsonProps {
         extractBoolean(JsonDocNames.WRITE_ONLY).ifPresent(s -> mergeType(JsonDocNames.WRITE_ONLY));
         extractBoolean(JsonDocNames.READ_ONLY).ifPresent(s -> mergeType(JsonDocNames.READ_ONLY));
         extract(JsonDocNames.PATTERN).ifPresent(s -> mergeType(JsonDocNames.PATTERN + "=" + s));
-        extract(JsonDocNames.ENUM).ifPresent(this::mergeType);
         extract(JsonDocNames.CONST).ifPresent(s -> mergeType("=" + s));
         extract(JsonDocNames.MULTIPLE_OF).ifPresent(s -> mergeType(JsonDocNames.MULTIPLE_OF + " " + s));
         extract(JsonDocNames.DEFAULT).ifPresent(s -> mergeType(JsonDocNames.DEFAULT + "=" + s));
+        extract(JsonDocNames.ENUM).ifPresent(s -> mergeType("{" + s + "}"));
         extract(JsonDocNames.DEPRECATED).ifPresent(s -> mergeType("\n" + JsonDocNames.DEPRECATED.toUpperCase() + "!"));
     }
 }

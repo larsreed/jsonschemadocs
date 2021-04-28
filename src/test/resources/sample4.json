@@ -13,6 +13,7 @@
     "pattern": "^.*$",
     "multipleOf": 9,
     "const": "18",
-    "enum": [ "a", "b", "c"]
+    "enum": [ "a", "b", "c"],
+    "examples" : [ 14, 19, 32, 84]
   }
 }

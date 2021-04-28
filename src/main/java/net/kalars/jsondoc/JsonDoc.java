@@ -80,7 +80,6 @@ public final class JsonDoc {
                 - maxProperties, minProperties
                 - dependentRequired
                 - contentEncoding, contentMediaType, contentSchema
-                - keyword: examples = array
                 - $defs & $ref
                 """);
         System.exit(err);

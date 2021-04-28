@@ -31,6 +31,7 @@ interface JsonDocNames {
     String REQUIRED = "required";
     String TYPE = "type";
     String TITLE = "title";
+    String EXAMPLES = "examples";
     String PROPERTIES = "properties";
     String ENUM = "enum";
     String CONST = "const";
@@ -41,7 +42,7 @@ interface JsonDocNames {
     String READ_ONLY = "readOnly";
 
     List<String> PROP_KEYWORDS = Arrays.asList(
-            DESCRIPTION, TYPE,
+            DESCRIPTION, TYPE, EXAMPLES,
             MINIMUM, EXCLUSIVE_MINIMUM,
             MAXIMUM, EXCLUSIVE_MAXIMUM,
             MIN_LENGTH, MAX_LENGTH,
