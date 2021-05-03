@@ -9,37 +9,41 @@ import java.util.List;
 /** Strings for attributes etc. */
 @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
 interface JsonDocNames {
+    // Prefixes specific to this tool
     String XDOC_PREFIX = "x-";
     String XIF_PREFIX = "xif-";
     String XIFNOT_PREFIX = "xifnot-";
     String IGNORE_PREFIX = "ignore-";
+    // Other user input
+    String USER_LINK_RE = "linkTo[(]([^),]+)((, *)([^)]+))?[)]"; // regexp to match linkTo(url) & linkTo(url, text)
 
-    String FORMAT = "format";
-    String MINIMUM = "minimum";
-    String EXCLUSIVE_MINIMUM = "exclusiveMinimum";
-    String MAXIMUM = "maximum";
-    String EXCLUSIVE_MAXIMUM = "exclusiveMaximum";
-    String MIN_LENGTH = "minLength";
-    String MAX_LENGTH = "maxLength";
-    String MIN_ITEMS = "minItems";
-    String MAX_ITEMS = "maxItems";
-    String UNIQUE_ITEMS = "uniqueItems";
-    String PATTERN = "pattern";
+    // JSON Schema names
     String ARRAY = "array";
-    String FIELD = "field";
-    String DESCRIPTION = "description";
-    String REQUIRED = "required";
-    String TYPE = "type";
-    String TITLE = "title";
-    String EXAMPLES = "examples";
-    String PROPERTIES = "properties";
-    String ENUM = "enum";
     String CONST = "const";
-    String MULTIPLE_OF = "multipleOf";
     String DEFAULT = "default";
     String DEPRECATED = "deprecated";
-    String WRITE_ONLY = "writeOnly";
+    String DESCRIPTION = "description";
+    String ENUM = "enum";
+    String EXAMPLES = "examples";
+    String EXCLUSIVE_MAXIMUM = "exclusiveMaximum";
+    String EXCLUSIVE_MINIMUM = "exclusiveMinimum";
+    String FIELD = "field";
+    String FORMAT = "format";
+    String MAXIMUM = "maximum";
+    String MAX_ITEMS = "maxItems";
+    String MAX_LENGTH = "maxLength";
+    String MINIMUM = "minimum";
+    String MIN_ITEMS = "minItems";
+    String MIN_LENGTH = "minLength";
+    String MULTIPLE_OF = "multipleOf";
+    String PATTERN = "pattern";
+    String PROPERTIES = "properties";
     String READ_ONLY = "readOnly";
+    String REQUIRED = "required";
+    String TITLE = "title";
+    String TYPE = "type";
+    String UNIQUE_ITEMS = "uniqueItems";
+    String WRITE_ONLY = "writeOnly";
 
     List<String> PROP_KEYWORDS = Arrays.asList(
             DESCRIPTION, TYPE, EXAMPLES,

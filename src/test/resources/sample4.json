@@ -1,7 +1,7 @@
 {
   "thing": {
     "type" : "string",
-    "description" : "A thing",
+    "description" : "A thing linkTo(firstLink) & linkTo(secondLink, LinkText) & last",
     "minimum": 2,
     "exclusiveMaximum": 32,
     "default": 6,

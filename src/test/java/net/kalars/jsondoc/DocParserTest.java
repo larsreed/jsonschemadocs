@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 class DocParserTest {
     private static final String fileName =
-//            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample.json";
+//            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample2.json";
             "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample4.json";
 
     private Context ctx(final String mode) {
@@ -12,7 +12,7 @@ class DocParserTest {
                 .add("test", "true")
 //                .add(Context.SKIP_TABLES,"metadata,data")
 //                .add("variant", "tags")
-//                .add(JsonContext.EXCLUDED_COLUMNS, "description, custom")
+//                .add(Context.EXCLUDED_COLUMNS, "x-ICS2_XML")
                 ;
     }
 

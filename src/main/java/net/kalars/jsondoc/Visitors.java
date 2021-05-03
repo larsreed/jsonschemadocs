@@ -179,6 +179,9 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
     protected static final String SEE_QUICK_RE = SEE_PFX+"([^§]+)"+SEE_SFX; // Regex to find an extract such links
     protected static final Pattern SEE_REGEXP = Pattern.compile(".*"+SEE_QUICK_RE+".*", Pattern.DOTALL);
 
+    protected static final Pattern USER_LINK_REGEXP = // links written by user
+            Pattern.compile(JsonDocNames.USER_LINK_RE);
+
     private static final List<String> EXCLUDE_PREFIXES =
             Arrays.asList(JsonDocNames.IGNORE_PREFIX, JsonDocNames.XIFNOT_PREFIX, JsonDocNames.XIF_PREFIX);
 
@@ -291,7 +294,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         // 'enum' should be a property, not a child
         convertToProp(object, JsonDocNames.ENUM);
         // 'examples' should be a property, not a child
-        convertToProp(object, JsonDocNames.EXAMPLES); // FIXME cleaner output
+        convertToProp(object, JsonDocNames.EXAMPLES);
     }
 
     private void convertToProp(final JsonObject object, final String propName) {
@@ -450,20 +453,37 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
     }
 
     private String createCell(final int level, final String content) {
-        final var match = SEE_REGEXP.matcher(content);
-        if (match.matches()) {
-            final var key = match.group(1);
-            final var tbl = this.tableMap.get(key);
-            final var cell = content.replaceAll(SEE_QUICK_RE, " ").trim() + " ";
-            // if we have a reference to a single line table, optionally embed it
-            if (tbl!=null && tbl.currentRow < this.embedUpToRows)  return cell + formatTable(tbl, level +1);
-            else return cell + createLink(key);
-        }
-        else return q(content);
+        final var matchTableLink = SEE_REGEXP.matcher(content);
+        if (matchTableLink.matches()) return createTableLink(level, content, matchTableLink.group(1));
+        return replaceNextLink(content);
     }
 
-    protected String createLink(final String key) {
+    private String replaceNextLink(final String content) {
+        final var matchUserLink = USER_LINK_REGEXP.matcher(content);
+        if (matchUserLink.find()) {
+            final var url = matchUserLink.group(1);
+            final var linkText= matchUserLink.group(4);
+            return q(content.substring(0, matchUserLink.start()))
+                 + createUrlLink(url, linkText)
+                 + replaceNextLink(content.substring(matchUserLink.end()));
+        }
+        return q(content);
+    }
+
+    private String createTableLink(final int level, final String content, final String key) {
+        final var tbl = this.tableMap.get(key);
+        final var cell = createCell(level, content.replaceAll(SEE_QUICK_RE, " ").trim() + " ");
+        // if we have a reference to a single line table, optionally embed it
+        if (tbl!=null && tbl.currentRow < this.embedUpToRows)  return cell + formatTable(tbl, level +1);
+        return cell + createInternalLink(key);
+    }
+
+    protected String createInternalLink(final String key) {
         return "<a href=\"#" + nameToId(key) + "\">" + key + "&gt;</a>";
+    }
+
+    protected String createUrlLink(final String url, final String optText) {
+        return "<a href=\"" + url + "\">" + (optText==null? url : optText) + "</a>";
     }
 
     protected String headingWithId(final DocTable t) {
@@ -501,7 +521,7 @@ class JsonDocWikiHtmlVisitor extends JsonDocHtmlVisitor {
     }
 
     @Override
-    protected String createLink(final String key) {
+    protected String createInternalLink(final String key) {
         return "<ac:link ac:anchor=\"" + nameToId(key) + "\">" +
                "<ac:plain-text-link-body><![CDATA[" + key + "]]></ac:plain-text-link-body>" +
                "</ac:link>";

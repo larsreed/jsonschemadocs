@@ -2,7 +2,7 @@
 
 A prototype of a simple utility to be able to embed more comprehensive documentation within a JSON Schema.
 
-Written by Lars Reed, april 2021. I'd be happy for an attribution if you use this code for anything ;)
+Written by Lars Reed, spring 2021. I'd be happy for an attribution if you use this code for anything ;)
 
 # Writing schemas
 
@@ -20,6 +20,12 @@ Written by Lars Reed, april 2021. I'd be happy for an attribution if you use thi
       Such values will appear in the documentation, but will be stripped from the recreated schema output (see below).
     * You may also append other properties that appear neither in the documentation nor in the schema
       by starting the property names with **"ignore-"**.
+    * JSON is not fond of repeated attributes, does not allow a string property to span multiple input lines,
+      and the tool currently handles arrays rather badly...
+      To include multi-line strings, use `\n` to denote where you want line breaks, but don't actually add any line breaks.
+      We should perhaps fix that, some day...
+    * To embed *links* in documentation, use either `linkTo(url)` or `linkTo(url, text)`
+      (for the former, the url is also used as the actual link text).
 
 * Sample:
 ```json
@@ -148,7 +154,7 @@ I have been working with.
                 - dependentRequired
                 - contentEncoding, contentMediaType, contentSchema
                 - $defs & $ref
-                - better array handling
+                - better array handling, including props (user attributes)
 
 
 ## Code style

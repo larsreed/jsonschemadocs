@@ -81,13 +81,13 @@ class JsonSchemaObject extends JsonObject {
 
     @Override
     void addChild(final JsonBasicNode orgNode) {
-        if (orgNode instanceof JsonKeyValue) {
-            final var node = (JsonKeyValue) orgNode;
+        if (orgNode instanceof final JsonKeyValue node) {
             if (JsonDocNames.PROP_KEYWORDS.contains(node.key) ||
                     node.key.startsWith(JsonDocNames.XIF_PREFIX) ||
                     node.key.startsWith(JsonDocNames.XIFNOT_PREFIX))
                 addProp(node.key, node.value);
             else if (node.key.startsWith(JsonDocNames.XDOC_PREFIX)) {
+                // Should also have supported array types, but that needs a rework of the props class...
                 addProp(removePrefix(node.key, JsonDocNames.XDOC_PREFIX),  node.value);
             }
             else super.addChild(node);
@@ -107,8 +107,7 @@ class JsonTopNode extends JsonSchemaObject {
 
     @Override
     void addChild(final JsonBasicNode orgNode) {
-        if (orgNode instanceof JsonKeyValue) { // Creates dependency cycle within this file, we can live with that
-            final JsonKeyValue node = (JsonKeyValue) orgNode;
+        if (orgNode instanceof final JsonKeyValue node) { // Creates dep. cycle within this file, we can live with that
             if (JsonDocNames.PROP_KEYWORDS.contains(node.key)) addProp(node.key, node.value);
             else super.addChild(orgNode);
             return;
