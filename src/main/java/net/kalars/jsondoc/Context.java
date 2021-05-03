@@ -41,7 +41,9 @@ class Context {
     boolean isExcluded(final String column) {
         final var excluded = this.map.get(EXCLUDED_COLUMNS);
         if (excluded==null) return false; // no columns excluded
-        return Arrays.stream(excluded.split(", *")).anyMatch(excl -> excl.equalsIgnoreCase(column));
+        return Arrays.stream(excluded.split(", *"))
+                .anyMatch(excl -> excl.equalsIgnoreCase(column) ||
+                        excl.equalsIgnoreCase(JsonDocNames.XDOC_PREFIX+column.replaceAll(" ", "_")));
     }
 }
 
