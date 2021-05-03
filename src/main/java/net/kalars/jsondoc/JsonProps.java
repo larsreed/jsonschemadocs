@@ -10,6 +10,8 @@ import java.util.function.BiConsumer;
 /** A class for handling the defined JSON Schema properties for a type. */
 class JsonProps {
 
+    // Should probably support Objects as values, but a lot of rework for that
+
     private final Map<String, String> props= new LinkedHashMap<>();
 
     static String unquote(final String s) {
@@ -103,7 +105,7 @@ class JsonProps {
         else max = Optional.of(max.get() + "]");
 
         if (min.isPresent()) min = Optional.of(min.get() + ", ");
-        else if (max.isPresent()) min = Optional.of("<0, ");
+        else if (max.isPresent()) min = Optional.of("[0, ");
         else return;
 
         mergeType(min.orElse("") + max.orElse(""));
@@ -123,7 +125,7 @@ class JsonProps {
         if (max.isPresent()) max = Optional.of(max.get() + "]");
 
         if (min.isPresent() && !exact) min = Optional.of(min.get() + "..");
-        else if (max.isPresent()) min = Optional.of("<0..");
+        else if (max.isPresent()) min = Optional.of("[0..");
         else if (min.isEmpty()) return;
 
         mergeType(min.orElse("") + max.orElse(""));
