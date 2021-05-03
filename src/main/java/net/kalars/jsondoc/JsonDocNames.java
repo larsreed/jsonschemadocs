@@ -19,6 +19,9 @@ interface JsonDocNames {
 
     // JSON Schema names
     String ARRAY = "array";
+    String CONTENT_ENCODING = "contentEncoding";
+    String CONTENT_MEDIA_TYPE = "contentMediaType";
+    String CONTENT_SCHEMA = "contentSchema";
     String CONST = "const";
     String DEFAULT = "default";
     String DEPRECATED = "deprecated";
@@ -51,7 +54,8 @@ interface JsonDocNames {
             MAXIMUM, EXCLUSIVE_MAXIMUM,
             MIN_LENGTH, MAX_LENGTH,
             MIN_ITEMS, MAX_ITEMS, UNIQUE_ITEMS,
-            FORMAT, PATTERN, ENUM, CONST, MULTIPLE_OF, DEFAULT, DEPRECATED, WRITE_ONLY, READ_ONLY);
+            FORMAT, PATTERN, ENUM, CONST, MULTIPLE_OF, DEFAULT, DEPRECATED, WRITE_ONLY, READ_ONLY,
+            CONTENT_SCHEMA, CONTENT_ENCODING, CONTENT_MEDIA_TYPE);
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net

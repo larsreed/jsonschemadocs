@@ -178,6 +178,9 @@ class JsonProps {
         extract(JsonDocNames.DEFAULT).ifPresent(s -> mergeType(JsonDocNames.DEFAULT + "=" + s));
         extract(JsonDocNames.ENUM).ifPresent(s -> mergeType("{" + s + "}"));
         extract(JsonDocNames.DEPRECATED).ifPresent(s -> mergeType("\n" + JsonDocNames.DEPRECATED.toUpperCase() + "!"));
+        extract(JsonDocNames.CONTENT_ENCODING).ifPresent(s -> mergeType(JsonDocNames.CONTENT_ENCODING + "=" + s));
+        extract(JsonDocNames.CONTENT_MEDIA_TYPE).ifPresent(s -> mergeType(JsonDocNames.CONTENT_MEDIA_TYPE + "=" + s));
+        extract(JsonDocNames.CONTENT_SCHEMA).ifPresent(s -> mergeType(JsonDocNames.CONTENT_SCHEMA + "=" + s));
     }
 }
 

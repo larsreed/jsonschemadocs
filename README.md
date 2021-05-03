@@ -149,13 +149,18 @@ The parser does not yet promise to support all of JSON Schema, it has only been 
 I have been working with.
 
                 TODO:
-                - maxContains, minContains, contains
-                - maxProperties, minProperties
-                - dependentRequired
-                - contentEncoding, contentMediaType, contentSchema
                 - $defs & $ref
                 - better array handling, including props (user attributes)
 
+Support is currently not planned for
+
+* advanced constructs
+
+* maxContains, minContains, contains
+
+* maxProperties, minProperties
+
+* dependentRequired
 
 ## Code style
 

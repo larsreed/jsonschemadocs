@@ -73,15 +73,7 @@ public final class JsonDoc {
         System.out.println("    -D" + Context.SKIP_TABLES + "=table1,table2,... to exclude tables with given IDs");
         System.out.println("    -D" + Context.EMBED_ROWS + "=n defines embedding in HTML tables");
         System.out.println("""
-                Output is written to stdout and must be redirected.
-                
-                TODO:
-                - maxContains, minContains, contains
-                - maxProperties, minProperties
-                - dependentRequired
-                - contentEncoding, contentMediaType, contentSchema
-                - $defs & $ref
-                """);
+                Output is written to stdout and must be redirected. """);
         System.exit(err);
     }
 }
