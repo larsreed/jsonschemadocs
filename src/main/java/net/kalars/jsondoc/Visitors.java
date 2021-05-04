@@ -596,6 +596,7 @@ digraph G {
     }
 
     private void createEdge(final StringBuilder buffer, final String name, final String cell) {
+        // TODO drop edges to skipped nodes (skipTable & $defs)
         final var match = SEE_REGEXP.matcher(cell);
         if (!match.matches())  return;
         final var key = match.group(1);

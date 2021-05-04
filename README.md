@@ -84,7 +84,7 @@ Currently, three types of documentation are supported.
 
     Sample output:
 
-    ![example](sample-html.png)
+    ![example](docs/sample-html.png)
 
     The definition `-DexcludedColumns=foo,bar` may be appended
     defining one or more (comma separated) columns to exclude from the result.
@@ -118,7 +118,7 @@ Currently, three types of documentation are supported.
 
    Sample output:
 
-   ![example](sample-graph.png)
+   ![example](docs/sample-graph.png)
 
 ## Command line help
 Run `java -jar jsondoc.jar HELP` to get online help.
@@ -149,17 +149,14 @@ The parser does not yet promise to support all of JSON Schema, it has only been 
 I have been working with.
 
                 TODO:
-                - $defs & $ref
                 - better array handling, including props (user attributes)
 
 Support is currently not planned for
 
 * advanced constructs
-
 * maxContains, minContains, contains
-
 * maxProperties, minProperties
-
+* $defs & $ref
 * dependentRequired
 
 ## Code style
@@ -190,3 +187,18 @@ So the code here is not entirely idiomatic - but it's mine.
 
 Yes, that *is* actually bad.  The code was created as a kind of discovery process, didn't think I'd even keep it,
 but now that I did, there should be some structured tests...
+
+## Parsing
+`com.fasterxml.jackson` provides the basic parsing.
+
+### Nodes
+The first parser creates a tree of nodes, where `JsonNode` and its descendants can contain children of the same hierarchy,
+additionally they have a `JsonProps`, where we place the documentation properties (x-...) as well as the supported keywords
+(e.g. maxItems).
+
+![example](docs/nodes.png)
+
+### Visitors
+After building the graph, the different visitors (basically one per output type), traverse the tree
+structure and creates a new structure (normally table-oriented) suitable for output.
+The final output is via the visitor's `toString()`.

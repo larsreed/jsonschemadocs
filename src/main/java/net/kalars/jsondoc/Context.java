@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-/** Map-based implementation of a Context. */
+/** The runtime context settings (variable defs etc). */
 @SuppressWarnings({"StaticMethodOnlyUsedInOneClass", "SameParameterValue"})
 class Context {
 

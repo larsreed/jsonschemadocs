@@ -1,0 +1,77 @@
+digraph G {
+        fontname = "Candara"
+        fontsize = 14
+
+        label = "Main data classes\n"
+		labelloc = "t"
+
+        node [
+					fontname = "Candara"
+                    fontsize = 12
+                    shape = "record"
+                    color = "#12404F"
+                    fontcolor = "#12404F"
+        ]
+
+        edge [
+                arrowhead = "empty"
+        ]
+
+        JsonBasicNode [
+                label = "{JsonBasicNode\n|name\ltokenDepth\lqName\lrequired\l}"
+        ]
+
+        JsonNode [
+                label = "{JsonNode\n|props\lchildren\l}"
+        ]
+
+        JsonProps [
+                label = "{JsonProps\n|props\l}"
+        ]
+
+        JsonObject [
+                label = "{JsonObject\n}"
+        ]
+
+        JsonSchemaObject [
+                label = "{JsonSchemaObject\n}"
+        ]
+
+        JsonTopNode [
+                label = "{JsonTopNode\n}"
+        ]
+
+        JsonArray [
+                label = "{JsonArray\n}"
+        ]
+
+        JsonValue [
+                label = "{JsonValue\n|value\l}"
+        ]
+
+        JsonKeyValue [
+                label = "{JsonKeyValue\n|key\l}"
+        ]
+
+        Context [
+                label = "{Context\n|map\l}"
+        ]
+
+        JsonNode -> JsonBasicNode
+
+        JsonObject -> JsonNode
+
+        JsonSchemaObject -> JsonObject
+
+        JsonTopNode -> JsonSchemaObject
+
+        JsonArray -> JsonObject
+
+        JsonValue -> JsonBasicNode
+
+        JsonKeyValue -> JsonValue
+
+		JsonNode -> JsonProps [
+                arrowhead = "none"
+		]
+}
