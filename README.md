@@ -74,13 +74,13 @@ can be given after the input file name with `-Dname=value`, e.g.
 
 ## **Creating documentation**
   
-Currently, three types of documentation are supported.
+Currently, four types of documentation are supported.
 
 1. HTML
 
     To create an HTML document documenting the schema, run a visitor like this
 
-   `java -jar jsondoc.jar HTML /path/to/input/myExtendSchema.json -DembedUpToRows=1 > mySchema.html`
+   `java -jar jsondoc.jar HTML /path/to/input/myExtendedSchema.json -DembedUpToRows=1 > mySchema.html`
 
     Sample output:
 
@@ -97,16 +97,22 @@ Currently, three types of documentation are supported.
     denoting that tables of up to N rows should be embedded in its parent.
 
     A sample with such definitions:
-    `java -jar jsondoc.jar HTML myExtendSchema.json -DembedUpToRows=1 -DexcludedColumns=sample,note > myLittleSchema.html`
+    `java -jar jsondoc.jar HTML myExtendedSchema.json -DembedUpToRows=1 -DexcludedColumns=sample,note > myLittleSchema.html`
 
 
 2. Wiki
 
-    Like the HTML version, but using Confluence wiki link syntax.
+   Like the HTML version, but using Confluence wiki link syntax.
    `java -jar jsondoc.jar WIKI /path/to/input/myExtendedSchema.json > mySchema.xhtml`
 
 
-3. Diagram
+3. Markdown
+
+   Like the HTML version (same parameters etc), but producing Markdown.
+   `java -jar jsondoc.jar MARKDOWN /path/to/input/myExtendedSchema.json > mySchema.md`
+
+
+4. Diagram
 
     Requires Graphviz -- https://graphviz.org/download/
 
@@ -127,11 +133,12 @@ Run `java -jar jsondoc.jar HELP` to get online help.
 JSON SCHEMA DOCUMENTATION TOOL -- Lars Reed, 2021
 Usage: java -jar jsondoc.jar TYPE INPUTFILE [DEFINITIONS] > resultfile
 
-TYPE: one of SCHEMA, HTML, GRAPH, WIKI
-    SCHEMA: output a clean schema file, without additional attributes
-    HTML:   output HTML-formatted documentation
-    DOT:    output a script to create a graph using graphviz/dot
-    WIKI:   output in Confluence wiki XHTML format
+TYPE:
+    SCHEMA:   output a clean schema file, without additional attributes
+    HTML:     output HTML-formatted documentation
+    MARKDOWN: output Markdown-formatted documentation
+    DOT:      output a script to create a graph using graphviz/dot
+    WIKI:     output in Confluence wiki XHTML format
 INPUTFILE: name of extended JSON Schema file
 DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE
     e.g. -Dvariant=foo could define a context for "xif-variant": "foo"

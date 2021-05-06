@@ -608,8 +608,104 @@ digraph G {
               .append(" [ label = \"").append(tbl.cardinality).append("\" ]")
               .append("\n\n");
     }
-
 }
+
+
+@SuppressWarnings("SameParameterValue")
+class JsonDocMarkdownVisitor extends JsonDocPrintVisitor {
+
+    JsonDocMarkdownVisitor(final Context context) { super(context); }
+
+    protected String q(final String s) {
+        return s.replaceAll("[-\\`*|_{}()#+]", "\\\\$0")
+                .replaceAll("[\\]\\[]", "\\\\$0")
+                .replaceAll("\t", "&nbsp;&nbsp;")
+                .replaceAll("\n", "<br/>");
+    }
+
+    @Override
+    public String toString() {
+        this.tables.stream()
+                .filter(t -> t.currentRow >= 0)
+                .forEach(t -> this.buffer.append(formatTable(t, 0)));
+        return this.buffer.toString();
+    }
+
+    protected String formatTable(final DocTable t, final int level) {
+        if (t.done) return ""; // already processed recursively
+        t.done = true;
+
+        final var sb = new StringBuilder();
+        if (level==0) sb.append(headingWithId(t));// Only heading for tables that are not embedded
+        sb.append(headerRow(t));
+
+        for (int i = 0; i <= t.currentRow; i++) {
+            sb.append("|");
+            for (final var c : t.fields) {
+                final var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
+                sb.append(" ").append(createCell(level, cell)).append(" |");
+            }
+            sb.append("\n");
+        }
+
+        return sb.append("\n").toString();
+    }
+
+    private String createCell(final int level, final String content) {
+        final var matchTableLink = SEE_REGEXP.matcher(content);
+        if (matchTableLink.matches()) return createTableLink(level, content, matchTableLink.group(1));
+        return replaceNextLink(content);
+    }
+
+    private String replaceNextLink(final String content) {
+        final var matchUserLink = USER_LINK_REGEXP.matcher(content);
+        if (matchUserLink.find()) {
+            final var url = matchUserLink.group(1);
+            final var linkText= matchUserLink.group(4);
+            return q(content.substring(0, matchUserLink.start()))
+                    + createUrlLink(url, linkText)
+                    + replaceNextLink(content.substring(matchUserLink.end()));
+        }
+        return q(content);
+    }
+
+    private String createTableLink(final int level, final String content, final String key) {
+        final var tbl = this.tableMap.get(key);
+        final var cell = createCell(level, content.replaceAll(SEE_QUICK_RE, " ").trim() + " ");
+        // if we have a reference to a single line table, optionally embed it
+        // TODO Consider support for embedding in markup
+        //     if (tbl!=null && tbl.currentRow < this.embedUpToRows)  return cell + formatTable(tbl, level +1);
+        return cell + createInternalLink(key);
+    }
+
+    protected String createInternalLink(final String key) { return "[" + key + ">](#" + nameToId(key) + ")"; }
+
+    protected String createUrlLink(final String url, final String optText) {
+        if (optText==null || "".equals(optText)) return "[" + url + "]";
+        return "[" + optText + "](" + url + ")";
+    }
+
+    protected String headingWithId(final DocTable t) {
+        final var name = "".equals(t.name)? this.topTitle : t.name;
+        return "\n\n<a name=\"" +
+                nameToId(name) +
+                "\"></a>\n" +
+                "#".repeat(t.level()) +
+                " " +
+                q(name) +
+                "\n";
+    }
+
+    private String headerRow(final DocTable t) {
+        final var sb = new StringBuilder();
+        sb.append("| ");
+        for (final var c : t.fields) sb.append(q(keyToTitle(c))).append(" |");
+        sb.append("\n| ");
+        for (final var c : t.fields) sb.append(" ----- |");
+        return sb.append("\n").toString();
+    }
+}
+
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net
 //

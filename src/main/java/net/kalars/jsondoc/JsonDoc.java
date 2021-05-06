@@ -40,6 +40,11 @@ public final class JsonDoc {
                 new JsonSchemaParser().parseFile(inputfile).visit(visitor2);
                 System.out.println(visitor2);
             }
+            case "MARKDOWN" -> {
+                final var visitor5 = new JsonDocMarkdownVisitor(context);
+                new JsonSchemaParser().parseFile(inputfile).visit(visitor5);
+                System.out.println(visitor5);
+            }
             case "GRAPH" -> {
                 final var visitor4 = new JsonDocDotVisitor(context);
                 new JsonSchemaParser().parseFile(inputfile).visit(visitor4);
@@ -60,11 +65,12 @@ public final class JsonDoc {
         JSON SCHEMA DOCUMENTATION TOOL -- Lars Reed, 2021
         Usage: java -jar jsondoc.jar TYPE INPUTFILE [DEFINITIONS] > resultfile
         
-        TYPE: one of SCHEMA, HTML, GRAPH, WIKI
-            SCHEMA: output a clean schema file, without additional attributes
-            HTML:   output HTML-formatted documentation
-            DOT:    output a script to create a graph using graphviz/dot
-            WIKI:   output in Confluence wiki XHTML format
+        TYPE:
+            SCHEMA:   output a clean schema file, without additional attributes
+            HTML:     output HTML-formatted documentation
+            MARKDOWN: output Markdown-formatted documentation
+            DOT:      output a script to create a graph using graphviz/dot
+            WIKI:     output in Confluence wiki XHTML format
         INPUTFILE: name of extended JSON Schema file
         DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE""");
         System.out.println("    e.g. -D" + Context.VARIANT + "=foo could define a context for \""

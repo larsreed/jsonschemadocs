@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Test;
 
 class DocParserTest {
     private static final String fileName =
-//            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample2.json";
-            "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample4.json";
+            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample2.json";
+//            "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample4.json";
 
     private Context ctx(final String mode) {
         return new Context(mode)
@@ -30,6 +30,14 @@ class DocParserTest {
         final var visitor5 = new JsonDocWikiHtmlVisitor(context);
         new JsonSchemaParser().parseFile(fileName).visit(visitor5);
         System.out.println(visitor5);
+    }
+
+    @Test
+    void markdownOutput() {
+        final var context = ctx("MARKDOWN");
+        final var visitor6 = new JsonDocMarkdownVisitor(context);
+        new JsonSchemaParser().parseFile(fileName).visit(visitor6);
+        System.out.println(visitor6);
     }
 
     @Test
