@@ -69,7 +69,7 @@ public final class JsonDoc {
             SCHEMA:   output a clean schema file, without additional attributes
             HTML:     output HTML-formatted documentation
             MARKDOWN: output Markdown-formatted documentation
-            DOT:      output a script to create a graph using graphviz/dot
+            GRAPH:    output a script to create a graph using graphviz/dot
             WIKI:     output in Confluence wiki XHTML format
         INPUTFILE: name of extended JSON Schema file
         DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE""");

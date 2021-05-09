@@ -137,7 +137,7 @@ TYPE:
     SCHEMA:   output a clean schema file, without additional attributes
     HTML:     output HTML-formatted documentation
     MARKDOWN: output Markdown-formatted documentation
-    DOT:      output a script to create a graph using graphviz/dot
+    GRAPH:    output a script to create a graph using graphviz/dot
     WIKI:     output in Confluence wiki XHTML format
 INPUTFILE: name of extended JSON Schema file
 DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE
@@ -145,7 +145,7 @@ DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE
     -DexcludeColumns=col1,col2,... to exclude named columns
     -DskipTables=table1,table2,... to exclude tables with given IDs
     -DembedUpToRows=n defines embedding in HTML tables
-Output is written to stdout and must be redirected.
+Output is written to stdout and should be redirected.
 ```
 
 # Maintenance
