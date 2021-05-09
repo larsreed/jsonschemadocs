@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 /** The CLI main class. */
 @SuppressWarnings("FeatureEnvy")
 public final class JsonDoc {
-    private static final Pattern pattern = Pattern.compile("^-D([^=]+)=([^=]+)$");
+    private static final Pattern pattern = Pattern.compile("^([^=]+)=([^=]+)$");
 
     public static void main(final String[] args) {
         if (args.length == 1 && "help".equalsIgnoreCase(args[0])) help("Help", 0);
@@ -21,7 +21,7 @@ public final class JsonDoc {
         for (int i = 2; i < args.length; i++) {
             final var arg = args[i];
             final var match = pattern.matcher(arg);
-            if (match.matches()) context.add(match.group(1), match.group(2));
+            if (match.matches() && match.groupCount()==2) context.add(match.group(1), match.group(2));
             else help("Illegible argument " + arg, 1);
         }
 
@@ -72,14 +72,14 @@ public final class JsonDoc {
             GRAPH:    output a script to create a graph using graphviz/dot
             WIKI:     output in Confluence wiki XHTML format
         INPUTFILE: name of extended JSON Schema file
-        DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE""");
-        System.out.println("    e.g. -D" + Context.VARIANT + "=foo could define a context for \""
+        DEFINTIONS: follows the pattern name=value, and comes after the inputfile""");
+        System.out.println("    " + Context.VARIANT + "=foo could define a context for \""
                 + JsonDocNames.XIF_PREFIX + Context.VARIANT + "\": \"foo\"");
-        System.out.println("    -D" + Context.EXCLUDED_COLUMNS + "=col1,col2,... to exclude named columns");
-        System.out.println("    -D" + Context.SKIP_TABLES + "=table1,table2,... to exclude tables with given IDs");
-        System.out.println("    -D" + Context.EMBED_ROWS + "=n defines embedding in HTML tables");
+        System.out.println("    " + Context.EXCLUDED_COLUMNS + "=col1,col2,... to exclude named columns");
+        System.out.println("    " + Context.SKIP_TABLES + "=table1,table2,... to exclude tables with given IDs");
+        System.out.println("    " + Context.EMBED_ROWS + "=n defines embedding in HTML tables");
         System.out.println("""
-                Output is written to stdout and must be redirected. """);
+                Output is written to stdout and should be redirected. """);
         System.exit(err);
     }
 }

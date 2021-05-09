@@ -67,9 +67,9 @@ for use in e.g. validators, like this:
 `java -jar jsondoc.jar SCHEMA /path/to/input/myExtendedSchema.json > myBasicSchema.json`
 
 For this, and all following examples, definitions (e.g. conditionals), 
-can be given after the input file name with `-Dname=value`, e.g.
+can be given after the input file name with `name=value`, e.g.
 
-`java -jar jsondoc.jar SCHEMA myExtendedSchema.json -Dvariant=plain > myPlainSchema.json`
+`java -jar jsondoc.jar SCHEMA myExtendedSchema.json variant=plain > myPlainSchema.json`
 
 
 ## **Creating documentation**
@@ -86,18 +86,18 @@ Currently, four types of documentation are supported.
 
     ![example](docs/sample-html.png)
 
-    The definition `-DexcludedColumns=foo,bar` may be appended
+    The definition `excludedColumns=foo,bar` may be appended
     defining one or more (comma separated) columns to exclude from the result.
 
-    The definition `-DskipTables=foo,bar` may be appended
+    The definition `skipTables=foo,bar` may be appended
     defining one or more (comma separated) table IDs to exclude from the result.
     Note that these are the `id`-tags, look in the generated code if you are uncertain.
 
-    The definition `-DembedUpToRows=n` (where 'n' is a number) may be appended,
+    The definition `embedUpToRows=n` (where 'n' is a number) may be appended,
     denoting that tables of up to N rows should be embedded in its parent.
 
     A sample with such definitions:
-    `java -jar jsondoc.jar HTML myExtendedSchema.json -DembedUpToRows=1 -DexcludedColumns=sample,note > myLittleSchema.html`
+    `java -jar jsondoc.jar HTML myExtendedSchema.json embedUpToRows=1 excludedColumns=sample,note > myLittleSchema.html`
 
 
 2. Wiki
@@ -140,11 +140,11 @@ TYPE:
     GRAPH:    output a script to create a graph using graphviz/dot
     WIKI:     output in Confluence wiki XHTML format
 INPUTFILE: name of extended JSON Schema file
-DEFINTIONS: follows the pattern -Dname=value, and precedes the TYPE
-    e.g. -Dvariant=foo could define a context for "xif-variant": "foo"
-    -DexcludeColumns=col1,col2,... to exclude named columns
-    -DskipTables=table1,table2,... to exclude tables with given IDs
-    -DembedUpToRows=n defines embedding in HTML tables
+DEFINTIONS: follows the pattern name=value, and comes after the inputfile
+    variant=foo could define a context for "xif-variant": "foo"
+    excludeColumns=col1,col2,... to exclude named columns
+    skipTables=table1,table2,... to exclude tables with given IDs
+    embedUpToRows=n defines embedding in HTML tables
 Output is written to stdout and should be redirected.
 ```
 
@@ -157,13 +157,13 @@ I have been working with.
 
                 TODO:
                 - better array handling, including props (user attributes)
+                - $defs & $ref
 
 Support is currently not planned for
 
 * advanced constructs
 * maxContains, minContains, contains
 * maxProperties, minProperties
-* $defs & $ref
 * dependentRequired
 
 ## Code style
