@@ -10,6 +10,7 @@ class DocParserTest {
     private Context ctx(final String mode) {
         return new Context(mode)
                 .add("test", "true")
+                .add("sampleColumns", "eksempel")
 //                .add(Context.SKIP_TABLES,"metadata,data")
 //                .add("variant", "tags")
 //                .add(Context.EXCLUDED_COLUMNS, "x-ICS2_XML")
@@ -18,49 +19,50 @@ class DocParserTest {
 
     @Test
     void htmlOutput() {
-        final var context = ctx("HTML");
-        final var visitor3 = new JsonDocHtmlVisitor(context);
-        new JsonSchemaParser().parseFile(fileName).visit(visitor3);
-        System.out.println(visitor3);
+        final var visitor = new JsonDocHtmlVisitor(ctx("HTML"));
+        new JsonSchemaParser().parseFile(fileName).visit(visitor);
+        System.out.println(visitor);
     }
 
     @Test
     void wikiHtmlOutput() {
-        final var context = ctx("HTML");
-        final var visitor5 = new JsonDocWikiHtmlVisitor(context);
-        new JsonSchemaParser().parseFile(fileName).visit(visitor5);
-        System.out.println(visitor5);
+        final var visitor = new JsonDocWikiHtmlVisitor(ctx("HTML"));
+        new JsonSchemaParser().parseFile(fileName).visit(visitor);
+        System.out.println(visitor);
     }
 
     @Test
     void markdownOutput() {
-        final var context = ctx("MARKDOWN");
-        final var visitor6 = new JsonDocMarkdownVisitor(context);
-        new JsonSchemaParser().parseFile(fileName).visit(visitor6);
-        System.out.println(visitor6);
+        final var visitor = new JsonDocMarkdownVisitor(ctx("MARKDOWN"));
+        new JsonSchemaParser().parseFile(fileName).visit(visitor);
+        System.out.println(visitor);
     }
 
     @Test
     void dotOutput() {
-        final var context = ctx("GRAPH");
-        final var visitor4 = new JsonDocDotVisitor(context);
-        new JsonSchemaParser().parseFile(fileName).visit(visitor4);
-        System.out.println(visitor4);
+        final var visitor = new JsonDocDotVisitor(ctx("GRAPH"));
+        new JsonSchemaParser().parseFile(fileName).visit(visitor);
+        System.out.println(visitor);
+    }
+
+    @Test
+    void sampleOutput() {
+        final var visitor = new JsonSamplePrintVisitor(ctx("SAMPLE"));
+        new JsonSchemaParser().parseFile(fileName).visit(visitor);
+        System.out.println(visitor);
     }
 
     @Test
     void schemaOutput() {
-        final var context = ctx("SCHEMA");
-        final var visitor1 = new JsonSchemaPrintVisitor(context);
-        new JsonGenParser().parseFile(fileName).visit(visitor1);
-        System.out.println(visitor1);
+        final var visitor = new JsonSchemaPrintVisitor(ctx("SCHEMA"));
+        new JsonGenParser().parseFile(fileName).visit(visitor);
+        System.out.println(visitor);
     }
 
     @Test
     void debugOutput() {
-        final var context = ctx("DEBUG");
-        final var visitor0 = new DebugVisitor(context);
-        new JsonGenParser().parseFile(fileName).visit(visitor0);
-        System.out.println(visitor0);
+        final var visitor = new DebugVisitor(ctx("DEBUG"));
+        new JsonGenParser().parseFile(fileName).visit(visitor);
+        System.out.println(visitor);
     }
 }

@@ -72,6 +72,16 @@ can be given after the input file name with `name=value`, e.g.
 `java -jar jsondoc.jar SCHEMA myExtendedSchema.json variant=plain > myPlainSchema.json`
 
 
+## **Creating sample data**
+
+Note: this feature is experimental, you will probably have to correct the output somewhat...
+
+Create sample data from one or more embedded sample columns:
+
+`java -jar jsondoc.jar SAMPLE /path/to/input/myExtendedSchema.json sampleColumns=x-sample> mySample.json`
+
+You must define one (or more, comma-separated) sample columns using `sampleColumns=...` as shown above. 
+
 ## **Creating documentation**
   
 Currently, four types of documentation are supported.
@@ -139,12 +149,14 @@ TYPE:
     MARKDOWN: output Markdown-formatted documentation
     GRAPH:    output a script to create a graph using graphviz/dot
     WIKI:     output in Confluence wiki XHTML format
+    SAMPLE:   output sample data (experimental)
 INPUTFILE: name of extended JSON Schema file
 DEFINTIONS: follows the pattern name=value, and comes after the inputfile
     variant=foo could define a context for "xif-variant": "foo"
     excludeColumns=col1,col2,... to exclude named columns
     skipTables=table1,table2,... to exclude tables with given IDs
     embedUpToRows=n defines embedding in HTML tables
+    sampleColumns=col1,... defines columns to use for sample output
 Output is written to stdout and should be redirected.
 ```
 

@@ -212,6 +212,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         void addRow() { this.currentRow++; }
         static String toKey(final int r, final String c) { return String.format("%d\t%s", r, c); }
         int level() { return 1 + (int) this.name.chars().filter(c-> c=='>').count(); }
+        String localName() { return this.name.replaceAll(".*"+SEPARATOR, ""); }
 
         void addValue(final String colName, final String orgValue) {
             if (this.context.isExcluded(colName)) return;
@@ -239,8 +240,8 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
     @Override public void topNodeLeave(final JsonTopNode topNode) { objectLeave(topNode); }
 
     @Override public boolean topNode(final JsonTopNode topNode) {
-        this.topTitle = topNode.props.getProp(JsonDocNames.TITLE);
-        if (this.topTitle ==null) {
+        this.topTitle = topNode.props.getProp(JsonDocNames.TITLE, null);
+        if (this.topTitle == null) {
             final var any =
                     topNode.childList().stream()
                             .filter(n-> n.name.equals(JsonDocNames.TITLE))
@@ -295,13 +296,17 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         convertToProp(object, JsonDocNames.ENUM);
         // 'examples' should be a property, not a child
         convertToProp(object, JsonDocNames.EXAMPLES);
+        object.props.addSampleValue(object.props.defaultSample());
     }
 
     private void convertToProp(final JsonObject object, final String propName) {
         object.childList().stream().filter(c -> propName.equals(c.name)).forEach(c -> {
             object.removeChild(c);
             if (c instanceof JsonArray a) {
-                a.childList().forEach(child -> object.props.add(propName, child.toString()));
+                a.childList().forEach(child -> {
+                    object.props.add(propName, child.toString());
+                    object.props.addSampleValue(child.toString());
+                });
                 a.props.iterateOver((k, v) ->  { if (! "".equals(v)) object.props.add(propName, k + "=" + v); });
             }
             else object.props.add(propName, c.toString());
@@ -617,8 +622,8 @@ class JsonDocMarkdownVisitor extends JsonDocPrintVisitor {
     JsonDocMarkdownVisitor(final Context context) { super(context); }
 
     protected String q(final String s) {
-        return s.replaceAll("[-\\`*|_{}()#+]", "\\\\$0")
-                .replaceAll("[\\]\\[]", "\\\\$0")
+        return s.replaceAll("[-`*|_{}()#+]", "\\\\$0")
+                .replaceAll("[]\\[]", "\\\\$0")
                 .replaceAll("\t", "&nbsp;&nbsp;")
                 .replaceAll("\n", "<br/>");
     }
@@ -670,7 +675,7 @@ class JsonDocMarkdownVisitor extends JsonDocPrintVisitor {
     }
 
     private String createTableLink(final int level, final String content, final String key) {
-        final var tbl = this.tableMap.get(key);
+        // final var tbl = this.tableMap.get(key);
         final var cell = createCell(level, content.replaceAll(SEE_QUICK_RE, " ").trim() + " ");
         // if we have a reference to a single line table, optionally embed it
         // TODO Consider support for embedding in markup
@@ -701,8 +706,84 @@ class JsonDocMarkdownVisitor extends JsonDocPrintVisitor {
         sb.append("| ");
         for (final var c : t.fields) sb.append(q(keyToTitle(c))).append(" |");
         sb.append("\n| ");
-        for (final var c : t.fields) sb.append(" ----- |");
+        for (final var ignored : t.fields) sb.append(" ----- |");
         return sb.append("\n").toString();
+    }
+}
+
+
+/** Tries to create sample output by means of a given (set of) column name(s). Sample column names must be
+ * defined by setting sampleColumns=... */
+class JsonSamplePrintVisitor extends JsonDocPrintVisitor {
+
+    final List<String> sampleCols = new LinkedList<>();
+
+    JsonSamplePrintVisitor(final Context context) {
+        super(context);
+        final var samples = context.value(Context.SAMPLE_COLUMNS);
+        if (samples.isEmpty() || "".equals(samples.get()))
+            throw new IllegalArgumentException("No " + Context.SAMPLE_COLUMNS + " defined");
+        samples.ifPresent(sample -> Arrays.stream(sample.split(", *")).forEach(s-> {
+            this.sampleCols.add(s.toUpperCase());
+            this.sampleCols.add(JsonProps.removePrefix(s, Context.SAMPLE_COLUMNS).toUpperCase());
+        }));
+        this.sampleCols.add(JsonProps.DEFAULT_SAMPLE.toUpperCase());
+    }
+
+    private String makeIndent(final int n) { return " ".repeat(n * 2); }
+
+    @Override
+    public String toString() {
+        this.tables.stream()
+                .filter(t -> t.currentRow >= 0)
+                .forEach(t -> formatTable(t, 0));
+        return this.buffer.toString()
+                .replaceAll(",(\n *})", "$1")
+                .replaceAll(",[ \n]*$", "");
+    }
+
+    @SuppressWarnings("FeatureEnvy")
+    private void formatTable(final DocTable t, final int level) {
+        if (t.done) return;
+        t.done = true;
+        if (!t.fields.contains(JsonProps.DEFAULT_SAMPLE))
+            t.fields.add(JsonProps.DEFAULT_SAMPLE); // Need to include generated sample here
+
+        final var name = t.localName();
+        if (name.length()>0)
+            this.buffer.append(makeIndent(level))
+                    .append("\"")
+                    .append(name)
+                    .append("\": ");
+        this.buffer.append("{\n");
+
+        for (int i = 0; i <= t.currentRow; i++) {
+            final var cellName = t.data.get(DocTable.toKey(i, JsonDocNames.FIELD));
+            boolean seen = false;
+            for (final var key : t.fields) {
+                final var cell = t.data.get(DocTable.toKey(i, key));
+                if (cell != null && this.sampleCols.contains(key.toUpperCase()) && !seen) {
+                    seen = true;
+                    this.buffer.append(makeIndent(level + 1))
+                            .append("\"")
+                            .append(cellName)
+                            .append("\": ")
+                            .append(cell.contains("\"") ? "" : "\"")
+                            .append(cell)
+                            .append(cell.contains("\"") ? "" : "\"")
+                            .append(",\n");
+                }
+                else if (cell != null) {
+                    final var matchTableLink = SEE_REGEXP.matcher(cell);
+                    if (matchTableLink.matches()) {
+                        final var tbl = this.tableMap.get(matchTableLink.group(1));
+                        formatTable(tbl, level + 1);
+                    }
+                }
+            }
+        }
+
+        this.buffer.append(makeIndent(level)).append("},\n");
     }
 }
 

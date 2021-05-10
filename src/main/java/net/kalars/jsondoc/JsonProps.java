@@ -1,25 +1,38 @@
 package net.kalars.jsondoc;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 
 /** A class for handling the defined JSON Schema properties for a type. */
 class JsonProps {
+    static final String DEFAULT_SAMPLE = "§_def_sample_!";
 
     // Should probably support Objects as values, but a lot of rework for that
 
     private final Map<String, String> props= new LinkedHashMap<>();
+    private static final Random random = new Random();
 
     static String unquote(final String s) {
         return s.replaceAll("^\"", "").replaceAll("\"$", "");
     }
+    static String removePrefix(final String s, final String pfx) { return s.replaceAll("^" + pfx, ""); }
+    Map<String, String> propCopy() {return new LinkedHashMap<>(this.props);  }
+
+
+    void addSampleValue(final String sample) {
+        if (sample==null || "".equals(sample)) return;
+        this.props.put(DEFAULT_SAMPLE, sample);
+    }
 
     void add(final String key, final String value) {
         this.props.merge(key, unquote(value),  (org, add) -> org.contains(add)? org : org + "\n" + add);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    String getProp(final String key, final String defVal) {
+        final var prop = this.props.get(key);
+        return (prop==null)? defVal : prop;
     }
 
     @Override
@@ -28,9 +41,6 @@ class JsonProps {
         this.props.forEach((k, v) -> sb.append(k).append("=").append(v));
         return sb.toString();
     }
-
-    @SuppressWarnings("SameParameterValue")
-    String getProp(final String key) { return this.props.get(key); }
 
     void iterateOver(final BiConsumer<? super String, ? super String> method) {
         // Redefine the type description before iterating over it
@@ -41,7 +51,37 @@ class JsonProps {
         copy.props.forEach(method);
     }
 
-    Map<String, String> propCopy() {return new LinkedHashMap<>(this.props);  }
+    String defaultSample() {
+        if (this.props.containsKey(DEFAULT_SAMPLE)) return this.props.get(DEFAULT_SAMPLE);
+        if (this.props.containsKey(JsonDocNames.EXAMPLES)) return this.props.get(JsonDocNames.EXAMPLES);
+
+        final var type = getProp(JsonDocNames.TYPE, "string");
+        switch (type) {
+            case "string" -> {
+                final var minLen = Integer.parseInt(getProp(JsonDocNames.MIN_LENGTH, "0"));
+                final var maxLen = Integer.parseInt(getProp(JsonDocNames.MAX_LENGTH, "20"));
+                final var midLen = (minLen + maxLen) / 2;
+                String tst = "ABCD0123EFGH4567IJKL89MNOPQRSTUVWXYZ";
+                final var offs = random.nextInt(tst.length());
+                while (tst.length() < (midLen+offs+1)) tst+=tst;
+                return "\"" + tst.substring(offs, midLen+offs) + "\"";
+            }
+            case "integer" -> { return sampleInt(); }
+            case "number" -> { return sampleInt() + ".0"; }
+            case "boolean" -> { return "true"; }
+            case "null" -> { return "null"; }
+        }
+        return "";
+    }
+
+    private String sampleInt() {
+        final var mult = getProp(JsonDocNames.MULTIPLE_OF, null);
+        if (mult!=null) return ""+ mult;
+        final var min = Integer.parseInt(getProp(JsonDocNames.MINIMUM, "0"));
+        final var max = Integer.parseInt(getProp(JsonDocNames.MAXIMUM, "1024"));
+        final var rnd = min + random.nextInt((max-min+1));
+        return "" + rnd;
+    }
 
     private void defineType() {
         format();

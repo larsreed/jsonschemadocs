@@ -14,6 +14,7 @@ class Context {
     static final String VARIANT = "variant";
     static final String EXCLUDED_COLUMNS = "excludeColumns";
     static final String SKIP_TABLES = "skipTables";
+    static final String SAMPLE_COLUMNS = "sampleColumns";
 
     private final Map<String, String> map = new LinkedHashMap<>();
 

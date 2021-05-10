@@ -76,9 +76,6 @@ class JsonSchemaObject extends JsonObject {
         super(name, qName, tokenDepth);
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private static String removePrefix(final String s, final String pfx) { return s.replaceAll("^" + pfx, ""); }
-
     @Override
     void addChild(final JsonBasicNode orgNode) {
         if (orgNode instanceof final JsonKeyValue node) {
@@ -88,7 +85,7 @@ class JsonSchemaObject extends JsonObject {
                 addProp(node.key, node.value);
             else if (node.key.startsWith(JsonDocNames.XDOC_PREFIX)) {
                 // Should also have supported array types, but that needs a rework of the props class...
-                addProp(removePrefix(node.key, JsonDocNames.XDOC_PREFIX),  node.value);
+                addProp(JsonProps.removePrefix(node.key, JsonDocNames.XDOC_PREFIX),  node.value);
             }
             else super.addChild(node);
             return;

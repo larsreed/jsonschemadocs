@@ -55,6 +55,11 @@ public final class JsonDoc {
                 new JsonGenParser().parseFile(inputfile).visit(visitor1);
                 System.out.println(visitor1);
             }
+            case "SAMPLE" -> {
+                final var visitor6 = new JsonSamplePrintVisitor(context);
+                new JsonGenParser().parseFile(inputfile).visit(visitor6);
+                System.out.println(visitor6);
+            }
             default -> help("Unknown type " + outType, 1);
         }
     }
@@ -71,6 +76,7 @@ public final class JsonDoc {
             MARKDOWN: output Markdown-formatted documentation
             GRAPH:    output a script to create a graph using graphviz/dot
             WIKI:     output in Confluence wiki XHTML format
+            SAMPLE:   output sample data -- Note: Experimental!
         INPUTFILE: name of extended JSON Schema file
         DEFINTIONS: follows the pattern name=value, and comes after the inputfile""");
         System.out.println("    " + Context.VARIANT + "=foo could define a context for \""
@@ -78,8 +84,9 @@ public final class JsonDoc {
         System.out.println("    " + Context.EXCLUDED_COLUMNS + "=col1,col2,... to exclude named columns");
         System.out.println("    " + Context.SKIP_TABLES + "=table1,table2,... to exclude tables with given IDs");
         System.out.println("    " + Context.EMBED_ROWS + "=n defines embedding in HTML tables");
+        System.out.println("    " + Context.SAMPLE_COLUMNS + "=col1,... defines columns to use for sample output");
         System.out.println("""
-                Output is written to stdout and should be redirected. """);
+                Output is written to stdout and should be redirected.""");
         System.exit(err);
     }
 }
