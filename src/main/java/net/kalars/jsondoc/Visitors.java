@@ -604,7 +604,7 @@ digraph G {
 
     private void createNode(final StringBuilder buffer, final String name) {
         buffer.append("        ").append(q(name)).append(" [\n")
-              .append("                ").append("label = \"{").append(only(name)).append("|\\n}\"\n")
+              .append("                ").append("label = \"{").append(only(name)).append("\\n|}\"\n")
               .append("        ").append("]\n\n");
     }
 

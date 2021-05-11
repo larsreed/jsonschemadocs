@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Test;
 
 class DocParserTest {
     private static final String fileName =
-//            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample2.json";
-            "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample.json";
+            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample2.json";
+//            "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample.json";
 
     private Context ctx(final String mode) {
         return new Context(mode)
