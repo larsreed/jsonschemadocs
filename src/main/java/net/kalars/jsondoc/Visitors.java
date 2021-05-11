@@ -438,6 +438,7 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
     protected String formatTable(final DocTable t, final int level) {
         if (t.done) return ""; // already processed recursively
         t.done = true;
+        t.fields.remove(JsonProps.DEFAULT_SAMPLE); // TODO Shouldn't be necessary
 
         final var sb = new StringBuilder();
         if (level==0) sb.append(headingWithId(t));// Only heading for tables that are not embedded
@@ -639,6 +640,7 @@ class JsonDocMarkdownVisitor extends JsonDocPrintVisitor {
     protected String formatTable(final DocTable t, final int level) {
         if (t.done) return ""; // already processed recursively
         t.done = true;
+        t.fields.remove(JsonProps.DEFAULT_SAMPLE); // TODO Shouldn't be necessary
 
         final var sb = new StringBuilder();
         if (level==0) sb.append(headingWithId(t));// Only heading for tables that are not embedded
