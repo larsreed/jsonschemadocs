@@ -18,6 +18,29 @@ class JsonProps {
     }
     static String removePrefix(final String s, final String pfx) { return s.replaceAll("^" + pfx, ""); }
     Map<String, String> propCopy() {return new LinkedHashMap<>(this.props);  }
+    private Optional<String> getOpt(final String key) { return Optional.ofNullable(getProp(key, null)); }
+
+    @SuppressWarnings("SameParameterValue")
+    String getProp(final String key, final String defVal) {
+        final var prop = this.props.get(key);
+        return (prop==null)? defVal : prop;
+    }
+
+
+    private Optional<String> extract(final String key) {
+        final var found = getOpt(key);
+        if (found.isPresent()) this.props.remove(key);
+        return found;
+    }
+
+    private Optional<String> extractBoolean(final String key) {
+        final var found = getOpt(key);
+        if (found.isPresent()) {
+            this.props.remove(key);
+            if ("true".equals(found.get())) return found;
+        }
+        return Optional.empty();
+    }
 
 
     void addSampleValue(final String sample) {
@@ -27,12 +50,6 @@ class JsonProps {
 
     void add(final String key, final String value) {
         this.props.merge(key, unquote(value),  (org, add) -> org.contains(add)? org : org + "\n" + add);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    String getProp(final String key, final String defVal) {
-        final var prop = this.props.get(key);
-        return (prop==null)? defVal : prop;
     }
 
     @Override
@@ -46,8 +63,7 @@ class JsonProps {
         // Redefine the type description before iterating over it
         final var copy = new JsonProps();
         copy.props.putAll(this.props);
-        copy.defineType();
-        copy.removeIfs();
+        copy.convertProps();
         copy.props.forEach(method);
     }
 
@@ -83,40 +99,27 @@ class JsonProps {
         return "" + rnd;
     }
 
-    private void defineType() {
+    private void convertProps() {
         format();
         minMax();
         minMaxLen();
         minMaxItems();
         miscProps();
+        removeIfs();
+        idToDesc();
+    }
+
+    private void idToDesc() {
+        final var _id = extract(JsonDocNames.ID);
+        _id.ifPresent(s -> this.props.merge(JsonDocNames.FIELD, "\nid=" + s,
+                        (org, add) -> org + "\n" + add));
     }
 
     private void removeIfs() {
-        final var keys = new HashSet<>(this.props.keySet());
-        keys.stream()
+        final var ifKeys = new HashSet<>(this.props.keySet());
+        ifKeys.stream()
                 .filter(t -> t.startsWith(JsonDocNames.XIF_PREFIX) || t.startsWith(JsonDocNames.XIFNOT_PREFIX))
                 .forEach(this.props::remove);
-    }
-
-    private Optional<String> getOpt(final String key) {
-        final var found = this.props.get(key);
-        if (found!=null)  return Optional.of(found);
-        return Optional.empty();
-    }
-
-    private Optional<String> extract(final String key) {
-        final var found = getOpt(key);
-        if (found.isPresent()) this.props.remove(key);
-        return found;
-    }
-
-    private Optional<String> extractBoolean(final String key) {
-        final var found = getOpt(key);
-        if (found.isPresent()) {
-            this.props.remove(key);
-            if ("true".equals(found.get())) return found;
-        }
-        return Optional.empty();
     }
 
     private void mergeType(final String value) {

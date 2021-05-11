@@ -30,6 +30,7 @@ interface JsonDocNames {
     String EXAMPLES = "examples";
     String EXCLUSIVE_MAXIMUM = "exclusiveMaximum";
     String EXCLUSIVE_MINIMUM = "exclusiveMinimum";
+    String ID = "$id";
     String FIELD = "field";
     String FORMAT = "format";
     String MAXIMUM = "maximum";
@@ -49,7 +50,7 @@ interface JsonDocNames {
     String WRITE_ONLY = "writeOnly";
 
     List<String> PROP_KEYWORDS = Arrays.asList(
-            DESCRIPTION, TYPE, EXAMPLES,
+            DESCRIPTION, TYPE, EXAMPLES, ID,
             MINIMUM, EXCLUSIVE_MINIMUM,
             MAXIMUM, EXCLUSIVE_MAXIMUM,
             MIN_LENGTH, MAX_LENGTH,
