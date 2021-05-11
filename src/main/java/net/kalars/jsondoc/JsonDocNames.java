@@ -33,6 +33,7 @@ interface JsonDocNames {
     String ID = "$id";
     String FIELD = "field";
     String FORMAT = "format";
+    String ITEMS = "items";
     String MAXIMUM = "maximum";
     String MAX_ITEMS = "maxItems";
     String MAX_LENGTH = "maxLength";

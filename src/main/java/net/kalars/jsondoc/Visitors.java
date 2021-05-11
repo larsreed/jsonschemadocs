@@ -480,8 +480,15 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
         final var tbl = this.tableMap.get(key);
         final var cell = createCell(level, content.replaceAll(SEE_QUICK_RE, " ").trim() + " ");
         // if we have a reference to a single line table, optionally embed it
-        if (tbl!=null && tbl.currentRow < this.embedUpToRows)  return cell + formatTable(tbl, level +1);
+        if (tbl!=null && (embeddableRows(tbl) || justSingleItems(tbl)))  return cell + formatTable(tbl, level +1);
         return cell + createInternalLink(key);
+    }
+
+    private boolean embeddableRows(final DocTable tbl) { return tbl.currentRow < this.embedUpToRows; }
+
+    private boolean justSingleItems(final DocTable tbl) {
+        return tbl.currentRow == 0
+                && JsonDocNames.ITEMS.equals(tbl.data.getOrDefault(DocTable.toKey(0, JsonDocNames.FIELD), ""));
     }
 
     protected String createInternalLink(final String key) {
