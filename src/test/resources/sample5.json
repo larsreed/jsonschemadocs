@@ -1,0 +1,20 @@
+{
+  "thing": {
+    "type" : "object",
+    "properties" : {
+      "stuff" : {
+        "type" : "array",
+        "$id": "#/id",
+        "properties" : {
+          "items" : {
+            "$id": "#/things",
+            "type" :  "string"
+          }
+        }
+      },
+      "morestuff": {
+        "type" : "number"
+      }
+    }
+  }
+}

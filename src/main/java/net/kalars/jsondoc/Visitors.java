@@ -197,7 +197,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         private final Context context;
         boolean done = false;
         String cardinality;
-        final Map<String, String> data = new LinkedHashMap<>();
+        private final Map<String, String> data = new LinkedHashMap<>();
 
         private DocTable(final String name, final Context context) {
             this.name = name;
@@ -213,6 +213,10 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
         static String toKey(final int r, final String c) { return String.format("%d\t%s", r, c); }
         int level() { return 1 + (int) this.name.chars().filter(c-> c=='>').count(); }
         String localName() { return this.name.replaceAll(".*"+SEPARATOR, ""); }
+
+        String getCell(final int row, final String col, final String defVal) {
+            return this.data.getOrDefault(toKey(row, col), defVal);
+        }
 
         void addValue(final String colName, final String orgValue) {
             if (this.context.isExcluded(colName)) return;
@@ -449,8 +453,7 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
         for (int i = 0; i <= t.currentRow; i++) {
             sb.append("  <tr>");
             for (final var c : t.fields) {
-                final var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
-                sb.append("<td>").append(createCell(level, cell)).append("</td>");
+                sb.append("<td>").append(createCell(level, t.getCell(i, c, " "))).append("</td>");
             }
             sb.append("</tr>\n");
         }
@@ -486,9 +489,8 @@ class JsonDocHtmlVisitor extends JsonDocPrintVisitor {
 
     private boolean embeddableRows(final DocTable tbl) { return tbl.currentRow < this.embedUpToRows; }
 
-    private boolean justSingleItems(final DocTable tbl) {
-        return tbl.currentRow == 0
-                && JsonDocNames.ITEMS.equals(tbl.data.getOrDefault(DocTable.toKey(0, JsonDocNames.FIELD), ""));
+    private boolean justSingleItems(final DocTable tbl) { // TODO not perfect...
+        return tbl.currentRow == 0 && JsonDocNames.ITEMS.equals(tbl.getCell(0, JsonDocNames.FIELD, ""));
     }
 
     protected String createInternalLink(final String key) {
@@ -593,10 +595,7 @@ digraph G {
         createNode(sb, name);
 
         for (int i = 0; i <= t.currentRow; i++) {
-            for (final var c : t.fields) {
-                final var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
-                createEdge(sb, name, cell);
-            }
+            for (final var c : t.fields)  createEdge(sb, name, t.getCell(i, c, " "));
         }
 
         return sb.toString();
@@ -655,10 +654,7 @@ class JsonDocMarkdownVisitor extends JsonDocPrintVisitor {
 
         for (int i = 0; i <= t.currentRow; i++) {
             sb.append("|");
-            for (final var c : t.fields) {
-                final var cell = t.data.getOrDefault(DocTable.toKey(i, c), " ");
-                sb.append(" ").append(createCell(level, cell)).append(" |");
-            }
+            for (final var c : t.fields)  sb.append(" ").append(createCell(level, t.getCell(i, c, " "))).append(" |");
             sb.append("\n");
         }
 
@@ -767,10 +763,10 @@ class JsonSamplePrintVisitor extends JsonDocPrintVisitor {
         this.buffer.append("{\n");
 
         for (int i = 0; i <= t.currentRow; i++) {
-            final var cellName = t.data.get(DocTable.toKey(i, JsonDocNames.FIELD));
+            final var cellName = t.getCell(i, JsonDocNames.FIELD, "");
             boolean seen = false;
             for (final var key : t.fields) {
-                final var cell = t.data.get(DocTable.toKey(i, key));
+                final var cell = t.getCell(i, key, null);
                 if (cell != null && this.sampleCols.contains(key.toUpperCase()) && !seen) {
                     seen = true;
                     this.buffer.append(makeIndent(level + 1))
