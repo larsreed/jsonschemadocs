@@ -8,7 +8,7 @@ import java.util.List;
 
 /** Common for all nodes -- depth in the parse tree, name, qualified name (parent.child.child...)
  *  and required/optional. */
-abstract class JsonBasicNode {
+abstract class JsonBasicNode { // FIXME Delete entire file
     final String name;
     final int tokenDepth;
     final String qName;
@@ -80,8 +80,8 @@ class JsonSchemaObject extends JsonObject {
     void addChild(final JsonBasicNode orgNode) {
         if (orgNode instanceof final JsonKeyValue node) {
             if (JsonDocNames.PROP_KEYWORDS.contains(node.key) ||
-                    node.key.startsWith(JsonDocNames.XIF_PREFIX) ||
-                    node.key.startsWith(JsonDocNames.XIFNOT_PREFIX))
+                node.key.startsWith(JsonDocNames.XIF_PREFIX) ||
+                node.key.startsWith(JsonDocNames.XIFNOT_PREFIX))
                 addProp(node.key, node.value);
             else if (node.key.startsWith(JsonDocNames.XDOC_PREFIX)) {
                 // Should also have supported array types, but that needs a rework of the props class...

@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Optional;
 
 /** The runtime context settings (variable defs etc). */
-@SuppressWarnings({"StaticMethodOnlyUsedInOneClass", "SameParameterValue"})
 class Context {
 
     static final String MODE = "mode";
+    static final String SCHEMA_MODE = "SCHEMA";
     static final String EMBED_ROWS = "embedUpToRows";
     static final String VARIANT = "variant";
     static final String EXCLUDED_COLUMNS = "excludeColumns";
@@ -20,11 +20,12 @@ class Context {
 
     Context(final String mode) { this.map.put(MODE, mode); }
 
-    @SuppressWarnings("UnusedReturnValue")
     Context add(final String key, final String value) {
         this.map.put(key, value);
         return this;
     }
+
+    boolean isSchemaMode() { return SCHEMA_MODE.equalsIgnoreCase(this.map.get(MODE)); }
 
     Optional<String> value(final String key) { return Optional.ofNullable(this.map.get(key)); }
 
@@ -34,9 +35,17 @@ class Context {
         return Arrays.stream(candidates).anyMatch(hit::equalsIgnoreCase);
     }
 
+    /** Does the given key exist in the context, and does it contain the given value toMatch?
+     *  The value is read as comma-separated, and case-insensitive. */
     boolean anyMatch(final String key, final String toMatch) {
+        // TODO test multiple keys / multiple values
         final var hit = this.map.get(key);
-        return Arrays.stream((hit==null? "" : hit).split(", *")).anyMatch(k -> k.equalsIgnoreCase(toMatch));
+        final var candidates = toMatch.split(", *");
+        final var keys = (hit == null ? "" : hit).split(", *");
+        for (final var match: candidates) {
+            if (Arrays.stream(keys).anyMatch(k -> k.equalsIgnoreCase(match))) return true;
+        }
+        return false;
     }
 
     boolean isExcluded(final String column) {
@@ -44,7 +53,7 @@ class Context {
         if (excluded==null) return false; // no columns excluded
         return Arrays.stream(excluded.split(", *"))
                 .anyMatch(excl -> excl.equalsIgnoreCase(column) ||
-                        excl.equalsIgnoreCase(JsonDocNames.XDOC_PREFIX+column.replaceAll(" ", "_")));
+                        excl.equalsIgnoreCase(JsonDocNames.XDOC_PREFIX + column.replaceAll(" ", "_"))); // TODO improve
     }
 }
 

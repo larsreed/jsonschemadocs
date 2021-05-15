@@ -14,6 +14,7 @@ interface JsonDocNames {
     String XIF_PREFIX = "xif-";
     String XIFNOT_PREFIX = "xifnot-";
     String IGNORE_PREFIX = "ignore-";
+    String CARDINALITY = "§__cardinality";
     // Other user input
     String USER_LINK_RE = "linkTo[(]([^),]+)((, *)([^)]+))?[)]"; // regexp to match linkTo(url) & linkTo(url, text)
 

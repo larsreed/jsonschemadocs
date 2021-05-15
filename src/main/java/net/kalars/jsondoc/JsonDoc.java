@@ -29,37 +29,37 @@ public final class JsonDoc {
     }
 
     private static void runWith(final String outType, final String inputfile, final Context context) {
-        switch (outType.toUpperCase()) {
-            case "HTML" -> {
-                final var visitor3 = new JsonDocHtmlVisitor(context);
-                new JsonSchemaParser().parseFile(inputfile).visit(visitor3);
-                System.out.println(visitor3);
-            }
-            case "WIKI" -> {
-                final var visitor2 = new JsonDocWikiHtmlVisitor(context);
-                new JsonSchemaParser().parseFile(inputfile).visit(visitor2);
-                System.out.println(visitor2);
-            }
-            case "MARKDOWN" -> {
-                final var visitor5 = new JsonDocMarkdownVisitor(context);
-                new JsonSchemaParser().parseFile(inputfile).visit(visitor5);
-                System.out.println(visitor5);
-            }
-            case "GRAPH" -> {
-                final var visitor4 = new JsonDocDotVisitor(context);
-                new JsonSchemaParser().parseFile(inputfile).visit(visitor4);
-                System.out.println(visitor4);
-            }
-            case "SCHEMA" -> {
-                final var visitor1 = new JsonSchemaPrintVisitor(context);
-                new JsonGenParser().parseFile(inputfile).visit(visitor1);
-                System.out.println(visitor1);
-            }
-            case "SAMPLE" -> {
-                final var visitor6 = new JsonSamplePrintVisitor(context);
-                new JsonGenParser().parseFile(inputfile).visit(visitor6);
-                System.out.println(visitor6);
-            }
+        switch (outType.toUpperCase()) { // FIXME
+//            case "HTML" -> {
+//                final var visitor3 = new JsonDocHtmlVisitor(context);
+//                new JsonDocParser(context).parseFile(inputfile).visit(visitor3);
+//                System.out.println(visitor3);
+//            }
+//            case "WIKI" -> {
+//                final var visitor2 = new JsonDocWikiHtmlVisitor(context);
+//                new JsonDocParser(context).parseFile(inputfile).visit(visitor2);
+//                System.out.println(visitor2);
+//            }
+//            case "MARKDOWN" -> {
+//                final var visitor5 = new JsonDocMarkdownVisitor(context);
+//                new JsonDocParser(context).parseFile(inputfile).visit(visitor5);
+//                System.out.println(visitor5);
+//            }
+//            case "GRAPH" -> {
+//                final var visitor4 = new JsonDocDotVisitor(context);
+//                new JsonDocParser(context).parseFile(inputfile).visit(visitor4);
+//                System.out.println(visitor4);
+//            }
+//            case "SCHEMA" -> {
+//                final var visitor1 = new JsonSchemaPrintVisitor(context);
+//                new JsonDocParser(context).parseFile(inputfile).visit(visitor1);
+//                System.out.println(visitor1);
+//            }
+//            case "SAMPLE" -> {
+//                final var visitor6 = new JsonSamplePrintVisitor(context);
+//                new JsonDocParser(context).parseFile(inputfile).visit(visitor6);
+//                System.out.println(visitor6);
+//            }
             default -> help("Unknown type " + outType, 1);
         }
     }
