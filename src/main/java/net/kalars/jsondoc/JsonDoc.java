@@ -30,11 +30,11 @@ public final class JsonDoc {
 
     private static void runWith(final String outType, final String inputfile, final Context context) {
         switch (outType.toUpperCase()) { // FIXME
-//            case "HTML" -> {
-//                final var visitor3 = new JsonDocHtmlVisitor(context);
-//                new JsonDocParser(context).parseFile(inputfile).visit(visitor3);
-//                System.out.println(visitor3);
-//            }
+            case "HTML" -> {
+                final var root = new JsonDocParser(context).parseFile(inputfile);
+                final var printer = new HtmlPrinter(root, context);
+                System.out.println(printer);
+            }
 //            case "WIKI" -> {
 //                final var visitor2 = new JsonDocWikiHtmlVisitor(context);
 //                new JsonDocParser(context).parseFile(inputfile).visit(visitor2);
@@ -81,7 +81,7 @@ public final class JsonDoc {
         DEFINTIONS: follows the pattern name=value, and comes after the inputfile""");
         System.out.println("    " + Context.VARIANT + "=foo could define a context for \""
                 + JsonDocNames.XIF_PREFIX + Context.VARIANT + "\": \"foo\"");
-        System.out.println("    " + Context.EXCLUDED_COLUMNS + "=col1,col2,... to exclude named columns");
+        System.out.println("    " + Context.EXCLUDE_COLUMNS + "=col1,col2,... to exclude named columns");
         System.out.println("    " + Context.SKIP_TABLES + "=table1,table2,... to exclude tables with given IDs");
         System.out.println("    " + Context.EMBED_ROWS + "=n defines embedding in HTML tables");
         System.out.println("    " + Context.SAMPLE_COLUMNS + "=col1,... defines columns to use for sample output");

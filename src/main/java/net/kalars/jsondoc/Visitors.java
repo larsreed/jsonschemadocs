@@ -43,46 +43,6 @@ abstract class AbstractPrintVisitor implements JsonNodeVisitor {
 }
 
 
-@SuppressWarnings({"UnnecessaryReturnStatement", "EmptyMethod", "SameReturnValue"})
-class DebugVisitor extends AbstractPrintVisitor {
-
-    DebugVisitor(final Context context) { super(context); }
-
-    private boolean printer(final JsonBasicNode node, final String s1, final String s2, final String s3) {
-        this.buffer.append(makeIndent(node, 0))
-                .append(s1)
-                .append(":")
-                .append(node.isRequired()? " * " : " ")
-                .append(node.qName)
-                .append(" > ")
-                .append(s2)
-                .append("  ")
-                .append(s3)
-                .append("\n");
-        if (node instanceof JsonSchemaObject) {
-            final var props = ((JsonSchemaObject) node).props;
-            props.iterateOver((k, v) ->
-                    this.buffer.append(makeIndent(node, 1))
-                            .append("[")
-                            .append(k)
-                            .append("=")
-                            .append(v)
-                            .append("]\n"));
-        }
-        return true;
-    }
-
-    @Override public void topNodeLeave(final JsonTopNode n) { return; }
-    @Override public void objectLeave(final JsonObject n) { return; }
-    @Override public void arrayLeave(final JsonArray n) { return; }
-
-    @Override public boolean topNode(final JsonTopNode n) { return printer(n,"TopNode", n.name, ""); }
-    @Override public boolean object(final JsonObject n) { return printer(n,"Object", n.name, ""); }
-    @Override public boolean array(final JsonArray n) { return printer(n,"Array", n.name, ""); }
-    @Override public void value(final JsonValue n) { printer(n,"Value", n.value, ""); }
-    @Override public void keyValue(final JsonKeyValue n) { printer(n,"KeyValue", n.key, n.value); }
-}
-
 
 /** Copies the input, except for elements with a given set of prefixes. */
 class JsonSchemaPrintVisitor extends AbstractPrintVisitor {
@@ -206,7 +166,7 @@ abstract class JsonDocPrintVisitor extends AbstractPrintVisitor {
             ALWAYS_COLUMNS.forEach(c -> { if (!this.context.isExcluded(c)) this.fields.add(c); });
             // Skip this table if excluded
             final var searchFor = ("".equals(name))? "_" : nameToId(name);
-            if (context.anyMatch(Context.SKIP_TABLES, searchFor)) this.done = true;
+            if (context.anyMatch(Context.SKIP_TABLES, searchFor).get()) this.done = true;
         }
 
         void addRow() { this.currentRow++; }

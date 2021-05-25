@@ -34,6 +34,19 @@ class JsonDocParser {
         }
     }
 
+    Node parseString(final String data) {
+        try (final JsonParser jParser = this.jFactory.createParser(data)) {
+            do {
+                final JsonToken token = jParser.nextToken();
+                final var optNode = handleToken(token, jParser);
+                if (optNode.isPresent()) return optNode.get();
+            } while (true);
+        }
+        catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private Optional<Node> handleToken(final JsonToken token, final JsonParser jParser) throws IOException {
         switch (token) {
             case FIELD_NAME -> fieldName(jParser);

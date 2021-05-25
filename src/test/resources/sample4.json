@@ -12,6 +12,7 @@
     "format": "fmt",
     "pattern": "^.*$",
     "multipleOf": 9,
+    "minItems": 1,
     "const": "18",
     "enum": [ "a", "b", "c"],
     "examples" : [ 14, 19, 32, 84]

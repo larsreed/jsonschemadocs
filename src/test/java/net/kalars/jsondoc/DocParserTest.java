@@ -1,11 +1,12 @@
 package net.kalars.jsondoc;
 
+import net.kalars.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
 class DocParserTest {
     private static final String fileName =
             "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample2.json";
-//            "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample5.json";
+//            "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample4.json";
 
     private Context ctx(final String mode) {
         return new Context(mode)
@@ -17,13 +18,14 @@ class DocParserTest {
                 ;
     }
 //
-//    @Test
-//    void htmlOutput() {
-//        final var visitor = new JsonDocHtmlVisitor(ctx("HTML"));
-//        new JsonSchemaParser().parseFile(fileName).visit(visitor);
-//        System.out.println(visitor);
-//    }
-//
+    @Test
+    void htmlOutput() {
+        final var context = ctx("HTML");
+        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var printer = new HtmlPrinter(root, context);
+        System.out.println(printer);
+    }
+
 //    @Test
 //    void wikiHtmlOutput() {
 //        final var visitor = new JsonDocWikiHtmlVisitor(ctx("HTML"));
@@ -65,5 +67,18 @@ class DocParserTest {
         final var node = new JsonDocParser(ctx).parseFile(fileName);
         final var printer = new DebugPrinter(node, ctx);
         System.out.println(printer);
+    }
+
+    @Test
+    void builderOutput() {
+        final var s = new JsonBuilder()
+                .v("title", "x")
+                .object("properties")
+                  .v("x-test", 4)
+                  .v("x-y", false)
+                .endObject()
+                .required("x-test")
+                .toString();
+        System.out.println(s);
     }
 }

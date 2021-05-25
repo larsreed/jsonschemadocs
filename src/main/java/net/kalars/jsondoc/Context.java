@@ -12,7 +12,7 @@ class Context {
     static final String SCHEMA_MODE = "SCHEMA";
     static final String EMBED_ROWS = "embedUpToRows";
     static final String VARIANT = "variant";
-    static final String EXCLUDED_COLUMNS = "excludeColumns";
+    static final String EXCLUDE_COLUMNS = "excludeColumns";
     static final String SKIP_TABLES = "skipTables";
     static final String SAMPLE_COLUMNS = "sampleColumns";
 
@@ -37,24 +37,27 @@ class Context {
 
     /** Does the given key exist in the context, and does it contain the given value toMatch?
      *  The value is read as comma-separated, and case-insensitive. */
-    boolean anyMatch(final String key, final String toMatch) {
+    Optional<Boolean> anyMatch(final String key, final String toMatch) {
         // TODO test multiple keys / multiple values
         final var hit = this.map.get(key);
+        if (hit==null || hit.isEmpty()) return Optional.empty();
         final var candidates = toMatch.split(", *");
         final var keys = (hit == null ? "" : hit).split(", *");
         for (final var match: candidates) {
-            if (Arrays.stream(keys).anyMatch(k -> k.equalsIgnoreCase(match))) return true;
+            if (Arrays.stream(keys).anyMatch(k -> k.equalsIgnoreCase(match))) return Optional.of(true);
         }
-        return false;
+        return Optional.of(false);
     }
 
     boolean isExcluded(final String column) {
-        final var excluded = this.map.get(EXCLUDED_COLUMNS);
+        final var excluded = this.map.get(EXCLUDE_COLUMNS);
         if (excluded==null) return false; // no columns excluded
         return Arrays.stream(excluded.split(", *"))
                 .anyMatch(excl -> excl.equalsIgnoreCase(column) ||
                         excl.equalsIgnoreCase(JsonDocNames.XDOC_PREFIX + column.replaceAll(" ", "_"))); // TODO improve
     }
+
+    @Override public String toString() { return "Context{"  + map + '}'; }
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net

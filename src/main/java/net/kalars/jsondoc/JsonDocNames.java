@@ -59,6 +59,8 @@ interface JsonDocNames {
             MIN_ITEMS, MAX_ITEMS, UNIQUE_ITEMS,
             FORMAT, PATTERN, ENUM, CONST, MULTIPLE_OF, DEFAULT, DEPRECATED, WRITE_ONLY, READ_ONLY,
             CONTENT_SCHEMA, CONTENT_ENCODING, CONTENT_MEDIA_TYPE);
+
+    List<String> ALWAYS_COLUMNS = Arrays.asList(FIELD, DESCRIPTION, TYPE);
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net
