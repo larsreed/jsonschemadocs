@@ -33,13 +33,14 @@ class DocParserTest {
         final var printer = new WikiPrinter(root, context);
         System.out.println(printer);
     }
-//
-//    @Test
-//    void markdownOutput() {
-//        final var visitor = new JsonDocMarkdownVisitor(ctx("MARKDOWN"));
-//        new JsonSchemaParser().parseFile(fileName).visit(visitor);
-//        System.out.println(visitor);
-//    }
+
+    @Test
+    void markdownOutput() {
+        final var context = ctx("MARKDOWN");
+        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var printer = new MarkdownPrinter(root, context);
+        System.out.println(printer);
+    }
 //
 //    @Test
 //    void dotOutput() {

@@ -5,7 +5,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import java.util.regex.Pattern;
 
 
-class Printer {
+abstract class Printer {
     protected final StringBuilder buffer = new StringBuilder();
     protected final Node rootNode;
     protected final Context context;
@@ -22,6 +22,25 @@ class Printer {
         if (no_.length()>=1)  return no_.substring(0, 1).toUpperCase() + no_.substring(1);
         return key;
     }
+
+    protected final String replaceNextLink(final String content) {
+        final var matchUserLink = USER_LINK_REGEXP.matcher(content);
+        if (matchUserLink.find()) {
+            final var url = matchUserLink.group(1);
+            final var linkText= matchUserLink.group(4);
+            return q(content.substring(0, matchUserLink.start()))
+                    + createUrlLink(url, linkText)
+                    + replaceNextLink(content.substring(matchUserLink.end()));
+        }
+        return q(content);
+    }
+
+    protected final void doneIfNotTable(final Node node) {
+        if (!NodeRepresentation.Table.equals(node.representation))  node.done();
+    }
+
+    protected String createUrlLink(final String url, final String linkText) { return url; }
+    protected String q(final String s) { return s; }
 }
 
 class DebugPrinter extends Printer {
@@ -66,6 +85,7 @@ class HtmlPrinter extends Printer {
 
     HtmlPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
 
+    @Override
     protected String q(final String s) {
         return StringEscapeUtils.escapeXml11(s)
                 .replaceAll("\t", "&nbsp;&nbsp;")
@@ -80,7 +100,7 @@ class HtmlPrinter extends Printer {
         return buffer.toString();
     }
 
-    private void head() {
+    protected void head() {
         buffer.append("""
                 <!doctype html>
                 <html>
@@ -94,7 +114,7 @@ class HtmlPrinter extends Printer {
                         """);
     }
 
-    private void tail() {
+    protected void tail() {
         buffer.append("""
                     </body>
                   </html>
@@ -140,9 +160,7 @@ class HtmlPrinter extends Printer {
         return sb.toString();
     }
 
-    private String tableEnd() {
-        return "</tbody></table>\n";
-    }
+    private String tableEnd() { return "</tbody></table>\n"; }
 
     private void handleRowNode(final Node rowNode, final int level) {
        if (!rowNode.isVisible()) return; // Hidden or already processed
@@ -183,7 +201,6 @@ class HtmlPrinter extends Printer {
             buffer.append("<br/>");
     }
 
-    private void doneIfNotTable(final Node node) { if (!NodeRepresentation.Table.equals(node.representation))  node.done(); }
     private boolean shouldEmbed(final Node node, final int level) {return level==0 && node.isEmbeddable(); }
 
     private void createCell(final Node node) {
@@ -199,19 +216,8 @@ class HtmlPrinter extends Printer {
         }
     }
 
-    private String replaceNextLink(final String content) {
-        final var matchUserLink = USER_LINK_REGEXP.matcher(content);
-        if (matchUserLink.find()) {
-            final var url = matchUserLink.group(1);
-            final var linkText= matchUserLink.group(4);
-            return q(content.substring(0, matchUserLink.start()))
-                    + createUrlLink(url, linkText)
-                    + replaceNextLink(content.substring(matchUserLink.end()));
-        }
-        return q(content);
-    }
-
-    private String createUrlLink(final String url, final String optText) {
+    @Override
+    protected String createUrlLink(final String url, final String optText) {
         return "<a href=\"" + url + "\">" + (optText==null? url : optText) + "</a>";
     }
 
@@ -222,6 +228,9 @@ class HtmlPrinter extends Printer {
 
 class WikiPrinter extends HtmlPrinter {
     WikiPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
+
+    @Override protected void head() {}
+    @Override protected void tail() {}
 
     @Override
     protected String headingWithId(final Node node) {
@@ -239,4 +248,118 @@ class WikiPrinter extends HtmlPrinter {
                 "<ac:plain-text-link-body><![CDATA[" + node.name + "]]></ac:plain-text-link-body>" +
                 "</ac:link>";
     }
+}
+
+class MarkdownPrinter extends Printer {
+
+    private static final String BR = "<br />";
+
+    MarkdownPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
+
+    @Override
+    protected String q(final String s) {
+        return s.replaceAll("[-`*|_{}()#+]", "\\\\$0")
+                .replaceAll("[]\\[]", "\\\\$0")
+                .replaceAll("\t", "&nbsp;&nbsp;")
+                .replaceAll("\n", BR);
+    }
+
+    @Override
+    public String toString() {
+        handleTableNode(rootNode, 0);
+        return buffer.toString();
+    }
+
+    private void handleTableNode(final Node node, final int level) {
+        if (!node.isVisible()) return;
+        if (node.rows().size() > 0) {
+            if (level == 0) buffer.append(headingWithId(node)); // not embedded
+            buffer.append(tableHead(node));
+            for (final var row : node.rows()) handleRowNode(row, level);
+        }
+        if (level>0) return; // No embedding in embedding...
+        for (final var sub : node.subTables()) handleTableNode(sub, 0);
+    }
+
+    private String headingWithId(final Node node) {
+        return "\n\n<a name=\"" +
+                node.extId() +
+                "\"></a>\n" +
+                "#".repeat(node.level()) +
+                ' ' +
+                q(node.qName()) +
+                '\n';
+    }
+
+    private String tableHead(final Node node) {
+        final var sb = new StringBuilder();
+        sb.append("| ");
+        for (final var c : node.columns()) sb.append(q(keyToTitle(c))).append(" |");
+        sb.append("\n| ");
+        for (final var ignored : node.columns()) sb.append(" ----- |");
+        return sb.append("\n").toString();
+    }
+
+    private void handleRowNode(final Node rowNode, final int level) {
+        if (!rowNode.isVisible()) return; // Hidden or already processed
+        doneIfNotTable(rowNode);
+        buffer.append("| ")
+                .append(q(rowNode.name))
+                .append(" |");
+        for (final var row : rowNode.parent().columns()) {
+            if (JsonDocNames.FIELD.equals(row)) continue; // handled above
+            buffer.append(" ");
+            final var cellNode = rowNode.getChild(row);
+            if (cellNode.isPresent()) {
+                createCell(cellNode.get());
+                doneIfNotTable(cellNode.get());
+            }
+            if (JsonDocNames.DESCRIPTION.equals(row) && !rowNode.values.isEmpty()) {
+                // If there are values directly on the row node, add it to description
+                lineBreakIfNeeded();
+                createCell(rowNode);
+            }
+            if (JsonDocNames.DESCRIPTION.equals(row) && rowNode.isTable()) {
+                // Possible embedding
+                lineBreakIfNeeded();
+                //noinspection ConstantConditions
+                if (shouldEmbed(rowNode, level)) {
+                    handleTableNode(rowNode, level+1);
+                    rowNode.done();
+                }
+                else if (rowNode.rows().size()>0) buffer.append(createInternalLink(rowNode));
+            }
+            buffer.append(" |");
+        }
+        buffer.append("\n");
+    }
+
+    private void lineBreakIfNeeded() {
+        if (!buffer.toString().endsWith("| ") && !buffer.toString().endsWith(BR))
+            buffer.append(BR);
+    }
+
+    @SuppressWarnings({"PointlessBooleanExpression", "ConstantConditions"}) // Embedding currently not supported
+    private boolean shouldEmbed(final Node node, final int level) { return false && node.isEmbeddable(); }
+
+    private void createCell(final Node node) {
+        final var cellVal = NodeValues.listToString(node.values.all(), "", "\n", "");
+        buffer.append(replaceNextLink(cellVal));
+        if (node.nodeType.equals(NodeType.Array)) {
+            lineBreakIfNeeded();
+            final var elements = node.children.stream()
+                    .map(n -> n.values.all())
+                    .map(l-> NodeValues.listToString(l, "", " ", ""))
+                    .toList();
+            buffer.append(replaceNextLink(NodeValues.listToString(elements, "[", ", ", "]")));
+        }
+    }
+
+    @Override
+    protected String createUrlLink(final String url, final String optText) {
+        if (optText==null || "".equals(optText)) return "[" + url + "]";
+        return "[" + optText + "](" + url + ")";
+    }
+
+    private String createInternalLink(final Node node) { return "[" + node.name + ">](#" + node.extId() + ")"; }
 }

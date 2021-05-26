@@ -99,7 +99,7 @@ class Node {
     }
 
     /** Title for tables etc. */
-    String displayName() {
+    private String displayName() {
         if (!name.isEmpty())  return name;
         final var titleNode = getChild(JsonDocNames.TITLE);
         final var vals = titleNode.map(n -> n.values).orElse(new NodeValues());

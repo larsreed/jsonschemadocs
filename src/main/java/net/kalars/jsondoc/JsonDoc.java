@@ -40,11 +40,11 @@ public final class JsonDoc {
                 final var printer = new WikiPrinter(root, context);
                 System.out.println(printer);
             }
-//            case "MARKDOWN" -> {
-//                final var visitor5 = new JsonDocMarkdownVisitor(context);
-//                new JsonDocParser(context).parseFile(inputfile).visit(visitor5);
-//                System.out.println(visitor5);
-//            }
+            case "MARKDOWN" -> {
+                final var root = new JsonDocParser(context).parseFile(inputfile);
+                final var printer = new MarkdownPrinter(root, context);
+                System.out.println(printer);
+            }
 //            case "GRAPH" -> {
 //                final var visitor4 = new JsonDocDotVisitor(context);
 //                new JsonDocParser(context).parseFile(inputfile).visit(visitor4);
