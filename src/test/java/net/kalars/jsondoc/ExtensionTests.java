@@ -191,13 +191,13 @@ class ExtensionTests {
                 .properties()
                     .object("foo")
                         .v("baz", "Z")
-                        .v("x-bar", "Y")
+                        .v("x-bar_ba_DOS", "Y")
                     .endObject()
                 .endProperties()
                 .toString();
         final var res = runHtml(data);
         assertTrue(res.contains("<td>baz</td>"), "row");
-        assertTrue(res.contains("<th>Bar</th>"), "row");
+        assertTrue(res.contains("<th>Bar ba DOS</th>"), "row");
         assertFalse(res.contains("x-bar"), "xif");
     }
 }

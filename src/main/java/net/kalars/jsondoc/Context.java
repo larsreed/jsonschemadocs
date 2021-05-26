@@ -42,7 +42,7 @@ class Context {
         final var hit = this.map.get(key);
         if (hit==null || hit.isEmpty()) return Optional.empty();
         final var candidates = toMatch.split(", *");
-        final var keys = (hit == null ? "" : hit).split(", *");
+        final var keys = hit.split(", *");
         for (final var match: candidates) {
             if (Arrays.stream(keys).anyMatch(k -> k.equalsIgnoreCase(match))) return Optional.of(true);
         }

@@ -66,7 +66,7 @@ class HtmlPrinter extends Printer {
 
     HtmlPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
 
-    private String q(final String s) {
+    protected String q(final String s) {
         return StringEscapeUtils.escapeXml11(s)
                 .replaceAll("\t", "&nbsp;&nbsp;")
                 .replaceAll("\n", "<br/>");
@@ -113,7 +113,7 @@ class HtmlPrinter extends Printer {
         for (final var sub : node.subTables()) handleTableNode(sub, 0);
     }
 
-    private String headingWithId(final Node node) {
+    protected String headingWithId(final Node node) {
         return "\n\n<h" +
                 node.level() +
                 " id=\"" +
@@ -193,7 +193,7 @@ class HtmlPrinter extends Printer {
             lineBreakIfNeeded();
             final var elements = node.children.stream()
                     .map(n -> n.values.all())
-                    .map(l-> NodeValues.listToString(l, "", " Z", ""))
+                    .map(l-> NodeValues.listToString(l, "", " ", ""))
                     .toList();
             buffer.append(replaceNextLink(NodeValues.listToString(elements, "[", ", ", "]")));
         }
@@ -211,31 +211,32 @@ class HtmlPrinter extends Printer {
         return q(content);
     }
 
-    protected String createUrlLink(final String url, final String optText) {
+    private String createUrlLink(final String url, final String optText) {
         return "<a href=\"" + url + "\">" + (optText==null? url : optText) + "</a>";
     }
 
     protected String createInternalLink(final Node node) {
         return "<a href=\"#" + node.extId() + "\">" + node.name + "&gt;</a>";
     }
+}
 
-    //
-//    private String createTableLink(final int level, final String content, final String key) {
-//        final var tbl = tableMap.get(key);
-//        final var cell = createCell(level, content.replaceAll(SEE_QUICK_RE, " ").trim() + " ");
-//        // if we have a reference to a single line table, optionally embed it
-//        if (tbl!=null && (embeddableRows(tbl) || justSingleItems(tbl)))  return cell + formatTable(tbl, level +1);
-//        return cell + createInternalLink(key);
-//    }
-//
-//    private boolean embeddableRows(final DocTable tbl) { return tbl.currentRow < embedUpToRows; }
-//
-//    private boolean justSingleItems(final DocTable tbl) { // TODO not perfect...
-//        return tbl.currentRow == 0 && JsonDocNames.ITEMS.equals(tbl.getCell(0, JsonDocNames.FIELD, ""));
-//    }
-//
-//
-//
+class WikiPrinter extends HtmlPrinter {
+    WikiPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
 
+    @Override
+    protected String headingWithId(final Node node) {
+        return "\n\n<p><ac:structured-macro ac:name=\"anchor\" ac:schema-version=\"1\">" +
+                "<ac:parameter ac:name=\"\">" + node.extId() + "</ac:parameter>" +
+                "</ac:structured-macro></p>\n" +
+                "<h" + node.level() + ">" +
+                q(node.qName()) +
+                "</h" + node.level() + ">\n";
+    }
 
+    @Override
+    protected String createInternalLink(final Node node) {
+        return "<ac:link ac:anchor=\"" + node.extId() + "\">" +
+                "<ac:plain-text-link-body><![CDATA[" + node.name + "]]></ac:plain-text-link-body>" +
+                "</ac:link>";
+    }
 }
