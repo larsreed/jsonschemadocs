@@ -99,7 +99,7 @@ class Node {
     }
 
     /** Title for tables etc. */
-    private String displayName() {
+    String displayName() {
         if (!name.isEmpty())  return name;
         final var titleNode = getChild(JsonDocNames.TITLE);
         final var vals = titleNode.map(n -> n.values).orElse(new NodeValues());
@@ -232,8 +232,7 @@ class Node {
             // TODO test: defaultSample
             children.stream().filter(n -> n.nodeType.equals(NodeType.Value)).forEach(Node::defaultSample);
         }
-        if (hasChildren() && !context.isSchemaMode()) { // Define cardinality
-            cardinality = findCardinality();
+        if (hasChildren() && !context.isSchemaMode()) { // Define sample values
             children.stream()
                     .filter(n -> n.nodeType.equals(NodeType.Value))
                     .forEach(n -> n.generatedSample = defaultSample());
@@ -305,13 +304,12 @@ class Node {
         return "";
     }
 
-    // FIXME hande illogical limits! java.lang.IllegalArgumentException: bound must be positive
     private String sampleInt() {
         final var mult = getSiblingValue(JsonDocNames.MULTIPLE_OF, null);
         if (mult!=null) return ""+ mult;
         final var min = Integer.parseInt(getSiblingValue(JsonDocNames.MINIMUM, "0").toString());
         final var max = Integer.parseInt(getSiblingValue(JsonDocNames.MAXIMUM, "1024").toString());
-        final var rnd = min + random.nextInt((max-min+1));
+        final var rnd = min + random.nextInt((Math.abs(max-min+1)));
         return "" + rnd;
     }
 
@@ -447,8 +445,8 @@ class Node {
         addToType(min + max);
     }
 
-    String findCardinality() {
-        if (!cardinality.isEmpty()) return cardinality;
+    String cardinality() {
+// TODO necessary?        if (!cardinality.isEmpty()) return cardinality;
         final var minNode = getChild(JsonDocNames.MIN_ITEMS);
         final var maxNode = getChild(JsonDocNames.MAX_ITEMS);
         var min = minNode.isEmpty()? "" : NodeValues.listToString(minNode.get().values.all(), "", " ", "");
@@ -479,7 +477,7 @@ class Node {
     }
 
     private void minMaxItems() {
-        if (hasChildren()) addToType(findCardinality());
+        if (hasChildren()) addToType(cardinality());
         // hide these
         extract(JsonDocNames.MIN_ITEMS);
         extract(JsonDocNames.MAX_ITEMS);

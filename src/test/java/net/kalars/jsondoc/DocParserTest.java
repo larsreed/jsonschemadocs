@@ -41,14 +41,15 @@ class DocParserTest {
         final var printer = new MarkdownPrinter(root, context);
         System.out.println(printer);
     }
-//
-//    @Test
-//    void dotOutput() {
-//        final var visitor = new JsonDocDotVisitor(ctx("GRAPH"));
-//        new JsonSchemaParser().parseFile(fileName).visit(visitor);
-//        System.out.println(visitor);
-//    }
-//
+
+    @Test
+    void graphOutput() {
+        final var context = ctx("GRAPH");
+        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var printer = new GraphPrinter(root, context);
+        System.out.println(printer);
+    }
+
 //    @Test
 //    void sampleOutput() {
 //        final var visitor = new JsonSamplePrintVisitor(ctx("SAMPLE"));

@@ -339,7 +339,8 @@ class MarkdownPrinter extends Printer {
             buffer.append(BR);
     }
 
-    @SuppressWarnings({"PointlessBooleanExpression", "ConstantConditions"}) // Embedding currently not supported
+    // Embedding currently not supported
+    @SuppressWarnings({"PointlessBooleanExpression", "ConstantConditions", "unused"})
     private boolean shouldEmbed(final Node node, final int level) { return false && node.isEmbeddable(); }
 
     private void createCell(final Node node) {
@@ -363,3 +364,78 @@ class MarkdownPrinter extends Printer {
 
     private String createInternalLink(final Node node) { return "[" + node.name + ">](#" + node.extId() + ")"; }
 }
+
+class GraphPrinter extends Printer {
+    private static final String PREAMBLE = """
+digraph G {
+        fontname = "Calibri"
+        fontsize = 10
+
+        node [
+                fontname = "Calibri"
+                fontsize = 10
+                shape = "record"
+        ]
+
+        edge [
+                fontname = "Calibri"
+                fontsize = 9
+        ]
+
+                """;
+
+
+    GraphPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
+    @Override protected String q(final String s) { return "\"" + s + "\""; }
+
+    @Override
+    public String toString() {
+        buffer.append(PREAMBLE);
+        handleTableNode(rootNode);
+        buffer.append("}\n");
+        return buffer.toString();
+    }
+
+    private void handleTableNode(final Node node) {
+        if (!node.isVisible()) return;
+        if (node.rows().size() > 0) {
+            makeNode(node);
+            for (final var row : node.rows()) handleRowNode(row);
+        }
+        for (final var sub : node.subTables()) handleTableNode(sub);
+    }
+
+    private void makeNode(final Node node) {
+        buffer.append("        ").append(q(node.name)).append(" [\n")
+              .append("                ").append("label = \"{").append(node.displayName()).append("\\n|}\"\n")
+              .append("        ").append("]\n\n");
+    }
+
+
+    private void handleRowNode(final Node rowNode) {
+        if (!rowNode.isVisible()) return; // Hidden or already processed
+        doneIfNotTable(rowNode);
+        if (rowNode.isTable() && rowNode.rows().size()>0) createEdge(rowNode);
+    }
+
+    private void createEdge(final Node node) {
+        buffer.append("        ")
+              .append(q(node.parent().name)).append(" -> ").append(q(node.name))
+              .append(" [ label = \"").append(node.cardinality()).append("\" ]")
+              .append("\n\n");
+    }
+}
+
+//   Copyright 2021, Lars Reed -- lars-at-kalars.net
+//
+//           Licensed under the Apache License, Version 2.0 (the "License");
+//           you may not use this file except in compliance with the License.
+//           You may obtain a copy of the License at
+//
+//           http://www.apache.org/licenses/LICENSE-2.0
+//
+//           Unless required by applicable law or agreed to in writing, software
+//           distributed under the License is distributed on an "AS IS" BASIS,
+//           WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//           See the License for the specific language governing permissions and
+//           limitations under the License.
