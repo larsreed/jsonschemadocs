@@ -168,12 +168,11 @@ The parser does not yet promise to support all of JSON Schema, it has only been 
 I have been working with.
 
                 TODO:
-                - better array handling, including props (user attributes)
-                - $defs & $ref
+                - $defs & $ref (?)
 
 Support is currently not planned for
 
-* advanced constructs
+* misc. advanced constructs
 * maxContains, minContains, contains
 * maxProperties, minProperties
 * dependentRequired
@@ -186,7 +185,6 @@ So the code here is not entirely idiomatic - but it's mine.
 * *What? Multiple classes in the same file, and hardly anything public?*
 
     This is a small utility, and all classes fit nicely within a package. What should `public` do for me?
-    And I think it's quite nice to find all the parser code in one file, all data structure nodes in one, etc.
 
 * *Single line methods*
 
@@ -196,28 +194,13 @@ So the code here is not entirely idiomatic - but it's mine.
 * *Direct variable access*
 
     As I said, the code base is small. I'll introduce accessors when I need to,
-    but having to write getters and setters really bugs me. So I don't.
+    but having to write getters and setters really bugs me. So I generally don't,
+    except sometimes for accessing non-finals outside the same file,
+    but then I'll skip the get prefix.
 
 * *Etc*
 
     Live with it :-) 
 
-## Lack of tests
-
-Yes, that *is* actually bad.  The code was created as a kind of discovery process, didn't think I'd even keep it,
-but now that I did, there should be some structured tests...
-
 ## Parsing
 `com.fasterxml.jackson` provides the basic parsing.
-
-### Nodes
-The first parser creates a tree of nodes, where `JsonNode` and its descendants can contain children of the same hierarchy,
-additionally they have a `JsonProps`, where we place the documentation properties (x-...) as well as the supported keywords
-(e.g. maxItems).
-
-![example](docs/nodes.png)
-
-### Visitors
-After building the graph, the different visitors (basically one per output type), traverse the tree
-structure and creates a new structure (normally table-oriented) suitable for output.
-The final output is via the visitor's `toString()`.
