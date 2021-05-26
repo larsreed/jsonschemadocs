@@ -3,6 +3,9 @@ package net.kalars.jsondoc;
 import net.kalars.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+
 class DocParserTest {
     private static final String fileName =
             "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample2.json";
@@ -56,14 +59,27 @@ class DocParserTest {
 //        new JsonSchemaParser().parseFile(fileName).visit(visitor);
 //        System.out.println(visitor);
 //    }
-//
-//    @Test
-//    void schemaOutput() {
-//        final var visitor = new JsonSchemaPrintVisitor(ctx(Context.SCHEMA_MODE));
-//        new JsonGenParser().parseFile(fileName).visit(visitor);
-//        System.out.println(visitor);
-//    }
-//
+
+    @Test
+    void schemaOutput() {
+        final var context = ctx("SCHEMA");
+        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var printer = new SchemaPrinter(root, context);
+        System.out.println(printer);
+    }
+
+    @Test
+    void schema_() {
+        final var context = ctx("SCHEMA");
+        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var printer = new SchemaPrinter(root, context);
+        final var res1 = printer.toString();
+        final var secondRoot = new JsonDocParser(context).parseString(printer.toString());
+        final var secondPrinter = new SchemaPrinter(secondRoot, context);
+        final var res2 = secondPrinter.toString();
+        assertEquals(res1, res2);
+    }
+
     @Test
     void debugOutput() {
         final var ctx = ctx("DEBUG");

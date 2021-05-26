@@ -50,11 +50,11 @@ public final class JsonDoc {
                 final var printer = new GraphPrinter(root, context);
                 System.out.println(printer);
             }
-//            case "SCHEMA" -> {
-//                final var visitor1 = new JsonSchemaPrintVisitor(context);
-//                new JsonDocParser(context).parseFile(inputfile).visit(visitor1);
-//                System.out.println(visitor1);
-//            }
+            case "SCHEMA" -> {
+                final var root = new JsonDocParser(context).parseFile(inputfile);
+                final var printer = new SchemaPrinter(root, context);
+                System.out.println(printer);
+            }
 //            case "SAMPLE" -> {
 //                final var visitor6 = new JsonSamplePrintVisitor(context);
 //                new JsonDocParser(context).parseFile(inputfile).visit(visitor6);

@@ -2,6 +2,8 @@ package net.kalars.jsondoc;
 
 import org.apache.commons.text.StringEscapeUtils;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 
@@ -423,6 +425,76 @@ digraph G {
               .append(q(node.parent().name)).append(" -> ").append(q(node.name))
               .append(" [ label = \"").append(node.cardinality()).append("\" ]")
               .append("\n\n");
+    }
+}
+
+/** Copies the input, except for elements with a given set of prefixes. */
+class SchemaPrinter extends Printer {
+    private static final List<String> EXCLUDE_PREFIXES =
+            Arrays.asList(JsonDocNames.IGNORE_PREFIX, JsonDocNames.XDOC_PREFIX, JsonDocNames.XIF_PREFIX,
+                          JsonDocNames.XIFNOT_PREFIX);
+    private static final List<NodeRepresentation> HIDDEN = Arrays.asList(NodeRepresentation.HiddenColumn,
+            NodeRepresentation.HiddenRow, NodeRepresentation.HiddenTable);
+
+    SchemaPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
+    private boolean exclude(final Node node) { return EXCLUDE_PREFIXES.stream().anyMatch(node.name::startsWith); }
+    private String makeIndent(final Node node, final int extra) { return " ".repeat(extra + -2 + 2*node.level());}
+    private void skipLastComma() { buffer.setLength((buffer.length()-2)); }
+
+    @Override
+    public String toString() {
+        handleNode(rootNode);
+        return buffer.toString();
+    }
+
+    private void handleNode(final Node node) {
+        final var visible = node.isVisible() && !exclude(node)
+                && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr));
+        final var vals = NodeValues.listToString(node.values.all(), "", "", "");
+
+        if (visible) switch (node.nodeType) {
+            case Object -> {
+                if (node.parent()!=null) appendName(node);
+                buffer.append("{\n");
+                if (!vals.isEmpty()) Logger.warn("Values directly on object", node.qName(), vals);
+            }
+            case Array -> {
+                appendName(node).append("[\n");
+                if (!vals.isEmpty()) Logger.warn("Values directly on array", node.qName(), vals);
+            }
+            case Value -> {
+                if (node.parent().nodeType.equals(NodeType.Array)) buffer.append(makeIndent(node, 0));
+                else appendName(node);
+                switch (node.dataType) {
+                    case NA -> Logger.error("Unknown data type for", node.qName());
+                    case NullValue -> buffer.append("null,\n");
+                    case StringType -> buffer.append('"').append(vals).append('"').append(",\n");
+                    case IntType, DoubleType, BooleanType -> buffer.append(vals).append(",\n");
+                }
+            }
+        }
+
+        for (final var child : node.children) handleNode(child);
+
+        if (visible) switch (node.nodeType) {
+            case Object -> {
+                skipLastComma();
+                buffer.append('\n').append(makeIndent(node, 0)).append("},\n");
+                if (node.parent()==null) skipLastComma();
+            }
+            case Array -> {
+                skipLastComma();
+                buffer.append('\n').append(makeIndent(node, 0)).append("],\n");
+            }
+            case Value -> { }
+        }
+    }
+
+    private StringBuilder appendName(final Node node) {
+        buffer.append(makeIndent(node, 0))
+                .append('"').append(node.name).append('"')
+                .append(": ");
+        return buffer;
     }
 }
 

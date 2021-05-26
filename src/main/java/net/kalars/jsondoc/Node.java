@@ -259,8 +259,8 @@ class Node {
             if (topRow.hasChildren()) topRow.representation = NodeRepresentation.Row; // unhide
             else topRow.visible = false;
         }
-        if (hasChildren()) { // Evaluate this after evaluating possible child attributes
-            if (hideChildren) children.clear(); // TODO is this attribute actually necessary?
+        if (hasChildren() && hideChildren) { // Evaluate this after evaluating possible child attributes
+            children.clear(); // TODO is this attribute actually necessary?
         }
         if (!visible) { // Fix representation if hidden
             switch (representation) {
@@ -446,7 +446,6 @@ class Node {
     }
 
     String cardinality() {
-// TODO necessary?        if (!cardinality.isEmpty()) return cardinality;
         final var minNode = getChild(JsonDocNames.MIN_ITEMS);
         final var maxNode = getChild(JsonDocNames.MAX_ITEMS);
         var min = minNode.isEmpty()? "" : NodeValues.listToString(minNode.get().values.all(), "", " ", "");
