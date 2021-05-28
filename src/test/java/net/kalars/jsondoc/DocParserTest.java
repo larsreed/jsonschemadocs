@@ -3,8 +3,6 @@ package net.kalars.jsondoc;
 import net.kalars.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 
 class DocParserTest {
     private static final String fileName =

@@ -99,12 +99,12 @@ class Node {
         if (!name.isEmpty())  return name;
         final var titleNode = getChild(JsonDocNames.TITLE);
         final var vals = titleNode.map(n -> n.values).orElse(new NodeValues());
-        if (!vals.isEmpty() && !vals.first().toString().isEmpty())  return vals.first().toString();
+        if (vals.isNonEmpty() && !vals.first().toString().isEmpty())  return vals.first().toString();
         final var descVals = titleNode
                 .flatMap(n -> n.getChild(JsonDocNames.DESCRIPTION))
                 .map(n -> n.values)
                 .orElse(new NodeValues());
-        if (!descVals.isEmpty())  return descVals.first().toString();
+        if (descVals.isNonEmpty())  return descVals.first().toString();
         return "";
     }
 
@@ -480,7 +480,7 @@ class NodeValues {
     }
 
     void add(final Object value) { values.add(value); }
-    boolean isEmpty() { return values.isEmpty(); }
+    boolean isNonEmpty() { return !values.isEmpty(); }
     Object first() { return values.get(0); }
     Stream<Object> stream() { return values.stream(); }
     List<Object> all() { return values; }

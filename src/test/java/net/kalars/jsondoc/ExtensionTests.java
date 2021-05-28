@@ -28,12 +28,6 @@ class ExtensionTests {
         return new HtmlPrinter(root, context).toString();
     }
 
-    private String runSchema(final String data) {
-        final var context = ctx("SCHEMA");
-        final var root = new JsonDocParser(context).parseString(data);
-        return new HtmlPrinter(root, context).toString(); // TODO Change printer
-    }
-
     @Test
     void xif_isIgnoredIfNoVariants() {
         final var data = new JsonBuilder()

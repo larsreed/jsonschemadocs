@@ -10,14 +10,10 @@ import java.util.regex.Pattern;
 abstract class Printer {
     protected final StringBuilder buffer = new StringBuilder();
     protected final Node rootNode;
-    protected final Context context;
     protected static final Pattern USER_LINK_REGEXP = // links written by user
             Pattern.compile(JsonDocNames.USER_LINK_RE);
 
-    Printer(final Node rootNode, final Context context) {
-        this.rootNode = rootNode;
-        this.context = context;
-    }
+    Printer(final Node rootNode) { this.rootNode = rootNode; }
 
     protected static String keyToTitle(final String key) {
         final var no_ = Node.removePrefix(key, JsonDocNames.XDOC_PREFIX).replaceAll("_", " ");
@@ -48,7 +44,7 @@ abstract class Printer {
 /** Print out structure (for debugging). */
 class DebugPrinter extends Printer {
 
-    DebugPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
+    DebugPrinter(final Node rootNode, final Context context) { super(rootNode); }
 
     private String makeIndent(final int level) { return "  ".repeat(level); }
 
@@ -87,7 +83,7 @@ class HtmlPrinter extends Printer {
         """;
 
 
-    HtmlPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
+    HtmlPrinter(final Node rootNode, final Context context) { super(rootNode); }
 
     @Override
     protected String q(final String s) {
@@ -164,6 +160,7 @@ class HtmlPrinter extends Printer {
         return sb.toString();
     }
 
+    @SuppressWarnings("SameReturnValue")
     private String tableEnd() { return "</tbody></table>\n"; }
 
     private void handleRowNode(final Node rowNode, final int level) {
@@ -181,7 +178,7 @@ class HtmlPrinter extends Printer {
                 createCell(cellNode.get());
                 doneIfNotTable(cellNode.get());
             }
-            if (JsonDocNames.DESCRIPTION.equals(row) && !rowNode.values.isEmpty()) {
+            if (JsonDocNames.DESCRIPTION.equals(row) && rowNode.values.isNonEmpty()) {
                 // If there are values directly on the row node, add it to description
                 lineBreakIfNeeded();
                 createCell(rowNode);
@@ -260,7 +257,7 @@ class MarkdownPrinter extends Printer {
 
     private static final String BR = "<br />";
 
-    MarkdownPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
+    MarkdownPrinter(final Node rootNode, final Context context) { super(rootNode); }
 
     @Override
     protected String q(final String s) {
@@ -320,7 +317,7 @@ class MarkdownPrinter extends Printer {
                 createCell(cellNode.get());
                 doneIfNotTable(cellNode.get());
             }
-            if (JsonDocNames.DESCRIPTION.equals(row) && !rowNode.values.isEmpty()) {
+            if (JsonDocNames.DESCRIPTION.equals(row) && rowNode.values.isNonEmpty()) {
                 // If there are values directly on the row node, add it to description
                 lineBreakIfNeeded();
                 createCell(rowNode);
@@ -392,7 +389,7 @@ digraph G {
                 """;
 
 
-    GraphPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
+    GraphPrinter(final Node rootNode, final Context context) { super(rootNode); }
     @Override protected String q(final String s) { return "\"" + s + "\""; }
 
     @Override
@@ -441,8 +438,8 @@ class SchemaPrinter extends Printer {
     static final List<NodeRepresentation> HIDDEN = Arrays.asList(NodeRepresentation.HiddenColumn,
             NodeRepresentation.HiddenRow, NodeRepresentation.HiddenTable);
 
-    SchemaPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
-    boolean exclude(final Node node) { return EXCLUDE_PREFIXES.stream().anyMatch(node.name::startsWith); }
+    SchemaPrinter(final Node rootNode, final Context context) { super(rootNode); }
+    boolean include(final Node node) { return EXCLUDE_PREFIXES.stream().noneMatch(node.name::startsWith); }
     protected String makeIndent(final Node node) { return " ".repeat(2* (node.level()-1));}
     void skipLastComma() { buffer.setLength((buffer.length()-2)); }
 
@@ -453,7 +450,7 @@ class SchemaPrinter extends Printer {
     }
 
     protected void handleNode(final Node node) {
-        final var visible = node.isVisible() && !exclude(node)
+        final var visible = node.isVisible() && include(node)
                 && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr));
         final var vals = NodeValues.listToString(node.values.all(), "", "", "");
 
@@ -524,7 +521,7 @@ class SamplePrinter extends SchemaPrinter {
     }
 
     protected void handleNode(final Node node) {
-        final var visible = node.isVisible() && !exclude(node)
+        final var visible = node.isVisible() && include(node)
                 && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr))
                 && !node.name.isEmpty()
                 && (node.representation.equals(NodeRepresentation.Row)

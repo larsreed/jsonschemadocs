@@ -26,6 +26,7 @@ class Context {
         return this;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isSchemaMode() {return SCHEMA_MODE.equalsIgnoreCase(this.map.get(MODE)); }
     Optional<String> value(final String key) { return Optional.ofNullable(this.map.get(key)); }
     @Override public String toString() { return "Context{"  + map + '}'; }
