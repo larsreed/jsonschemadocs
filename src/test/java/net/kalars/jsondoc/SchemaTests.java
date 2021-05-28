@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-class SchemaTest {
+class SchemaTests {
     private static final String fileName =
             "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample2.json";
 //            "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample4.json";

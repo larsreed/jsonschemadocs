@@ -2,11 +2,11 @@ package net.kalars.jsondoc;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 
+/** General functionality for the ...Printer classes. */
 abstract class Printer {
     protected final StringBuilder buffer = new StringBuilder();
     protected final Node rootNode;
@@ -45,6 +45,7 @@ abstract class Printer {
     protected String q(final String s) { return s; }
 }
 
+/** Print out structure (for debugging). */
 class DebugPrinter extends Printer {
 
     DebugPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
@@ -70,6 +71,7 @@ class DebugPrinter extends Printer {
     }
 }
 
+/** Output documentation in a standalone HTML file. */
 class HtmlPrinter extends Printer {
     private static final String STYLE = """
         <style>
@@ -228,6 +230,7 @@ class HtmlPrinter extends Printer {
     }
 }
 
+/** Output XHTML documentation adapted for Confluence wiki storage format. */
 class WikiPrinter extends HtmlPrinter {
     WikiPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
 
@@ -252,6 +255,7 @@ class WikiPrinter extends HtmlPrinter {
     }
 }
 
+/** Create documentation in Markdown format. */
 class MarkdownPrinter extends Printer {
 
     private static final String BR = "<br />";
@@ -367,6 +371,7 @@ class MarkdownPrinter extends Printer {
     private String createInternalLink(final Node node) { return "[" + node.name + ">](#" + node.extId() + ")"; }
 }
 
+/** Output a graph description for Graphviz' dot generator. */
 class GraphPrinter extends Printer {
     private static final String PREAMBLE = """
 digraph G {
@@ -433,13 +438,13 @@ class SchemaPrinter extends Printer {
     private static final List<String> EXCLUDE_PREFIXES =
             Arrays.asList(JsonDocNames.IGNORE_PREFIX, JsonDocNames.XDOC_PREFIX, JsonDocNames.XIF_PREFIX,
                           JsonDocNames.XIFNOT_PREFIX);
-    private static final List<NodeRepresentation> HIDDEN = Arrays.asList(NodeRepresentation.HiddenColumn,
+    static final List<NodeRepresentation> HIDDEN = Arrays.asList(NodeRepresentation.HiddenColumn,
             NodeRepresentation.HiddenRow, NodeRepresentation.HiddenTable);
 
     SchemaPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
-    private boolean exclude(final Node node) { return EXCLUDE_PREFIXES.stream().anyMatch(node.name::startsWith); }
-    private String makeIndent(final Node node, final int extra) { return " ".repeat(extra + -2 + 2*node.level());}
-    private void skipLastComma() { buffer.setLength((buffer.length()-2)); }
+    boolean exclude(final Node node) { return EXCLUDE_PREFIXES.stream().anyMatch(node.name::startsWith); }
+    protected String makeIndent(final Node node) { return " ".repeat(2* (node.level()-1));}
+    void skipLastComma() { buffer.setLength((buffer.length()-2)); }
 
     @Override
     public String toString() {
@@ -447,7 +452,7 @@ class SchemaPrinter extends Printer {
         return buffer.toString();
     }
 
-    private void handleNode(final Node node) {
+    protected void handleNode(final Node node) {
         final var visible = node.isVisible() && !exclude(node)
                 && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr));
         final var vals = NodeValues.listToString(node.values.all(), "", "", "");
@@ -463,7 +468,7 @@ class SchemaPrinter extends Printer {
                 if (!vals.isEmpty()) Logger.warn("Values directly on array", node.qName(), vals);
             }
             case Value -> {
-                if (node.parent().nodeType.equals(NodeType.Array)) buffer.append(makeIndent(node, 0));
+                if (node.parent().nodeType.equals(NodeType.Array)) buffer.append(makeIndent(node));
                 else appendName(node);
                 switch (node.dataType) {
                     case NA -> Logger.error("Unknown data type for", node.qName());
@@ -479,23 +484,126 @@ class SchemaPrinter extends Printer {
         if (visible) switch (node.nodeType) {
             case Object -> {
                 skipLastComma();
-                buffer.append('\n').append(makeIndent(node, 0)).append("},\n");
+                buffer.append('\n').append(makeIndent(node)).append("},\n");
                 if (node.parent()==null) skipLastComma();
             }
             case Array -> {
                 skipLastComma();
-                buffer.append('\n').append(makeIndent(node, 0)).append("],\n");
+                buffer.append('\n').append(makeIndent(node)).append("],\n");
             }
             case Value -> { }
         }
     }
 
-    private StringBuilder appendName(final Node node) {
-        buffer.append(makeIndent(node, 0))
+    protected StringBuilder appendName(final Node node) {
+        buffer.append(makeIndent(node))
                 .append('"').append(node.name).append('"')
                 .append(": ");
         return buffer;
     }
+}
+
+/** EXPERIMENTAL - creates a sample JSON file based on given columns and/or generated values. */
+class SamplePrinter extends SchemaPrinter {
+
+    final List<String> sampleCols = new LinkedList<>();
+    private static final Random random = new Random();
+
+    SamplePrinter(final Node rootNode, final Context context) {
+        super(rootNode, context);
+        context.value(Context.SAMPLE_COLUMNS).ifPresent(sample ->
+                this.sampleCols.addAll(Arrays.asList(sample.split(", *"))));
+    }
+
+    @Override
+    public String toString() {
+        buffer.append("{\n");
+        handleNode(rootNode);
+        skipLastComma();
+        return buffer.append("\n}").toString();
+    }
+
+    protected void handleNode(final Node node) {
+        final var visible = node.isVisible() && !exclude(node)
+                && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr))
+                && !node.name.isEmpty()
+                && (node.representation.equals(NodeRepresentation.Row) || node.representation.equals(NodeRepresentation.Table))
+                && !node.children.isEmpty()
+                && node.nodeType.equals(NodeType.Object);
+
+        if (visible)  {
+            if (node.parent()!=null) appendName(node);
+            if (node.representation.equals(NodeRepresentation.Table)) buffer.append("{\n");
+            else buffer.append(prioritizedSample(node)).append(",\n");
+        }
+
+        for (final var child : node.children) handleNode(child);
+
+        if (visible) {
+
+            if (node.representation.equals(NodeRepresentation.Table)) {
+                skipLastComma();
+                buffer.append('\n').append(makeIndent(node)).append("},\n");
+            }
+            if (node.parent()==null) skipLastComma();
+        }
+    }
+
+    private String prioritizedSample(final Node node) {
+        final var possible = new LinkedList<>();
+        final var type = node.getChild(JsonDocNames.TYPE).map(n-> n.values.first().toString()).orElse("string");
+
+        for (final var c : sampleCols) {
+            final var child = node.getChild(c);
+            child.ifPresent(value -> possible.addAll(value.values.all()));
+        }
+        if (possible.isEmpty()) {
+            final var ex = node.getChild(JsonDocNames.EXAMPLES);
+            if (ex.isPresent()) for (final var child : ex.get().children) {
+                possible.addAll(child.values.all());
+            }
+        }
+        possible.add(defaultSample(node, type));
+        possible.remove(null); // if any have snuck in
+
+        final var smp = (possible.isEmpty())? "" : possible.get(0);
+        if ("string".equals(type)) return '"' + smp.toString() + '"';
+        return smp.toString();
+    }
+
+
+    private static Object defaultSample(final Node node, final String type) {
+        switch (type) {
+            case "string" -> {
+                final var optMinLen = node.getChild(JsonDocNames.MIN_LENGTH).map(n -> n.values.first().toString());
+                final var optMaxLen = node.getChild(JsonDocNames.MAX_LENGTH).map(n -> n.values.first().toString());
+                final var minLen = Integer.parseInt(optMinLen.orElse("0"));
+                final var maxLen = Integer.parseInt(optMaxLen.orElse("20"));
+                final var midLen = (minLen + maxLen) / 2;
+                String tst = "ABCD0123EFGH4567IJKL89MNOPQRSTUVWXYZ";
+                final var offs = random.nextInt(tst.length());
+                while (tst.length() < (midLen+offs+1)) tst+=tst;
+                return tst.substring(offs, midLen+offs);
+            }
+            case "integer" -> { return sampleInt(node); }
+            case "number" -> { return 0.0 + sampleInt(node); }
+            case "boolean" -> { return Boolean.TRUE; }
+            case "null" -> { return "null"; }
+        }
+        return null;
+    }
+
+    private static Integer sampleInt(final Node node) {
+        final var mult = node.getChild(JsonDocNames.MIN_LENGTH).map(n -> n.values.first().toString());
+        if (mult.isPresent()) return Integer.parseInt(mult.toString());
+        final var optMin = node.getChild(JsonDocNames.MINIMUM).map(n -> n.values.first().toString());
+        final var optMax = node.getChild(JsonDocNames.MAXIMUM).map(n -> n.values.first().toString());
+        final var min = Integer.parseInt(optMin.orElse("0"));
+        final var max = Integer.parseInt(optMax.orElse("1024"));
+        final var rnd = min + random.nextInt((Math.abs(max-min+1)));
+        return rnd;
+    }
+
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net

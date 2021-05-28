@@ -14,7 +14,7 @@ class DocParserTest {
     private Context ctx(final String mode) {
         return new Context(mode)
                 .add("test", "true")
-                .add("sampleColumns", "eksempel")
+                .add("sampleColumns", "x-eksempel")
 //                .add(Context.SKIP_TABLES,"metadata,data")
 //                .add("variant", "tags")
 //                .add(Context.EXCLUDED_COLUMNS, "x-ICS2_XML")
@@ -53,12 +53,13 @@ class DocParserTest {
         System.out.println(printer);
     }
 
-//    @Test
-//    void sampleOutput() {
-//        final var visitor = new JsonSamplePrintVisitor(ctx("SAMPLE"));
-//        new JsonSchemaParser().parseFile(fileName).visit(visitor);
-//        System.out.println(visitor);
-//    }
+    @Test
+    void sampleOutput() {
+        final var context = ctx("SAMPLE");
+        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var printer = new SamplePrinter(root, context);
+        System.out.println(printer);
+    }
 
     @Test
     void schemaOutput() {
@@ -66,18 +67,6 @@ class DocParserTest {
         final var root = new JsonDocParser(context).parseFile(fileName);
         final var printer = new SchemaPrinter(root, context);
         System.out.println(printer);
-    }
-
-    @Test
-    void schema_() {
-        final var context = ctx("SCHEMA");
-        final var root = new JsonDocParser(context).parseFile(fileName);
-        final var printer = new SchemaPrinter(root, context);
-        final var res1 = printer.toString();
-        final var secondRoot = new JsonDocParser(context).parseString(printer.toString());
-        final var secondPrinter = new SchemaPrinter(secondRoot, context);
-        final var res2 = secondPrinter.toString();
-        assertEquals(res1, res2);
     }
 
     @Test

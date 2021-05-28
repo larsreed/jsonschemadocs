@@ -55,11 +55,11 @@ public final class JsonDoc {
                 final var printer = new SchemaPrinter(root, context);
                 System.out.println(printer);
             }
-//            case "SAMPLE" -> {
-//                final var visitor6 = new JsonSamplePrintVisitor(context);
-//                new JsonDocParser(context).parseFile(inputfile).visit(visitor6);
-//                System.out.println(visitor6);
-//            }
+            case "SAMPLE" -> {
+                final var root = new JsonDocParser(context).parseFile(inputfile);
+                final var printer = new SamplePrinter(root, context);
+                System.out.println(printer);
+            }
             default -> help("Unknown type " + outType, 1);
         }
     }

@@ -23,7 +23,6 @@ class Node {
     private final Context context;
     private boolean required = false;
     NodeRepresentation representation;
-    private String generatedSample = "";
     private String cardinality = "";
     private final Node topRow;
 
@@ -228,15 +227,7 @@ class Node {
             else if (JsonDocNames.PROP_KEYWORDS.contains(name)) representation = NodeRepresentation.Column;
             if (context.isExcluded(name)) visible = false;
         }
-        if (hasChildren() && !context.isSchemaMode()) { // Create sample values for each child
-            // TODO test: defaultSample
-            children.stream().filter(n -> n.nodeType.equals(NodeType.Value)).forEach(Node::defaultSample);
-        }
-        if (hasChildren() && !context.isSchemaMode()) { // Define sample values
-            children.stream()
-                    .filter(n -> n.nodeType.equals(NodeType.Value))
-                    .forEach(n -> n.generatedSample = defaultSample());
-        }
+        // TODO test: defaultSample
         if (!context.isSchemaMode()) { // Transform known properties to columns
             convertKnownProperties();
         }
@@ -284,35 +275,6 @@ class Node {
         final int embedUpTo = Integer.parseInt(context.value(Context.EMBED_ROWS).orElse("-1"));
         return rows().size() <= embedUpTo;
     }
-
-    String defaultSample() {
-        switch (dataType) {
-            case StringType -> {
-                final var minLen = Integer.parseInt(getSiblingValue(JsonDocNames.MIN_LENGTH, "0").toString());
-                final var maxLen = Integer.parseInt(getSiblingValue(JsonDocNames.MAX_LENGTH, "20").toString());
-                final var midLen = (minLen + maxLen) / 2;
-                String tst = "ABCD0123EFGH4567IJKL89MNOPQRSTUVWXYZ";
-                final var offs = random.nextInt(tst.length());
-                while (tst.length() < (midLen+offs+1)) tst+=tst;
-                generatedSample = "\"" + tst.substring(offs, midLen+offs) + "\"";
-            }
-            case IntType -> generatedSample = sampleInt();
-            case DoubleType -> generatedSample = sampleInt() + ".0";
-            case BooleanType -> generatedSample = "true";
-            case NullValue -> generatedSample = "null";
-        }
-        return "";
-    }
-
-    private String sampleInt() {
-        final var mult = getSiblingValue(JsonDocNames.MULTIPLE_OF, null);
-        if (mult!=null) return ""+ mult;
-        final var min = Integer.parseInt(getSiblingValue(JsonDocNames.MINIMUM, "0").toString());
-        final var max = Integer.parseInt(getSiblingValue(JsonDocNames.MAXIMUM, "1024").toString());
-        final var rnd = min + random.nextInt((Math.abs(max-min+1)));
-        return "" + rnd;
-    }
-
     private Node removeThisNode() {
         if (parent==null) throw new RuntimeException("Wrong structure, cannot remove child without parent");
         children.forEach(n -> {

@@ -10,6 +10,7 @@ class Context {
 
     static final String MODE = "mode";
     static final String SCHEMA_MODE = "SCHEMA";
+    static final String SAMPLE_MODE = "SAMPLE";
     static final String EMBED_ROWS = "embedUpToRows";
     static final String VARIANT = "variant";
     static final String EXCLUDE_COLUMNS = "excludeColumns";
@@ -25,7 +26,11 @@ class Context {
         return this;
     }
 
-    boolean isSchemaMode() { return SCHEMA_MODE.equalsIgnoreCase(this.map.get(MODE)); }
+    boolean isSchemaMode() { // FIXME These modes use original schema layout
+        return SCHEMA_MODE.equalsIgnoreCase(this.map.get(MODE))
+//               || SAMPLE_MODE.equalsIgnoreCase(this.map.get(MODE))
+                ;
+    }
 
     Optional<String> value(final String key) { return Optional.ofNullable(this.map.get(key)); }
 
