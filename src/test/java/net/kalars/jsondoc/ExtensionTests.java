@@ -8,6 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ExtensionTests {
 
+    // TODO test sampleColumns
+    // TODO test skipTables
+    // TODO test embedUptoRows
+
     private Context ctx(final String mode) {
         return new Context(mode)
                 .add("test", "true")
@@ -199,5 +203,20 @@ class ExtensionTests {
         assertTrue(res.contains("<td>baz</td>"), "row");
         assertTrue(res.contains("<th>Bar ba DOS</th>"), "row");
         assertFalse(res.contains("x-bar"), "xif");
+    }
+
+    @Test
+    void excludedColumns_excludes() {
+        final var data = new JsonBuilder()
+                .properties()
+                .v("title", "X")
+                .v("A", 1.0)
+                .v("B", true)
+                .endProperties()
+                .toString();
+        final var context = ctx("HTML").add(Context.EXCLUDE_COLUMNS, "Q,B,W");
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        assertTrue(res.contains("<td>A</td>"), "A");
+        assertFalse(res.contains("<td>B</td>"), "B");
     }
 }

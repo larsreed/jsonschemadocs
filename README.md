@@ -80,7 +80,9 @@ Create sample data from one or more embedded sample columns:
 
 `java -jar jsondoc.jar SAMPLE /path/to/input/myExtendedSchema.json sampleColumns=x-sample> mySample.json`
 
-You must define one (or more, comma-separated) sample columns using `sampleColumns=...` as shown above. 
+You can define one or more (comma-separated) sample columns using `sampleColumns=...` as shown above.
+Without any such column given or present, we will try the JSON Schema standard `examples` array if present,
+or, as a last resort ,try to generate a value.
 
 ## **Creating documentation**
   
