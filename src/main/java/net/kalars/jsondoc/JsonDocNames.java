@@ -18,7 +18,6 @@ interface JsonDocNames {
     String USER_LINK_RE = "linkTo[(]([^),]+)((, *)([^)]+))?[)]"; // regexp to match linkTo(url) & linkTo(url, text)
 
     // JSON Schema names
-    String ARRAY = "array";
     String CONTENT_ENCODING = "contentEncoding";
     String CONTENT_MEDIA_TYPE = "contentMediaType";
     String CONTENT_SCHEMA = "contentSchema";

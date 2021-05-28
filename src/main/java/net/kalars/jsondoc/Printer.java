@@ -527,7 +527,8 @@ class SamplePrinter extends SchemaPrinter {
         final var visible = node.isVisible() && !exclude(node)
                 && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr))
                 && !node.name.isEmpty()
-                && (node.representation.equals(NodeRepresentation.Row) || node.representation.equals(NodeRepresentation.Table))
+                && (node.representation.equals(NodeRepresentation.Row)
+                    || node.representation.equals(NodeRepresentation.Table))
                 && !node.children.isEmpty()
                 && node.nodeType.equals(NodeType.Object);
 
@@ -600,8 +601,7 @@ class SamplePrinter extends SchemaPrinter {
         final var optMax = node.getChild(JsonDocNames.MAXIMUM).map(n -> n.values.first().toString());
         final var min = Integer.parseInt(optMin.orElse("0"));
         final var max = Integer.parseInt(optMax.orElse("1024"));
-        final var rnd = min + random.nextInt((Math.abs(max-min+1)));
-        return rnd;
+        return min + random.nextInt((Math.abs(max-min+1)));
     }
 
 }

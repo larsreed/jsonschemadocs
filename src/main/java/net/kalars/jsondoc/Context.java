@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.Optional;
 
 /** The runtime context settings (variable defs etc). */
+@SuppressWarnings("StaticMethodOnlyUsedInOneClass")
 class Context {
 
     static final String MODE = "mode";
     static final String SCHEMA_MODE = "SCHEMA";
-    static final String SAMPLE_MODE = "SAMPLE";
     static final String EMBED_ROWS = "embedUpToRows";
     static final String VARIANT = "variant";
     static final String EXCLUDE_COLUMNS = "excludeColumns";
@@ -26,19 +26,9 @@ class Context {
         return this;
     }
 
-    boolean isSchemaMode() { // FIXME These modes use original schema layout
-        return SCHEMA_MODE.equalsIgnoreCase(this.map.get(MODE))
-//               || SAMPLE_MODE.equalsIgnoreCase(this.map.get(MODE))
-                ;
-    }
-
+    boolean isSchemaMode() {return SCHEMA_MODE.equalsIgnoreCase(this.map.get(MODE)); }
     Optional<String> value(final String key) { return Optional.ofNullable(this.map.get(key)); }
-
-    boolean matches(final String key, final boolean notMatched, final String... candidates) {
-        final var hit = this.map.get(key);
-        if (hit==null) return notMatched; // it is considered a match if no values at all are given for this key
-        return Arrays.stream(candidates).anyMatch(hit::equalsIgnoreCase);
-    }
+    @Override public String toString() { return "Context{"  + map + '}'; }
 
     /** Does the given key exist in the context, and does it contain the given value toMatch?
      *  The value is read as comma-separated, and case-insensitive. */
@@ -61,8 +51,6 @@ class Context {
                 .anyMatch(excl -> excl.equalsIgnoreCase(column) ||
                         excl.equalsIgnoreCase(JsonDocNames.XDOC_PREFIX + column.replaceAll(" ", "_"))); // TODO improve
     }
-
-    @Override public String toString() { return "Context{"  + map + '}'; }
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net

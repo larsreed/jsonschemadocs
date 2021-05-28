@@ -29,7 +29,7 @@ public final class JsonDoc {
     }
 
     private static void runWith(final String outType, final String inputfile, final Context context) {
-        switch (outType.toUpperCase()) { // FIXME
+        switch (outType.toUpperCase()) {
             case "HTML" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
                 final var printer = new HtmlPrinter(root, context);

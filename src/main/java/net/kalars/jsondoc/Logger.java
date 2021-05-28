@@ -2,7 +2,8 @@ package net.kalars.jsondoc;
 
 import java.util.Arrays;
 
-public class Logger  {
+@SuppressWarnings("unused")
+public final class Logger  {
     private static final boolean DEBUG = true;
     private static final boolean ERROR = true;
     private static final boolean WARN = true;

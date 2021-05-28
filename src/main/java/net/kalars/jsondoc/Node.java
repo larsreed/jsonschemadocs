@@ -5,13 +5,11 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class Node {
-    private static final Random random = new Random();
     final String name;
     private boolean visible = true;
     private boolean hideChildren = false;
@@ -23,7 +21,6 @@ class Node {
     private final Context context;
     private boolean required = false;
     NodeRepresentation representation;
-    private String cardinality = "";
     private final Node topRow;
 
     Node(final String name, final NodeType nodeType, final DataType dataType, final Object value, final Node parent,
@@ -160,29 +157,13 @@ class Node {
     }
 
     /** Add a child node. */ private void add(final Node node) { this.children.add(node); }
-    /** Remove a child node. */ private boolean remove(final Node node) { return this.children.remove(node); }
-
-    /** Find a named child under same parent. */
-    private Object getSiblingValue(final String name, final Object defVal) {
-        if (this.parent==null) return defVal;
-        final var child = this.parent.getChild(name);
-        if (child.isEmpty()) return defVal;
-        final var childVal = child.get().values;
-        return childVal.isEmpty()? defVal : childVal.first();
-    }
+    /** Remove a child node. */ private void remove(final Node node) { this.children.remove(node); }
 
     /** Find a named child under this node. */
     Optional<Node> getChild(final String name) {
         for (final var node : this.children) if (name.equals(node.name)) return Optional.of(node);
         return Optional.empty();
     }
-
-    /** Remove a named child under this node. */
-    private void removeChild(final String name) {
-        final var node = getChild(name);
-        node.ifPresent(this.children::remove);
-    }
-
 
     /** Called when this instance is complete from the parser. */
     Node finalized() { // TODO break this up...
@@ -297,7 +278,6 @@ class Node {
         return parent;
     }
 
-    // TODO test: conversion of format, several variants
     private void convertKnownProperties() {
         convertFormat();
         minMax();
@@ -329,18 +309,6 @@ class Node {
         return false;
     }
 
-    private void moveProperties(final String key) {
-        final var other = extract(key);
-        if (other.size()>0)  addToType(other);
-    }
-
-    private void addToDescription(final NodeValues nv) {
-        var node = getChild(JsonDocNames.DESCRIPTION);
-        if (node.isEmpty())  node = Optional.of(
-                new Node(JsonDocNames.DESCRIPTION, NodeType.Value, DataType.StringType, null, this, context));
-        node.get().values.addAll(nv.all());
-    }
-
     private void addToType(final List<Object> other) {
         var node = getChild(JsonDocNames.TYPE);
         if (node.isEmpty())  {
@@ -352,14 +320,18 @@ class Node {
     }
 
     private void addToType(final String s) { if (s!=null && !s.isEmpty()) addToType(List.of(s)); }
-    private void convertFormat() { moveProperties(JsonDocNames.FORMAT); }
+
+    private void convertFormat() {
+        final var other = extract(JsonDocNames.FORMAT);
+        if (other.size()>0)  addToType(other);
+    }
 
     private void minMax() {
         boolean minDefault = false;
         var min = extractString(JsonDocNames.MINIMUM);
         var max = extractString(JsonDocNames.MAXIMUM);
 
-        if (!max.isEmpty() && !max.isEmpty() && min.equals(max)) { // Exact value, min=max
+        if (!max.isEmpty() && !min.isEmpty() && min.equals(max)) { // Exact value, min=max
             addToType("[" + min + "]");
             return;
         }
@@ -426,15 +398,11 @@ class Node {
             }
             else if (required) min = "[1, ";
             else min = "[0, ";
-            if (!max.isEmpty()) {
-                max = max + "]";
-            }
-            else max = "...]";
+            if (max.isEmpty()) max = "...]";
+            else max = max + "]";
         }
 
-        if (!min.isEmpty()) return min + max;
-        else if (required) return JsonDocNames.REQUIRED;
-        else return "";
+        return min + max;
     }
 
     private void minMaxItems() {
@@ -518,7 +486,6 @@ class NodeValues {
     List<Object> all() { return values; }
     void addAll(final List<Object> other) { values.addAll(other); }
     @Override public String toString() { return listToString(values, "", "\n", ""); }
-    void clear() { values.clear(); }
 }
 
 //   Copyright 2021, Lars Reed -- lars-at-kalars.net
