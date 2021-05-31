@@ -34,7 +34,6 @@ class Context {
     /** Does the given key exist in the context, and does it contain the given value toMatch?
      *  The value is read as comma-separated, and case-insensitive. */
     Optional<Boolean> anyMatch(final String key, final String toMatch) {
-        // TODO test multiple keys / multiple values
         final var hit = this.map.get(key);
         if (hit==null || hit.isEmpty()) return Optional.empty();
         final var candidates = toMatch.split(", *");
@@ -50,7 +49,8 @@ class Context {
         if (excluded==null) return false; // no columns excluded
         return Arrays.stream(excluded.split(", *"))
                 .anyMatch(excl -> excl.equalsIgnoreCase(column) ||
-                        excl.equalsIgnoreCase(JsonDocNames.XDOC_PREFIX + column.replaceAll(" ", "_"))); // TODO improve
+                                  excl.equalsIgnoreCase(JsonDocNames.XDOC_PREFIX +
+                                          column.replaceAll(" ", "_")));
     }
 }
 

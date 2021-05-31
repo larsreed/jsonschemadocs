@@ -20,7 +20,7 @@ class MarkdownTests {
     private String runMarkdown(final String data) {
         final var context = ctx();
         final var root = new JsonDocParser(context).parseString(data);
-        return new MarkdownPrinter(root, context).toString();
+        return new MarkdownPrinter(root).toString();
     }
 
 

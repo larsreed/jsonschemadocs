@@ -4,7 +4,7 @@ import net.kalars.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
 
-class DocParserTest {
+class OutputTest {
     private static final String fileName =
             "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample2.json";
 //            "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample4.json";
@@ -23,7 +23,7 @@ class DocParserTest {
     void htmlOutput() {
         final var context = ctx("HTML");
         final var root = new JsonDocParser(context).parseFile(fileName);
-        final var printer = new HtmlPrinter(root, context);
+        final var printer = new HtmlPrinter(root);
         System.out.println(printer);
     }
 
@@ -31,7 +31,7 @@ class DocParserTest {
     void wikiHtmlOutput() {
         final var context = ctx("HTML");
         final var root = new JsonDocParser(context).parseFile(fileName);
-        final var printer = new WikiPrinter(root, context);
+        final var printer = new WikiPrinter(root);
         System.out.println(printer);
     }
 
@@ -39,7 +39,7 @@ class DocParserTest {
     void markdownOutput() {
         final var context = ctx("MARKDOWN");
         final var root = new JsonDocParser(context).parseFile(fileName);
-        final var printer = new MarkdownPrinter(root, context);
+        final var printer = new MarkdownPrinter(root);
         System.out.println(printer);
     }
 
@@ -47,7 +47,7 @@ class DocParserTest {
     void graphOutput() {
         final var context = ctx("GRAPH");
         final var root = new JsonDocParser(context).parseFile(fileName);
-        final var printer = new GraphPrinter(root, context);
+        final var printer = new GraphPrinter(root);
         System.out.println(printer);
     }
 
@@ -63,7 +63,7 @@ class DocParserTest {
     void schemaOutput() {
         final var context = ctx("SCHEMA");
         final var root = new JsonDocParser(context).parseFile(fileName);
-        final var printer = new SchemaPrinter(root, context);
+        final var printer = new SchemaPrinter(root);
         System.out.println(printer);
     }
 
@@ -71,7 +71,7 @@ class DocParserTest {
     void debugOutput() {
         final var ctx = ctx("DEBUG");
         final var node = new JsonDocParser(ctx).parseFile(fileName);
-        final var printer = new DebugPrinter(node, ctx);
+        final var printer = new DebugPrinter(node);
         System.out.println(printer);
     }
 

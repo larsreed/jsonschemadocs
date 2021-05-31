@@ -12,7 +12,6 @@ import java.util.stream.Stream;
 class Node {
     final String name;
     private boolean visible = true;
-    private boolean hideChildren = false;
     final NodeType nodeType;
     final DataType dataType;
     final List<Node> children = new LinkedList<>();
@@ -49,9 +48,11 @@ class Node {
 
     /** Node not hidden or processed? */ boolean isVisible() { return this.visible; }
     /** Mark as processed. */ void done() { this.visible = false; }
-    boolean isTable() { return NodeRepresentation.Table.equals(this.representation); }
+    boolean isTable() { return NodeRepresentation.Table.equals(this.representation)
+            || NodeRepresentation.EmbeddedTable.equals(this.representation); }
     boolean isColumn() { return NodeRepresentation.Column.equals(this.representation); }
-    boolean isRow() { return NodeRepresentation.Row.equals(this.representation); }
+    boolean isRow() { return NodeRepresentation.Row.equals(this.representation)
+            || NodeRepresentation.EmbeddedTable.equals(this.representation); }
     boolean isRequired() { return required; }
     Node parent() { return this.parent; }
 
@@ -156,7 +157,7 @@ class Node {
                 .toList();
     }
 
-    /** Add a child node. */ private void add(final Node node) { this.children.add(node); }
+    /** Add a child node. */ void add(final Node node) { this.children.add(node); }
     /** Remove a child node. */ private void remove(final Node node) { this.children.remove(node); }
 
     /** Find a named child under this node. */
@@ -166,74 +167,18 @@ class Node {
     }
 
     /** Called when this instance is complete from the parser. */
-    Node finalized() { // TODO break this up...
-        if (this.nodeType.equals(NodeType.Object) && !this.context.isSchemaMode()) {
+    Node finalized() {
+        if (notSchemaMode()) {
             // Attach "properties" members directly to parent
-            if (JsonDocNames.PROPERTIES.equals(this.name)) return removeThisNode();
-        }
-        if (nodeType.equals(NodeType.Array) && !context.isSchemaMode()) {
+            if (this.nodeType.equals(NodeType.Object) && JsonDocNames.PROPERTIES.equals(name)) return removeThisNode();
             // Convert "required" to attributes
-            if (JsonDocNames.REQUIRED.equals(name)) return convertRequired();
+            if (nodeType.equals(NodeType.Array) && JsonDocNames.REQUIRED.equals(name)) return convertRequired();
         }
-        if ( nodeType.equals(NodeType.Value)) {
-            // Handle variants
-            if (name.startsWith(JsonDocNames.XIFNOT_PREFIX)) {
-                final var key = removePrefix(name, JsonDocNames.XIFNOT_PREFIX);
-                final var vals = values.stream()
-                        .map(Object::toString)
-                        .collect(Collectors.joining(","));
-                final var matches = context.anyMatch(key, vals);
-                if (matches.isPresent() && matches.get()) {
-                    parent.visible = false;
-                    parent.hideChildren = true;
-                }
-                visible = false;
-            }
-            else if (name.startsWith(JsonDocNames.XIF_PREFIX)) {
-                final var key = removePrefix(name, JsonDocNames.XIF_PREFIX);
-                final var vals = values.stream()
-                        .map(Object::toString)
-                        .collect(Collectors.joining(","));
-                final var matches = context.anyMatch(key, vals);
-                if (matches.isPresent() && ! matches.get()) {
-                    parent.visible = false;
-                    parent.hideChildren = true;
-                }
-                visible = false;
-            }
-        }
-        if ( true ) {
-            if (name.startsWith(JsonDocNames.XDOC_PREFIX)) representation = NodeRepresentation.Column;
-            else if (JsonDocNames.ALWAYS_COLUMNS.contains(name)) representation = NodeRepresentation.Column;
-            else if (JsonDocNames.PROP_KEYWORDS.contains(name)) representation = NodeRepresentation.Column;
-            if (context.isExcluded(name)) visible = false;
-        }
-        // TODO test: defaultSample
-        if (!context.isSchemaMode()) { // Transform known properties to columns
-            convertKnownProperties();
-        }
-        if (isTable() && !context.isSchemaMode()) { // Convert table to row if no separate content
-            final var hasRows = (Long) children.stream()
-                    .filter(n -> n.isRow() || (n.isTable() && !n.isEmbeddable()))
-                    .count();
-            if (hasRows==0) representation = NodeRepresentation.Row;
-        }
-        if (isTable() && parent==null && !context.isSchemaMode()) {
-            // Are there any attributes directly on the top node?  Create a row for these
-            final var orgList = new LinkedList<>(children);
-            for (final Node ch: orgList) {
-                if (ch.representation.equals(NodeRepresentation.Column)) {
-                    topRow.add(ch);
-                    ch.parent.remove(ch);
-                    ch.parent = topRow;
-                }
-            }
-            if (topRow.hasChildren()) topRow.representation = NodeRepresentation.Row; // unhide
-            else topRow.visible = false;
-        }
-        if (hasChildren() && hideChildren) { // Evaluate this after evaluating possible child attributes
-            children.clear(); // TODO is this attribute actually necessary?
-        }
+        if ( nodeType.equals(NodeType.Value))  handleXif();
+        defineColumns();
+        if (context.isExcluded(name)) visible = false;
+        if (notSchemaMode()) convertKnownProperties(); // Transform known properties to columns
+        if (isTable() && notSchemaMode()) finalizeTable();
         if (!visible) { // Fix representation if hidden
             switch (representation) {
                 case Row ->  representation = NodeRepresentation.HiddenRow;
@@ -243,6 +188,60 @@ class Node {
         }
         return this;
     }
+
+    private void finalizeTable() {
+        // Convert table to row if no separate content
+        final long hasRows = children.stream()
+                .filter(n -> n.isRow() || (n.isTable() && !n.isEmbeddable()))
+                .count();
+        if (hasRows == 0) {
+            if (hasChildren()) representation = NodeRepresentation.EmbeddedTable;
+            else representation = NodeRepresentation.Row;
+        }
+        if (parent == null) {
+            // Are there any attributes directly on the top node?  Create a row for these
+            final var orgList = new LinkedList<>(children);
+            for (final Node ch : orgList) {
+                if (ch.representation.equals(NodeRepresentation.Column)) {
+                    topRow.add(ch);
+                    ch.parent.remove(ch);
+                    ch.parent = topRow;
+                }
+            }
+            if (topRow.hasChildren()) topRow.representation = NodeRepresentation.Row; // unhide
+            else topRow.visible = false;
+        }
+    }
+
+    private void defineColumns() {
+        if (name.startsWith(JsonDocNames.XDOC_PREFIX)) representation = NodeRepresentation.Column;
+        else if (JsonDocNames.ALWAYS_COLUMNS.contains(name)) representation = NodeRepresentation.Column;
+        else if (JsonDocNames.PROP_KEYWORDS.contains(name)) representation = NodeRepresentation.Column;
+    }
+
+    private void handleXif() {
+        // Handle variants
+        if (name.startsWith(JsonDocNames.XIFNOT_PREFIX)) {
+            final var key = removePrefix(name, JsonDocNames.XIFNOT_PREFIX);
+            final var vals = values.stream()
+                    .map(Object::toString)
+                    .collect(Collectors.joining(","));
+            final var matches = context.anyMatch(key, vals);
+            if (matches.isPresent() && matches.get()) parent.visible = false;
+            visible = false;
+        }
+        else if (name.startsWith(JsonDocNames.XIF_PREFIX)) {
+            final var key = removePrefix(name, JsonDocNames.XIF_PREFIX);
+            final var vals = values.stream()
+                    .map(Object::toString)
+                    .collect(Collectors.joining(","));
+            final var matches = context.anyMatch(key, vals);
+            if (matches.isPresent() && ! matches.get()) parent.visible = false;
+            visible = false;
+        }
+    }
+
+    private boolean notSchemaMode() { return !this.context.isSchemaMode(); }
 
     private boolean hasChildren() {
         return (nodeType.equals(NodeType.Object) || nodeType.equals(NodeType.Array))
@@ -256,6 +255,7 @@ class Node {
         final int embedUpTo = Integer.parseInt(context.value(Context.EMBED_ROWS).orElse("-1"));
         return rows().size() <= embedUpTo;
     }
+
     private Node removeThisNode() {
         if (parent==null) throw new RuntimeException("Wrong structure, cannot remove child without parent");
         children.forEach(n -> {

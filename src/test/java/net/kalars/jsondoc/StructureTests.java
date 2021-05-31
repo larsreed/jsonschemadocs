@@ -20,13 +20,13 @@ class StructureTests {
 
     private String runHtml(final String data) {
         final var context = ctx("HTML");
-        return new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        return new HtmlPrinter(new JsonDocParser(context).parseString(data)).toString();
     }
 
     private String runSchema(final String data) {
         final var context = ctx("SCHEMA");
         final var root = new JsonDocParser(context).parseString(data);
-        return new HtmlPrinter(root, context).toString(); // TODO Change printer
+        return new SchemaPrinter(root).toString();
     }
 
     @Test

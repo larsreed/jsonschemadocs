@@ -10,7 +10,6 @@ class ExtensionTests {
 
     // TODO test sampleColumns
     // TODO test skipTables
-    // TODO test embedUptoRows
 
     private Context ctx(final String mode) {
         return new Context(mode)
@@ -25,7 +24,7 @@ class ExtensionTests {
     private String runHtml(final String data) {
         final var context = ctx("HTML");
         final var root = new JsonDocParser(context).parseString(data);
-        return new HtmlPrinter(root, context).toString();
+        return new HtmlPrinter(root).toString();
     }
 
     @Test
@@ -44,7 +43,7 @@ class ExtensionTests {
                 .endProperties()
                 .toString();
         final var context = ctx("HTML");
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data)).toString();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertTrue(res.contains("<td>Y<"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -70,7 +69,7 @@ class ExtensionTests {
                 .toString();
         final var context = ctx("HTML")
                 .add("variant", "var1"); // This is different from previous test
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data)).toString();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertTrue(res.contains("<td>Y"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -96,7 +95,7 @@ class ExtensionTests {
                 .toString();
         final var context = ctx("HTML")
                 .add("variant", "var2"); // This is different from previous test
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data)).toString();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertFalse(res.contains("<td>Y"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -121,7 +120,7 @@ class ExtensionTests {
                 .endProperties()
                 .toString();
         final var context = ctx("HTML");
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data)).toString();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertTrue(res.contains("<td>Y<"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -147,7 +146,7 @@ class ExtensionTests {
                 .toString();
         final var context = ctx("HTML")
                 .add("variant", "var1"); // This is different from previous test
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data)).toString();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertFalse(res.contains("<td>Y"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -173,7 +172,7 @@ class ExtensionTests {
                 .toString();
         final var context = ctx("HTML")
                 .add("variant", "var2"); // This is different from previous test
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data)).toString();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertTrue(res.contains("<td>Y"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -209,8 +208,72 @@ class ExtensionTests {
                 .endProperties()
                 .toString();
         final var context = ctx("HTML").add(Context.EXCLUDE_COLUMNS, "Q,B,W");
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data)).toString();
         assertTrue(res.contains("<td>A</td>"), "A");
         assertFalse(res.contains("<td>B</td>"), "B");
+    }
+
+    @Test
+    void sample_willCreateIfNotPresent() {
+        final var data = new JsonBuilder()
+                .properties()
+                    .v("title", "X")
+                    .object("foo")
+                        .v("type", "number")
+                    .endObject()
+                    .object("bar")
+                        .v("type", "string")
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var context = ctx("SAMPLE").add(Context.SAMPLE_COLUMNS, "x-smp");
+        final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).toString();
+        assertTrue(res.matches("(?s).*foo.: [.0-9]+.*"), res);
+        assertTrue(res.matches("(?s).*bar.:.*"), res);
+    }
+
+    @Test
+    void sample_willUseNamedColumn() {
+        final var data = new JsonBuilder()
+                .properties()
+                    .v("title", "X")
+                    .object("foo")
+                        .v("type", "number")
+                        .v("x-smp", 8048.6)
+                    .endObject()
+                    .object("bar")
+                        .v("type", "string")
+                        .v("x-smp", "smpl")
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var context = ctx("SAMPLE").add(Context.SAMPLE_COLUMNS, "x-smp");
+        final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).toString();
+        assertFalse(res.matches("(?s).*x-smp.*"), res);
+        assertTrue(res.matches("(?s).*foo.: 8048.6.*"), res);
+        assertTrue(res.matches("(?s).*bar.:.*smpl.*"), res);
+    }
+
+    @Test
+    void sample_canUseExamples() {
+        final var data = new JsonBuilder()
+                .properties()
+                    .v("title", "X")
+                    .object("foo")
+                        .v("type", "number")
+                        .v("x-smp", 8048.6)
+                        .array("examples", "747", "757", "777").endArray()
+                    .endObject()
+                    .object("bar")
+                        .v("type", "string")
+                        .array("examples", "747", "757", "777").endArray()
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var context = ctx("SAMPLE").add(Context.SAMPLE_COLUMNS, "x-smp");
+        final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).toString();
+        assertFalse(res.matches("(?s).*x-smp.*"), res);
+        assertTrue(res.matches("(?s).*foo.: 8048.6.*"), res);
+        assertTrue(res.matches("(?s).*bar.:.*747.*"), res);
     }
 }

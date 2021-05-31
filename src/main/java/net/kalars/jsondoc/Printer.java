@@ -33,10 +33,7 @@ abstract class Printer {
         return q(content);
     }
 
-    protected final void doneIfNotTable(final Node node) {
-        if (!NodeRepresentation.Table.equals(node.representation))  node.done();
-    }
-
+    protected final void doneIfNotTable(final Node node) { if (!node.isTable())  node.done(); }
     protected String createUrlLink(final String url, final String linkText) { return url; }
     protected String q(final String s) { return s; }
 }
@@ -44,7 +41,7 @@ abstract class Printer {
 /** Print out structure (for debugging). */
 class DebugPrinter extends Printer {
 
-    DebugPrinter(final Node rootNode, final Context context) { super(rootNode); }
+    DebugPrinter(final Node rootNode) { super(rootNode); }
 
     private String makeIndent(final int level) { return "  ".repeat(level); }
 
@@ -83,7 +80,7 @@ class HtmlPrinter extends Printer {
         """;
 
 
-    HtmlPrinter(final Node rootNode, final Context context) { super(rootNode); }
+    HtmlPrinter(final Node rootNode) { super(rootNode); }
 
     @Override
     protected String q(final String s) {
@@ -129,8 +126,9 @@ class HtmlPrinter extends Printer {
             for (final var row : node.rows()) handleRowNode(row, level);
             buffer.append(tableEnd());
         }
-        if (level>0) return; // No embedding in embedding...
-        for (final var sub : node.subTables()) handleTableNode(sub, 0);
+        for (final var sub : node.subTables())
+            if (level==0) handleTableNode(sub, 0);
+            else node.parent().add(sub);
     }
 
     protected String headingWithId(final Node node) {
@@ -164,7 +162,7 @@ class HtmlPrinter extends Printer {
     private String tableEnd() { return "</tbody></table>\n"; }
 
     private void handleRowNode(final Node rowNode, final int level) {
-       if (!rowNode.isVisible()) return; // Hidden or already processed
+        if (!rowNode.isVisible()) return; // Hidden or already processed
         doneIfNotTable(rowNode);
         buffer.append("<tr>")
                    .append("<td>")
@@ -190,7 +188,9 @@ class HtmlPrinter extends Printer {
                     handleTableNode(rowNode, level+1);
                     rowNode.done();
                 }
-                else if (rowNode.rows().size()>0) buffer.append(createInternalLink(rowNode));
+                else if (rowNode.rows().size()>0) {
+                    buffer.append(createInternalLink(rowNode));
+                }
             }
             buffer.append("</td>");
         }
@@ -229,7 +229,7 @@ class HtmlPrinter extends Printer {
 
 /** Output XHTML documentation adapted for Confluence wiki storage format. */
 class WikiPrinter extends HtmlPrinter {
-    WikiPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
+    WikiPrinter(final Node rootNode) { super(rootNode); }
 
     @Override protected void head() {}
     @Override protected void tail() {}
@@ -257,7 +257,7 @@ class MarkdownPrinter extends Printer {
 
     private static final String BR = "<br />";
 
-    MarkdownPrinter(final Node rootNode, final Context context) { super(rootNode); }
+    MarkdownPrinter(final Node rootNode) { super(rootNode); }
 
     @Override
     protected String q(final String s) {
@@ -389,7 +389,7 @@ digraph G {
                 """;
 
 
-    GraphPrinter(final Node rootNode, final Context context) { super(rootNode); }
+    GraphPrinter(final Node rootNode) { super(rootNode); }
     @Override protected String q(final String s) { return "\"" + s + "\""; }
 
     @Override
@@ -438,7 +438,7 @@ class SchemaPrinter extends Printer {
     static final List<NodeRepresentation> HIDDEN = Arrays.asList(NodeRepresentation.HiddenColumn,
             NodeRepresentation.HiddenRow, NodeRepresentation.HiddenTable);
 
-    SchemaPrinter(final Node rootNode, final Context context) { super(rootNode); }
+    SchemaPrinter(final Node rootNode) { super(rootNode); }
     boolean include(final Node node) { return EXCLUDE_PREFIXES.stream().noneMatch(node.name::startsWith); }
     protected String makeIndent(final Node node) { return " ".repeat(2* (node.level()-1));}
     void skipLastComma() { buffer.setLength((buffer.length()-2)); }
@@ -507,7 +507,7 @@ class SamplePrinter extends SchemaPrinter {
     private static final Random random = new Random();
 
     SamplePrinter(final Node rootNode, final Context context) {
-        super(rootNode, context);
+        super(rootNode);
         context.value(Context.SAMPLE_COLUMNS).ifPresent(sample ->
                 this.sampleCols.addAll(Arrays.asList(sample.split(", *"))));
     }
@@ -524,8 +524,7 @@ class SamplePrinter extends SchemaPrinter {
         final var visible = node.isVisible() && include(node)
                 && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr))
                 && !node.name.isEmpty()
-                && (node.representation.equals(NodeRepresentation.Row)
-                    || node.representation.equals(NodeRepresentation.Table))
+                && (node.isRow() || node.isTable())
                 && !node.children.isEmpty()
                 && node.nodeType.equals(NodeType.Object);
 

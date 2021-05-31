@@ -24,6 +24,7 @@ public class JsonBuilder {
         return this;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private JsonBuilder addRaw(final String key, final String s, final int delta) {
         final var v = addRaw(key, s);
         currentLevel += delta;

@@ -31,27 +31,27 @@ public final class JsonDoc {
         switch (outType.toUpperCase()) {
             case "HTML" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
-                final var printer = new HtmlPrinter(root, context);
+                final var printer = new HtmlPrinter(root);
                 System.out.println(printer);
             }
             case "WIKI" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
-                final var printer = new WikiPrinter(root, context);
+                final var printer = new WikiPrinter(root);
                 System.out.println(printer);
             }
             case "MARKDOWN" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
-                final var printer = new MarkdownPrinter(root, context);
+                final var printer = new MarkdownPrinter(root);
                 System.out.println(printer);
             }
             case "GRAPH" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
-                final var printer = new GraphPrinter(root, context);
+                final var printer = new GraphPrinter(root);
                 System.out.println(printer);
             }
             case "SCHEMA" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
-                final var printer = new SchemaPrinter(root, context);
+                final var printer = new SchemaPrinter(root);
                 System.out.println(printer);
             }
             case "SAMPLE" -> {

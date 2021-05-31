@@ -16,9 +16,9 @@ class SchemaTests {
         final var context = new Context("SCHEMA")
                 .add("test", "true")
                 .add("sampleColumns", "eksempel");
-        final var res1 = new SchemaPrinter(new JsonDocParser(context).parseFile(fileName), context).toString();
+        final var res1 = new SchemaPrinter(new JsonDocParser(context).parseFile(fileName)).toString();
         final var res2 = new SchemaPrinter(new JsonDocParser(context).parseString(
-                new SchemaPrinter(new JsonDocParser(context).parseFile(fileName), context).toString()), context)
+                new SchemaPrinter(new JsonDocParser(context).parseFile(fileName)).toString()))
                 .toString();
         assertEquals(res1, res2);
     }
