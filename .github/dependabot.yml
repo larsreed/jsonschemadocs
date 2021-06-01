@@ -12,4 +12,4 @@ updates:
     assignees:
       - "larsreed"
     commit-message:
-      prefix: "dependabot maven"
+      prefix: "dep maven"
