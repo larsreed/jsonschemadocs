@@ -13,7 +13,7 @@
 		<java.version>16</java.version>
         <maven.compiler.source>16</maven.compiler.source>
         <maven.compiler.target>16</maven.compiler.target>
-		<jackson.version>2.12.1</jackson.version>
+		<jackson.version>2.12.3</jackson.version>
 	</properties>
 
 	<dependencies>
