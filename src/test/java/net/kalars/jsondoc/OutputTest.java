@@ -3,11 +3,17 @@ package net.kalars.jsondoc;
 import net.kalars.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 class OutputTest {
     private static final String fileName =
             "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample2.json";
 //            "C:\\data\\projects\\json-doc\\src\\test\\resources\\sample4.json";
+    private static final String schemaEx =
+        "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample3-schema.json";
+    private static final String fileEx =
+            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample3.json";
 
     private Context ctx(final String mode) {
         return new Context(mode)
@@ -73,6 +79,13 @@ class OutputTest {
         final var node = new JsonDocParser(ctx).parseFile(fileName);
         final var printer = new DebugPrinter(node);
         System.out.println(printer);
+    }
+
+    @Test
+    void validationOutput() {
+        final var validator = new JsonDocValidator();
+        final var ok = validator.validateFile(schemaEx, fileEx);
+        assertTrue(ok.isOk());
     }
 
     @Test

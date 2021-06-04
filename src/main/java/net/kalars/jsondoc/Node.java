@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+// TODO Handle "additionalProperties" & "propertyNames" & "dependencies"
+
 class Node {
     final String name;
     private boolean visible = true;

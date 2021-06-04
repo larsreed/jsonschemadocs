@@ -1,5 +1,7 @@
 package net.kalars.jsondoc;
 
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /** The CLI main class. */
@@ -59,6 +61,16 @@ public final class JsonDoc {
                 final var printer = new SamplePrinter(root, context);
                 System.out.println(printer);
             }
+            case "VALIDATE" -> {
+                final var validator = new JsonDocValidator();
+                final var optFiles = context.value(Context.FILES);
+                if (optFiles.isEmpty()) help("No " + Context.FILES + "= specified", 2);
+                final var files = Arrays.stream(optFiles.get().split(", *")).toList();
+                if (files.isEmpty()) help("No " + Context.FILES + "= specified", 2);
+                ValidationResult res = new ValidationResult("");
+                for (final var file : files)  res = validator.validateFile(inputfile, file);
+                System.out.println(res);
+            }
             default -> help("Unknown type " + outType, 1);
         }
     }
@@ -67,7 +79,7 @@ public final class JsonDoc {
         System.err.println(message);
         System.out.println("""
         JSON SCHEMA DOCUMENTATION TOOL -- Lars Reed, 2021
-        Usage: java -jar jsondoc.jar TYPE INPUTFILE [DEFINITIONS] > resultfile
+        Usage: java -jar jsondoc.jar TYPE SCHEMAFILE [DEFINITIONS] > resultfile
         
         TYPE:
             SCHEMA:   output a clean schema file, without additional attributes
@@ -76,7 +88,8 @@ public final class JsonDoc {
             GRAPH:    output a script to create a graph using graphviz/dot
             WIKI:     output in Confluence wiki XHTML format
             SAMPLE:   output sample data -- Note: Experimental!
-        INPUTFILE: name of extended JSON Schema file
+            VALIDATE: perform validation of datafiles against a schema -- Note: Experimental!
+        SCHEMAFILE: name of extended JSON Schema file
         DEFINTIONS: follows the pattern name=value, and comes after the inputfile""");
         System.out.println("    " + Context.VARIANT + "=foo could define a context for \""
                 + JsonDocNames.XIF_PREFIX + Context.VARIANT + "\": \"foo\"");
@@ -84,6 +97,7 @@ public final class JsonDoc {
         System.out.println("    " + Context.SKIP_TABLES + "=table1,table2,... to exclude tables with given IDs");
         System.out.println("    " + Context.EMBED_ROWS + "=n defines embedding in HTML tables");
         System.out.println("    " + Context.SAMPLE_COLUMNS + "=col1,... defines columns to use for sample output");
+        System.out.println("    " + Context.FILES + "=file1,... required with VALIDATE to name files to validate");
         System.out.println("""
                 Output is written to stdout and should be redirected.""");
         System.exit(err);

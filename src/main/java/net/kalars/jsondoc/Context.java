@@ -16,6 +16,7 @@ class Context {
     static final String EXCLUDE_COLUMNS = "excludeColumns";
     static final String SKIP_TABLES = "skipTables";
     static final String SAMPLE_COLUMNS = "sampleColumns";
+    static final String FILES = "files";
 
     private final Map<String, String> map = new LinkedHashMap<>();
 
