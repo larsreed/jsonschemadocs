@@ -9,14 +9,15 @@ import java.util.Optional;
 @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
 class Context {
 
-    static final String MODE = "mode";
-    static final String SCHEMA_MODE = "SCHEMA";
+    static final String ADD_NO_EXTRA = "addNoExtra";
     static final String EMBED_ROWS = "embedUpToRows";
-    static final String VARIANT = "variant";
     static final String EXCLUDE_COLUMNS = "excludeColumns";
-    static final String SKIP_TABLES = "skipTables";
-    static final String SAMPLE_COLUMNS = "sampleColumns";
     static final String FILES = "files";
+    static final String MODE = "mode";
+    static final String SAMPLE_COLUMNS = "sampleColumns";
+    static final String SCHEMA_MODE = "SCHEMA";
+    static final String SKIP_TABLES = "skipTables";
+    static final String VARIANT = "variant";
 
     private final Map<String, String> map = new LinkedHashMap<>();
 
@@ -27,9 +28,17 @@ class Context {
         return this;
     }
 
+    Context clone(final String mode) {
+        final var clone = new Context(mode);
+        clone.map.putAll(this.map);
+        clone.map.put(MODE, mode);
+        return clone;
+    }
+
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isSchemaMode() {return SCHEMA_MODE.equalsIgnoreCase(this.map.get(MODE)); }
     Optional<String> value(final String key) { return Optional.ofNullable(this.map.get(key)); }
+    boolean contains(final String key) { return map.containsKey(key); }
     @Override public String toString() { return "Context{"  + map + '}'; }
 
     /** Does the given key exist in the context, and does it contain the given value toMatch?

@@ -428,6 +428,7 @@ class StructureTests {
                         .v(JsonDocNames.CONST, 42)
                         .v(JsonDocNames.MULTIPLE_OF, 13)
                         .v(JsonDocNames.DEFAULT, "q1")
+                        .v(JsonDocNames.ADDITIONAL_PROPERTIES, Boolean.FALSE)
                         .array(JsonDocNames.ENUM, "1", "2", "3").endArray()
                 .endObject()
                 .endProperties()
@@ -448,6 +449,7 @@ class StructureTests {
         assertTrue(vals.contains("==42"), "const");
         assertTrue(vals.contains(JsonDocNames.MULTIPLE_OF + " 13"), "multiple");
         assertTrue(vals.contains(JsonDocNames.DEFAULT + "=q1"), "default");
+        assertTrue(vals.contains(JsonDocNames.ADDITIONAL_PROPERTIES_DISP), vals);
     }
 
     @Test

@@ -18,6 +18,8 @@ interface JsonDocNames {
     String USER_LINK_RE = "linkTo[(]([^),]+)((, *)([^)]+))?[)]"; // regexp to match linkTo(url) & linkTo(url, text)
 
     // JSON Schema names
+    String ADDITIONAL_PROPERTIES = "additionalProperties";
+    String ADDITIONAL_PROPERTIES_DISP = "NO extra fields!"; // display as
     String CONTENT_ENCODING = "contentEncoding";
     String CONTENT_MEDIA_TYPE = "contentMediaType";
     String CONTENT_SCHEMA = "contentSchema";
@@ -55,6 +57,7 @@ interface JsonDocNames {
             MAXIMUM, EXCLUSIVE_MAXIMUM,
             MIN_LENGTH, MAX_LENGTH,
             MIN_ITEMS, MAX_ITEMS, UNIQUE_ITEMS,
+            ADDITIONAL_PROPERTIES,
             FORMAT, PATTERN, ENUM, CONST, MULTIPLE_OF, DEFAULT, DEPRECATED, WRITE_ONLY, READ_ONLY,
             CONTENT_SCHEMA, CONTENT_ENCODING, CONTENT_MEDIA_TYPE);
 

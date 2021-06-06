@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ExtensionTests {
 
-    // TODO test sampleColumns
     // TODO test skipTables
 
     private Context ctx(final String mode) {
@@ -275,5 +274,20 @@ class ExtensionTests {
         assertFalse(res.matches("(?s).*x-smp.*"), res);
         assertTrue(res.matches("(?s).*foo.: 8048.6.*"), res);
         assertTrue(res.matches("(?s).*bar.:.*747.*"), res);
+    }
+
+    @Test
+    void addnoextra_introducesExtraProperty() {
+        final var data = new JsonBuilder()
+                .properties()
+                    .v("title", "X")
+                    .object("foo")
+                        .v("type", "number")
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var context = ctx("SCHEMA").add(Context.ADD_NO_EXTRA, "true");
+        final var res = new SchemaPrinter(new JsonDocParser(context).parseString(data)).toString();
+        assertTrue(res.matches("(?s).*" + JsonDocNames.ADDITIONAL_PROPERTIES + ".: false.*"), res);
     }
 }

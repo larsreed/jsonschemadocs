@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// TODO Handle "additionalProperties" & "propertyNames" & "dependencies"
+// TODO Handle "propertyNames" & "dependencies"
 
 class Node {
     final String name;
@@ -176,6 +176,12 @@ class Node {
             // Convert "required" to attributes
             if (nodeType.equals(NodeType.Array) && JsonDocNames.REQUIRED.equals(name)) return convertRequired();
         }
+        if (context.isSchemaMode() && context.contains(Context.ADD_NO_EXTRA)
+                && this.nodeType.equals(NodeType.Object) && JsonDocNames.PROPERTIES.equals(name) ) {
+            @SuppressWarnings("unused")
+            final var add = new Node(JsonDocNames.ADDITIONAL_PROPERTIES, NodeType.Value, DataType.BooleanType,
+                    Boolean.FALSE, parent, context); // Automatically inserted
+        }
         if ( nodeType.equals(NodeType.Value))  handleXif();
         defineColumns();
         if (context.isExcluded(name)) visible = false;
@@ -282,6 +288,7 @@ class Node {
 
     private void convertKnownProperties() {
         convertFormat();
+        strict();
         minMax();
         minMaxLen();
         minMaxItems();
@@ -326,6 +333,15 @@ class Node {
     private void convertFormat() {
         final var other = extract(JsonDocNames.FORMAT);
         if (other.size()>0)  addToType(other);
+    }
+
+    private void strict() {
+        final var addProp = extract(JsonDocNames.ADDITIONAL_PROPERTIES);
+        if (addProp.isEmpty()) return;
+        if (addProp.get(0).toString().equalsIgnoreCase(Boolean.TRUE.toString())) return;
+        if (addProp.get(0).toString().equalsIgnoreCase(Boolean.FALSE.toString()))
+            addToType(JsonDocNames.ADDITIONAL_PROPERTIES_DISP);
+        else addToType(JsonDocNames.ADDITIONAL_PROPERTIES + " " + addProp);
     }
 
     private void minMax() {
