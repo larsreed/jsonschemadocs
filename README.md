@@ -6,26 +6,26 @@ Written by Lars Reed, spring 2021. I'd be happy for an attribution if you use th
 
 # Writing schemas
 
-* JSON Schema
+## Create a pure JSON Schema
 
-    Start off by creating your actual schema, as per https://json-schema.org/
+Start off by creating your actual schema, as per https://json-schema.org/
 
-    For precise vocabulary, see https://tools.ietf.org/html/draft-bhutton-json-schema-validation-00
+For precise vocabulary, see https://tools.ietf.org/html/draft-bhutton-json-schema-validation-00
 
-* Additional information
+## Additional information
 
-    * Decide on the headings you want for additional information, e.g. "Sample values".
-      Add these as separate properties to the schema, alongside the regular schema keywords,
-      but prefix the names with **"x-"**, and replace spaces with underscores -- i.e. *x-sample_values*.
-      Such values will appear in the documentation, but will be stripped from the recreated schema output (see below).
-    * You may also append other properties that appear neither in the documentation nor in the schema
-      by starting the property names with **"ignore-"**.
-    * JSON is not fond of repeated attributes, does not allow a string property to span multiple input lines,
-      and the tool currently handles arrays rather badly...
-      To include multi-line strings, use `\n` to denote where you want line breaks, but don't actually add any line breaks.
-      We should perhaps fix that, some day...
-    * To embed *links* in documentation, use either `linkTo(url)` or `linkTo(url, text)`
-      (for the former, the url is also used as the actual link text).
+* Decide on the headings you want for additional information, e.g. "Sample values".
+  Add these as separate properties to the schema, alongside the regular schema keywords,
+  but prefix the names with **"x-"**, and replace spaces with underscores -- i.e. *x-sample_values*.
+  Such values will appear in the documentation, but will be stripped from the recreated schema output (see below).
+* You may also append other properties that appear neither in the documentation nor in the schema
+  by starting the property names with **"ignore-"**.
+* JSON is not fond of repeated attributes, does not allow a string property to span multiple input lines,
+  and the tool currently handles arrays rather badly...
+  To include multi-line strings, use `\n` to denote where you want line breaks, but don't actually add any line breaks.
+  We should perhaps fix that, some day...
+* To embed *links* in documentation, use either `linkTo(url)` or `linkTo(url, text)`
+  (for the former, the url is also used as the actual link text).
 
 * Sample:
 ```json
@@ -38,39 +38,80 @@ Written by Lars Reed, spring 2021. I'd be happy for an attribution if you use th
         },
 ```
 
-* *Introduce conditionals*
+## Introduce conditionals
 
-    You can introduce conditions. Give your condition a name, e.g. `variant` 
-    and a set of possible values, e.g. `complete` and `concise`. 
-    Then you can add one of the following conditionals to exclude a given node -- **and** all its children -- thus: 
+You can introduce conditions. Give your condition a name, e.g. `variant` 
+and a set of possible values, e.g. `complete` and `concise`. 
+Then you can add one of the following conditionals to exclude a given node -- **and** all its children -- thus: 
 
-    1. `"xif-variant" : "foo"` (where "variant" is your chosen condition name), 
-       the node (with children) will be included if 'variant' is undefined or defined and equal to "foo".
-       
-    2. `"xif-variant" : "foo, bar"` like the previous, but both "foo" and "bar" are acceptable values.
-       Legal values are separated by a comma ("foo, bar, baz" etc).
-    
-    3. `"xifnot-variant" : "foo"`, the node will be included if 'variant' is undefined 
-       or if it is given, but not as "foo".
+1. `"xif-variant" : "foo"` (where "variant" is your chosen condition name), 
+   the node (with children) will be included if 'variant' is undefined or defined and equal to "foo".
+   
+2. `"xif-variant" : "foo, bar"` like the previous, but both "foo" and "bar" are acceptable values.
+   Legal values are separated by a comma ("foo, bar, baz" etc).
 
-    4. `"xifnot-variant" : "foo, bar, baz"`, like the previous, but a list of values are accepted here as well.
+3. `"xifnot-variant" : "foo"`, the node will be included if 'variant' is undefined 
+   or if it is given, but not as "foo".
 
-    More below on how to define conditions, as well as how to exclude tables/graph nodes and columns.
+4. `"xifnot-variant" : "foo, bar, baz"`, like the previous, but a list of values are accepted here as well.
+
+More below on how to define conditions, as well as how to exclude tables/graph nodes and columns.
 
 # Producing documentation
 
-## **Extracting schema for validation:**
+Currently, four types of documentation are supported.
 
-The schema, without the documentation and ignored properties, can be recreated
-for use in e.g. validators, like this:
+## HTML
 
-`java -jar jsondoc.jar SCHEMA /path/to/input/myExtendedSchema.json > myBasicSchema.json`
+To create an HTML document documenting the schema, run a visitor like this
 
-For this, and all following examples, definitions (e.g. conditionals), 
-can be given after the input file name with `name=value`, e.g.
+java -jar jsondoc.jar HTML /path/to/input/myExtendedSchema.json -DembedUpToRows=1 > mySchema.html`
 
-`java -jar jsondoc.jar SCHEMA myExtendedSchema.json variant=plain > myPlainSchema.json`
+Sample output:
 
+![example](docs/sample-html.png)
+
+The definition `excludedColumns=foo,bar` may be appended
+defining one or more (comma separated) columns to exclude from the result.
+
+The definition `skipTables=foo,bar` may be appended
+defining one or more (comma separated) table IDs to exclude from the result.
+Note that these are the `id`-tags, look in the generated code if you are uncertain.
+
+The definition `embedUpToRows=n` (where 'n' is a number) may be appended,
+denoting that tables of up to N rows should be embedded in its parent.
+
+A sample with such definitions:
+`java -jar jsondoc.jar HTML myExtendedSchema.json embedUpToRows=1 excludedColumns=sample,note > myLittleSchema.html`
+
+
+## Wiki
+
+Like the HTML version, but using Confluence wiki link syntax.
+`java -jar jsondoc.jar WIKI /path/to/input/myExtendedSchema.json > mySchema.xhtml`
+
+
+## Markdown
+
+Like the HTML version (same parameters etc), but producing Markdown.
+`java -jar jsondoc.jar MARKDOWN /path/to/input/myExtendedSchema.json > mySchema.md`
+
+
+## Diagram
+
+ Requires Graphviz -- https://graphviz.org/download/
+
+ First: create the dot input:
+`java -jar jsondoc.jar GRAPH /path/to/input/myExtendedSchema.json > mySchema.txt`
+
+ Then: create a diagram from the dot script:
+ `& 'C:\Program Files\Graphviz\bin\dot' -T png -o mySchema.png mySchema.txt`
+
+Sample output:
+
+![example](docs/sample-graph.png)
+
+# Validation and samples
 
 ## **Creating sample data**
 
@@ -84,63 +125,22 @@ You can define one or more (comma-separated) sample columns using `sampleColumns
 Without any such column given or present, we will try the JSON Schema standard `examples` array if present,
 or, as a last resort ,try to generate a value.
 
-## **Creating documentation**
-  
-Currently, four types of documentation are supported.
+## Extracting schema for validation
 
-1. HTML
+The schema, without the documentation and ignored properties, can be recreated
+for use in e.g. external validators, like this:
 
-    To create an HTML document documenting the schema, run a visitor like this
+`java -jar jsondoc.jar SCHEMA /path/to/input/myExtendedSchema.json > myBasicSchema.json`
 
-   `java -jar jsondoc.jar HTML /path/to/input/myExtendedSchema.json -DembedUpToRows=1 > mySchema.html`
+Definitions (e.g. conditionals),
+can be given after the input file name with `name=value`, e.g.
 
-    Sample output:
+`java -jar jsondoc.jar SCHEMA myExtendedSchema.json variant=plain > myPlainSchema.json`
 
-    ![example](docs/sample-html.png)
-
-    The definition `excludedColumns=foo,bar` may be appended
-    defining one or more (comma separated) columns to exclude from the result.
-
-    The definition `skipTables=foo,bar` may be appended
-    defining one or more (comma separated) table IDs to exclude from the result.
-    Note that these are the `id`-tags, look in the generated code if you are uncertain.
-
-    The definition `embedUpToRows=n` (where 'n' is a number) may be appended,
-    denoting that tables of up to N rows should be embedded in its parent.
-
-    A sample with such definitions:
-    `java -jar jsondoc.jar HTML myExtendedSchema.json embedUpToRows=1 excludedColumns=sample,note > myLittleSchema.html`
-
-
-2. Wiki
-
-   Like the HTML version, but using Confluence wiki link syntax.
-   `java -jar jsondoc.jar WIKI /path/to/input/myExtendedSchema.json > mySchema.xhtml`
-
-
-3. Markdown
-
-   Like the HTML version (same parameters etc), but producing Markdown.
-   `java -jar jsondoc.jar MARKDOWN /path/to/input/myExtendedSchema.json > mySchema.md`
-
-
-4. Diagram
-
-    Requires Graphviz -- https://graphviz.org/download/
-
-    First: create the dot input:
-   `java -jar jsondoc.jar GRAPH /path/to/input/myExtendedSchema.json > mySchema.txt`
-
-    Then: create a diagram from the dot script:
-    `& 'C:\Program Files\Graphviz\bin\dot' -T png -o mySchema.png mySchema.txt`
-
-   Sample output:
-
-   ![example](docs/sample-graph.png)
 
 ## Performing validation
 
-You can also use this tool to perform validation of JSON data files against a schema (this is done through an embedded
+You can also use this tool to perform validation of JSON data files against a schema directly (this is done through an embedded
 com.github.everit-org.json-schema).
 
 To validate, you 
@@ -164,7 +164,7 @@ java -jar jsondoc.jar VALIDATE /path/to/myExtendedSchema.json files="/path/to/my
 [[ $? = 0 ]] || error ....
 ```
 
-## Command line help
+# Command line help
 Run `java -jar jsondoc.jar HELP` to get online help.
 
 ```text
@@ -201,7 +201,7 @@ I have been working with.
                 TODO:
                 - $defs & $ref (?)
 
-Support is currently not planned for
+Support is currently *not* planned for
 
 * misc. advanced constructs
 * maxContains, minContains, contains
