@@ -425,6 +425,7 @@ class StructureTests {
                         .v(JsonDocNames.WRITE_ONLY, true)
                         .v(JsonDocNames.DEPRECATED, true)
                         .v(JsonDocNames.PATTERN, "^parrot$")
+                        .v(JsonDocNames.PROPERTY_NAMES, "^bird$")
                         .v(JsonDocNames.CONST, 42)
                         .v(JsonDocNames.MULTIPLE_OF, 13)
                         .v(JsonDocNames.DEFAULT, "q1")
@@ -450,6 +451,7 @@ class StructureTests {
         assertTrue(vals.contains(JsonDocNames.MULTIPLE_OF + " 13"), "multiple");
         assertTrue(vals.contains(JsonDocNames.DEFAULT + "=q1"), "default");
         assertTrue(vals.contains(JsonDocNames.ADDITIONAL_PROPERTIES_DISP), vals);
+        assertTrue(vals.contains(JsonDocNames.PROPERTY_NAMES_DISP), vals);
     }
 
     @Test

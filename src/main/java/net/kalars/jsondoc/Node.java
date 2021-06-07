@@ -9,8 +9,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// TODO Handle "propertyNames" & "dependencies"
-
 class Node {
     final String name;
     private boolean visible = true;
@@ -444,6 +442,7 @@ class Node {
         if (extractBoolean(JsonDocNames.READ_ONLY)) addToType(JsonDocNames.READ_ONLY);
 
         extract(JsonDocNames.PATTERN).forEach(s -> addToType(JsonDocNames.PATTERN + "=" + s));
+        extract(JsonDocNames.PROPERTY_NAMES).forEach(s -> addToType(JsonDocNames.PROPERTY_NAMES_DISP + ": " + s));
         extract(JsonDocNames.CONST).forEach(s -> addToType("==" + s));
         extract(JsonDocNames.MULTIPLE_OF).forEach(s -> addToType(JsonDocNames.MULTIPLE_OF + " " + s));
         extract(JsonDocNames.DEFAULT).forEach(s -> addToType(JsonDocNames.DEFAULT + "=" + s));

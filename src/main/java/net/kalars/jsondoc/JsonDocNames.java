@@ -44,6 +44,8 @@ interface JsonDocNames {
     String MULTIPLE_OF = "multipleOf";
     String PATTERN = "pattern";
     String PROPERTIES = "properties";
+    String PROPERTY_NAMES = "propertyNames";
+    String PROPERTY_NAMES_DISP = "name structure";
     String READ_ONLY = "readOnly";
     String REQUIRED = "required";
     String TITLE = "title";
@@ -57,7 +59,7 @@ interface JsonDocNames {
             MAXIMUM, EXCLUSIVE_MAXIMUM,
             MIN_LENGTH, MAX_LENGTH,
             MIN_ITEMS, MAX_ITEMS, UNIQUE_ITEMS,
-            ADDITIONAL_PROPERTIES,
+            ADDITIONAL_PROPERTIES, PROPERTY_NAMES,
             FORMAT, PATTERN, ENUM, CONST, MULTIPLE_OF, DEFAULT, DEPRECATED, WRITE_ONLY, READ_ONLY,
             CONTENT_SCHEMA, CONTENT_ENCODING, CONTENT_MEDIA_TYPE);
 

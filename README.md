@@ -200,6 +200,7 @@ I have been working with.
 
                 TODO:
                 - $defs & $ref (?)
+                - dependencies
 
 Support is currently *not* planned for
 
