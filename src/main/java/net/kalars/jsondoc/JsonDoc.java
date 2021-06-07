@@ -1,15 +1,11 @@
 package net.kalars.jsondoc;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
 /** The CLI main class. */
 public final class JsonDoc {
     private static final Pattern pattern = Pattern.compile("^([^=]+)=([^=]+)$");
+    private static final int EDATA = 65;
 
     public static void main(final String[] args) {
         if (args.length == 1 && "help".equalsIgnoreCase(args[0])) help("Help", 0);
@@ -65,40 +61,11 @@ public final class JsonDoc {
                 System.out.println(printer);
             }
             case "VALIDATE" -> {
-                ValidationResult res = validate(inputfile, context);
+                final ValidationResult res = Validator.validate(inputfile, context);
                 System.out.println(res);
-                if (!res.isOk()) System.exit(65);
+                if (!res.isOk()) System.exit(EDATA);
             }
             default -> help("Unknown type " + outType, 1);
-        }
-    }
-
-    private static ValidationResult validate(final String inputfile, final Context context) {
-        final var parser = new JsonDocParser(context.clone(Context.SCHEMA_MODE));
-        final var printer = new SchemaPrinter(parser.parseFile(inputfile));
-        final String pureSchema = makeTempSchema(printer.toString());
-
-        final var validator = new JsonDocValidator();
-        final var optFiles = context.value(Context.FILES);
-        if (optFiles.isEmpty()) help("No " + Context.FILES + "= specified", 2);
-        final var files = Arrays.stream(optFiles.get().split(", *")).toList();
-        if (files.isEmpty()) help("No " + Context.FILES + "= specified", 2);
-
-        ValidationResult res = new ValidationResult("");
-        for (final var file : files)  res = validator.validateFile(pureSchema, file);
-        return res;
-    }
-
-    private static String makeTempSchema(final String data)  {
-        try {
-            final Path jschema = Files.createTempFile("jschema", ".json");
-            try (OutputStream out = Files.newOutputStream(jschema)) {
-                out.write(data.getBytes());
-                return jschema.toString();
-            }
-        }
-        catch (final IOException e) {
-            throw new RuntimeException(e);
         }
     }
 

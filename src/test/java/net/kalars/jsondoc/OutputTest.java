@@ -83,7 +83,7 @@ class OutputTest {
 
     @Test
     void validationOutput() {
-        final var validator = new JsonDocValidator();
+        final var validator = new Validator();
         final var ok = validator.validateFile(schemaEx, fileEx);
         assertTrue(ok.isOk());
     }

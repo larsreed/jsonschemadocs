@@ -8,17 +8,53 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-class JsonDocValidator {
+class Validator {
 
-    private ValidationResult result = new ValidationResult("root");
+    private ValidationResult result = new ValidationResult("input");
+
+    static ValidationResult validate(final String inputfile, final Context context) {
+        final var parser = new JsonDocParser(context.clone(Context.SCHEMA_MODE));
+        final var printer = new SchemaPrinter(parser.parseFile(inputfile));
+        final String pureSchema = makeTempSchema(printer.toString());
+
+        final var validator = new Validator();
+        final var optFiles = context.value(Context.FILES);
+        if (optFiles.isEmpty()) return new ValidationResult(inputfile).fail().add("No " + Context.FILES + "= specified");
+        final var files = Arrays.stream(optFiles.get().split(", *")).toList();
+        if (files.isEmpty()) return new ValidationResult(inputfile).fail().add("No " + Context.FILES + "= specified");
+
+        ValidationResult res = new ValidationResult(""); // forgotten on first file
+        for (final var file : files)  res = validator.validateFile(pureSchema, file);
+        return res;
+    }
+
+    static String makeTempSchema(final String data)  {
+        try {
+            final Path jschema = Files.createTempFile("jschema", ".json");
+            jschema.toFile().deleteOnExit();
+            try (final OutputStream out = Files.newOutputStream(jschema)) {
+                out.write(data.getBytes());
+                return jschema.toString();
+            }
+        }
+        catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     ValidationResult validateString(final String schemaFile, final String data) {
         try (final FileInputStream schemaStream = new FileInputStream(schemaFile)) {
@@ -28,15 +64,13 @@ class JsonDocValidator {
             return result;
         }
         catch (final IOException | JSONException e) {
-            result.add(e.getMessage());
-            result.fail();
-            return result;
+            return result.add(e.getMessage()).fail();
         }
         catch (final ValidationException e) {
+            handle(e);
             final var causes = e.getCausingExceptions();
             causes.forEach(this::handle);
-            result.fail();
-            return result;
+            return result.fail();
         }
     }
 
@@ -46,27 +80,20 @@ class JsonDocValidator {
             final var br = new BufferedReader(new InputStreamReader(dataStream));
             String line;
             final StringBuilder sb = new StringBuilder();
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
+            while ((line = br.readLine()) != null)  sb.append(line);
             return validateString(schemaFile, sb.toString());
         }
         catch (final IOException e) {
-            result.add(e.getMessage());
-            return result;
+            return result.add(e.getMessage()).fail();
         }
     }
 
     private void handle(final ValidationException e) {
-        final StringBuilder buf = new StringBuilder();
-        buf.append(e.getMessage())
-                .append(" Keyword: ")
-                .append(e.getKeyword())
-                .append("  Pointer: ")
-                .append(e.getPointerToViolation())
-                .append("  Definition: ")
-                .append(e.getSchemaLocation());
-        result.add(buf.toString());
+        final String buf = e.getMessage() +
+                " Keyword: " + e.getKeyword() +
+                "  Pointer: " + e.getPointerToViolation() +
+                "  Definition: " + e.getSchemaLocation();
+        result.add(buf);
         final var causes = e.getCausingExceptions();
         if (causes!=null) causes.forEach(this::handle);
     }
@@ -78,7 +105,7 @@ class ValidationResult {
     private final String thisFile;
 
     ValidationResult(final String file) { thisFile = file; }
-    void fail() { ok = false; }
+    ValidationResult fail() { ok = false; return this; }
     boolean isOk() { return ok; }
 
     ValidationResult(final String file, final ValidationResult copy) {
@@ -87,9 +114,10 @@ class ValidationResult {
         messages.putAll(copy.messages);
     }
 
-    void add(final String err) {
+    ValidationResult add(final String err) {
         messages.putIfAbsent(thisFile, new LinkedList<>());
         messages.get(thisFile).add(err);
+        return this;
     }
 
     @Override
