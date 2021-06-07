@@ -8,14 +8,12 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -33,7 +31,8 @@ class Validator {
 
         final var validator = new Validator();
         final var optFiles = context.value(Context.FILES);
-        if (optFiles.isEmpty()) return new ValidationResult(inputfile).fail().add("No " + Context.FILES + "= specified");
+        if (optFiles.isEmpty())
+            return new ValidationResult(inputfile).fail().add("No " + Context.FILES + "= specified");
         final var files = Arrays.stream(optFiles.get().split(", *")).toList();
         if (files.isEmpty()) return new ValidationResult(inputfile).fail().add("No " + Context.FILES + "= specified");
 
