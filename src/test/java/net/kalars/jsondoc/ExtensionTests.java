@@ -286,7 +286,7 @@ class ExtensionTests {
                     .endObject()
                 .endProperties()
                 .toString();
-        final var context = ctx("SCHEMA").add(Context.ADD_NO_EXTRA, "true");
+        final var context = ctx("SCHEMA").add(Context.STRICT, "true");
         final var res = new SchemaPrinter(new JsonDocParser(context).parseString(data)).toString();
         assertTrue(res.matches("(?s).*" + JsonDocNames.ADDITIONAL_PROPERTIES + ".: false.*"), res);
     }

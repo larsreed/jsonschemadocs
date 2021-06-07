@@ -67,6 +67,7 @@ public final class JsonDoc {
             case "VALIDATE" -> {
                 ValidationResult res = validate(inputfile, context);
                 System.out.println(res);
+                if (!res.isOk()) System.exit(65);
             }
             default -> help("Unknown type " + outType, 1);
         }
@@ -124,6 +125,7 @@ public final class JsonDoc {
         System.out.println("    " + Context.EMBED_ROWS + "=n defines embedding in HTML tables");
         System.out.println("    " + Context.SAMPLE_COLUMNS + "=col1,... defines columns to use for sample output");
         System.out.println("    " + Context.FILES + "=file1,... required with VALIDATE to name files to validate");
+        System.out.println("    " + Context.STRICT + "=true with VALIDATE to have strict validation");
         System.out.println("""
                 Output is written to stdout and should be redirected.""");
         System.exit(err);

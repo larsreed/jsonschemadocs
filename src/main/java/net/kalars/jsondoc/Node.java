@@ -176,7 +176,7 @@ class Node {
             // Convert "required" to attributes
             if (nodeType.equals(NodeType.Array) && JsonDocNames.REQUIRED.equals(name)) return convertRequired();
         }
-        if (context.isSchemaMode() && context.contains(Context.ADD_NO_EXTRA)
+        if (context.isSchemaMode() && context.contains(Context.STRICT)
                 && this.nodeType.equals(NodeType.Object) && JsonDocNames.PROPERTIES.equals(name) ) {
             @SuppressWarnings("unused")
             final var add = new Node(JsonDocNames.ADDITIONAL_PROPERTIES, NodeType.Value, DataType.BooleanType,

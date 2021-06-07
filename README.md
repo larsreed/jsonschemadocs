@@ -38,7 +38,7 @@ Written by Lars Reed, spring 2021. I'd be happy for an attribution if you use th
         },
 ```
 
-* Introduce conditionals
+* *Introduce conditionals*
 
     You can introduce conditions. Give your condition a name, e.g. `variant` 
     and a set of possible values, e.g. `complete` and `concise`. 
@@ -138,12 +138,38 @@ Currently, four types of documentation are supported.
 
    ![example](docs/sample-graph.png)
 
+## Performing validation
+
+You can also use this tool to perform validation of JSON data files against a schema (this is done through an embedded
+com.github.everit-org.json-schema).
+
+To validate, you 
+
+1. supply the schema file as the main input file as usual
+
+2. list all the data files you want to validate, comma separated (make sure to use quotes if there are any spaces in
+   the names) as the parameter **files=**, e.g. `files=/data/foo,/tmp/bar`
+   
+3. optionally add the parameter `strict=true`, which will (currently, behaviour could be added)
+   append a new `"additionalProperties": false`-node to all `properties`-nodes,
+   indicating that no attributes except those mentioned in the schema are allowed. 
+
+Under the hood, validation is performed against a temporary schema created by running the given
+schema through the SCHEMA generator, adding the STRICT behaviour if requested.
+
+Any errors are printed to standard output, the exit is 0 if everything is OK, otherwise >0.
+
+```
+java -jar jsondoc.jar VALIDATE /path/to/myExtendedSchema.json files="/path/to/myData.json" strict=true > myReport.txt
+[[ $? = 0 ]] || error ....
+```
+
 ## Command line help
 Run `java -jar jsondoc.jar HELP` to get online help.
 
 ```text
 JSON SCHEMA DOCUMENTATION TOOL -- Lars Reed, 2021
-Usage: java -jar jsondoc.jar TYPE INPUTFILE [DEFINITIONS] > resultfile
+Usage: java -jar jsondoc.jar TYPE SCHEMAFILE [DEFINITIONS] > resultfile
 
 TYPE:
     SCHEMA:   output a clean schema file, without additional attributes
@@ -151,14 +177,17 @@ TYPE:
     MARKDOWN: output Markdown-formatted documentation
     GRAPH:    output a script to create a graph using graphviz/dot
     WIKI:     output in Confluence wiki XHTML format
-    SAMPLE:   output sample data (experimental)
-INPUTFILE: name of extended JSON Schema file
+    SAMPLE:   output sample data -- Note: Experimental!
+    VALIDATE: perform validation of datafiles against a schema -- Note: Experimental!
+SCHEMAFILE: name of extended JSON Schema file
 DEFINTIONS: follows the pattern name=value, and comes after the inputfile
     variant=foo could define a context for "xif-variant": "foo"
     excludeColumns=col1,col2,... to exclude named columns
     skipTables=table1,table2,... to exclude tables with given IDs
     embedUpToRows=n defines embedding in HTML tables
     sampleColumns=col1,... defines columns to use for sample output
+    files=file1,... required with VALIDATE to name files to validate
+    strict=true with VALIDATE to have strict validation
 Output is written to stdout and should be redirected.
 ```
 

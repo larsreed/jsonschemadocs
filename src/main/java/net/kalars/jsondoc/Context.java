@@ -6,10 +6,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /** The runtime context settings (variable defs etc). */
-@SuppressWarnings("StaticMethodOnlyUsedInOneClass")
+@SuppressWarnings({"StaticMethodOnlyUsedInOneClass", "SameParameterValue"})
 class Context {
 
-    static final String ADD_NO_EXTRA = "addNoExtra";
     static final String EMBED_ROWS = "embedUpToRows";
     static final String EXCLUDE_COLUMNS = "excludeColumns";
     static final String FILES = "files";
@@ -17,6 +16,7 @@ class Context {
     static final String SAMPLE_COLUMNS = "sampleColumns";
     static final String SCHEMA_MODE = "SCHEMA";
     static final String SKIP_TABLES = "skipTables";
+    static final String STRICT = "strict";
     static final String VARIANT = "variant";
 
     private final Map<String, String> map = new LinkedHashMap<>();
