@@ -8,9 +8,9 @@ Written by Lars Reed, spring 2021. I'd be happy for an attribution if you use th
 
 ## Create a pure JSON Schema
 
-Start off by creating your actual schema, as per https://json-schema.org/
+Start off by creating your actual schema, as per https://json-schema.org/.
 
-For precise vocabulary, see https://tools.ietf.org/html/draft-bhutton-json-schema-validation-00
+For precise vocabulary, see https://tools.ietf.org/html/draft-bhutton-json-schema-validation-00.
 
 ## Additional information
 
@@ -20,8 +20,7 @@ For precise vocabulary, see https://tools.ietf.org/html/draft-bhutton-json-schem
   Such values will appear in the documentation, but will be stripped from the recreated schema output (see below).
 * You may also append other properties that appear neither in the documentation nor in the schema
   by starting the property names with **"ignore-"**.
-* JSON is not fond of repeated attributes, does not allow a string property to span multiple input lines,
-  and the tool currently handles arrays rather badly...
+* JSON is not fond of repeated attributes, and does not allow a string property to span multiple input lines.
   To include multi-line strings, use `\n` to denote where you want line breaks, but don't actually add any line breaks.
   We should perhaps fix that, some day...
 * To embed *links* in documentation, use either `linkTo(url)` or `linkTo(url, text)`
