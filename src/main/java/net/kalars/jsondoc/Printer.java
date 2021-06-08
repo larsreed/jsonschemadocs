@@ -75,8 +75,6 @@ class HtmlPrinter extends Printer {
           tr:hover { background-color: #ddd; }
           th { padding-top: 12px; padding-bottom: 12px; text-align: left; background-color: #12404F; color: white; }
         </style>
-        </head>
-        <body>
         """;
 
 
