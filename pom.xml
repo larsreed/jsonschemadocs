@@ -47,7 +47,15 @@
 			<artifactId>org.everit.json.schema</artifactId>
 			<version>1.12.2</version>
 			<scope>system</scope>
-			<systemPath>${project.basedir}/libs</systemPath>
+			<systemPath>${project.basedir}/libs/org.everit.json.schema-1.12.2.jar</systemPath>
+		</dependency>
+
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20201115</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/libs/json-20201115.jar</systemPath>
 		</dependency>
 	</dependencies>
 
