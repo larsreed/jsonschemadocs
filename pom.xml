@@ -41,6 +41,14 @@
 			<artifactId>commons-text</artifactId>
 			<version>1.9</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.github.everit-org.json-schema</groupId>
+			<artifactId>org.everit.json.schema</artifactId>
+			<version>1.12.2</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/libs</systemPath>
+		</dependency>
 	</dependencies>
 
 	<build>
