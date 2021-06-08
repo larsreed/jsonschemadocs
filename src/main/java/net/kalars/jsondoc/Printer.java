@@ -245,7 +245,7 @@ class WikiPrinter extends HtmlPrinter {
     @Override
     protected String createInternalLink(final Node node) {
         return "<ac:link ac:anchor=\"" + node.extId() + "\">" +
-                "<ac:plain-text-link-body><![CDATA[" + node.name + "&gt;]]></ac:plain-text-link-body>" +
+                "<ac:plain-text-link-body><![CDATA[" + node.name + ">]]></ac:plain-text-link-body>" +
                 "</ac:link>";
     }
 }
