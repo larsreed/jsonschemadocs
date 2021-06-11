@@ -408,7 +408,7 @@ digraph G {
     }
 
     private void makeNode(final Node node) {
-        buffer.append("        ").append(q(node.name)).append(" [\n")
+        buffer.append("        ").append(q(node.qName())).append(" [\n")
               .append("                ").append("label = \"{").append(node.displayName()).append("\\n|}\"\n")
               .append("        ").append("]\n\n");
     }
@@ -422,7 +422,7 @@ digraph G {
 
     private void createEdge(final Node node) {
         buffer.append("        ")
-              .append(q(node.parent().name)).append(" -> ").append(q(node.name))
+              .append(q(node.parent().qName())).append(" -> ").append(q(node.qName()))
               .append(" [ label = \"").append(node.cardinality()).append("\" ]")
               .append("\n\n");
     }
