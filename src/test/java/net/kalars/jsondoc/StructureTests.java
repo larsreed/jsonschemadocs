@@ -484,4 +484,23 @@ class StructureTests {
         assertEquals("r_d_", node.extId());
     }
 
+
+    @Test
+    void description_convertsId() {
+        final var data = new JsonBuilder()
+                .properties()
+                    .object("foo")
+                        .v(JsonDocNames.ID, "bar")
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
+                .flatMap(n -> n.getChild(JsonDocNames.DESCRIPTION))
+                .map(n -> n.values)
+                .map(NodeValues::toString)
+                .get();
+        assertTrue(vals.contains("id="), "format");
+        assertTrue(vals.contains("bar"), vals);
+        assertFalse(vals.contains(JsonDocNames.ID), vals);
+    }
 }

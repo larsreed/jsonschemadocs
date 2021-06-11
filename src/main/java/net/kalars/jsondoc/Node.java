@@ -316,17 +316,19 @@ class Node {
         return false;
     }
 
-    private void addToType(final List<Object> other) {
-        var node = getChild(JsonDocNames.TYPE);
-        if (node.isEmpty())  {
+    private void addToColumn(final String type, final List<Object> other) {
+        var node = getChild(type);
+        if (node.isEmpty()) {
             node = Optional.of(
-                    new Node(JsonDocNames.TYPE, NodeType.Value, DataType.StringType, null, this, context));
-            if (parent !=null) parent.add(node.get());
+                    new Node(type, NodeType.Value, DataType.StringType, null, this, context));
+            if (parent != null) parent.add(node.get());
         }
         node.get().values.addAll(other);
     }
 
+    private void addToDescription(final String s) { addToColumn(JsonDocNames.DESCRIPTION, List.of(s)); }
     private void addToType(final String s) { if (s!=null && !s.isEmpty()) addToType(List.of(s)); }
+    private void addToType(final List<Object> other) { addToColumn(JsonDocNames.TYPE, other); }
 
     private void convertFormat() {
         final var other = extract(JsonDocNames.FORMAT);
@@ -455,7 +457,7 @@ class Node {
 
     private void idToDesc() {
         final var idf = NodeValues.listToString(extract(JsonDocNames.ID), "", ", ", "");
-        if (!idf.isEmpty()) addToType(idf);
+        if (!idf.isEmpty()) addToDescription("id=" + idf);
     }
 }
 
