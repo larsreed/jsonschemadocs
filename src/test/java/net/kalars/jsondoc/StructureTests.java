@@ -484,7 +484,6 @@ class StructureTests {
         assertEquals("r_d_", node.extId());
     }
 
-
     @Test
     void description_convertsId() {
         final var data = new JsonBuilder()
@@ -502,5 +501,62 @@ class StructureTests {
         assertTrue(vals.contains("id="), "format");
         assertTrue(vals.contains("bar"), vals);
         assertFalse(vals.contains(JsonDocNames.ID), vals);
+    }
+
+    @Test
+    void specialNames_notConfused() {
+        final var data = new JsonBuilder()
+                .object("foo")
+                    .v("type", "object")
+                    .properties()
+                        .object("type")
+                            .v("type", "string")
+                            .v("minLength", 1)
+                        .endObject()
+                        .object("required")
+                            .v("type", "string")
+                            .v("minLength", 1)
+                        .endObject()
+                    .endProperties()
+                    .object("description")
+                        .v("type", "string")
+                        .v("minLength", 1)
+                    .endObject()
+                    .object("field")
+                        .v("type", "string")
+                        .v("minLength", 1)
+                    .endObject()
+                    .required("type", "field")
+                .endObject()
+                .toString();
+        final var data2 = new JsonBuilder()
+                .object("foo")
+                    .v("type", "object")
+                    .properties()
+                        .object("type2")
+                            .v("type", "string")
+                            .v("minLength", 1)
+                        .endObject()
+                        .object("required2")
+                            .v("type", "string")
+                            .v("minLength", 1)
+                        .endObject()
+                        .object("description2")
+                            .v("type", "string")
+                            .v("minLength", 1)
+                        .endObject()
+                        .object("field2")
+                            .v("type", "string")
+                            .v("minLength", 1)
+                        .endObject()
+                    .endProperties()
+                    .required("type2", "field2")
+                .endObject()
+                .toString();
+        final var res = new DebugPrinter(new JsonDocParser(ctx("HTML")).parseString(data)).toString()
+                .replaceAll("2", "");
+        final var res2 = new DebugPrinter(new JsonDocParser(ctx("HTML")).parseString(data2)).toString()
+                .replaceAll("2", "");
+        assertEquals(res2, res);
     }
 }

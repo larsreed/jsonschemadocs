@@ -220,6 +220,7 @@ class Node {
     }
 
     private void defineColumns() {
+        if (nodeType.equals(NodeType.Object)) return;
         if (name.startsWith(JsonDocNames.XDOC_PREFIX)) representation = NodeRepresentation.Column;
         else if (JsonDocNames.ALWAYS_COLUMNS.contains(name)) representation = NodeRepresentation.Column;
         else if (JsonDocNames.PROP_KEYWORDS.contains(name)) representation = NodeRepresentation.Column;
@@ -275,7 +276,7 @@ class Node {
     private Node convertRequired() {
         final var names = children.stream().map(n -> n.values.first()).toList();
         new LinkedList<>(parent.children).forEach(n -> {
-            if (names.contains(n.name)) {
+            if (names.contains(n.name) && !n.isColumn()) {
                 n.required = true;
                 n.addToType(JsonDocNames.REQUIRED);
             }

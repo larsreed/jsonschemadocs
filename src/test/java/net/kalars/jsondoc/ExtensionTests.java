@@ -256,8 +256,8 @@ class ExtensionTests {
     @Test
     void sample_canUseExamples() {
         final var data = new JsonBuilder()
+                .v("title", "X")
                 .properties()
-                    .v("title", "X")
                     .object("foo")
                         .v("type", "number")
                         .v("x-smp", 8048.6)
@@ -270,7 +270,8 @@ class ExtensionTests {
                 .endProperties()
                 .toString();
         final var context = ctx("SAMPLE").add(Context.SAMPLE_COLUMNS, "x-smp");
-        final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var rootNode = new JsonDocParser(context).parseString(data);
+        final var res = new SamplePrinter(rootNode, context).toString();
         assertFalse(res.matches("(?s).*x-smp.*"), res);
         assertTrue(res.matches("(?s).*foo.: 8048.6.*"), res);
         assertTrue(res.matches("(?s).*bar.:.*747.*"), res);
