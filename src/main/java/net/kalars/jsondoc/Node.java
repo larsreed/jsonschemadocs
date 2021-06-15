@@ -322,7 +322,6 @@ class Node {
         if (node.isEmpty()) {
             node = Optional.of(
                     new Node(type, NodeType.Value, DataType.StringType, null, this, context));
-            if (parent != null) parent.add(node.get());
         }
         node.get().values.addAll(other);
     }

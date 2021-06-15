@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OutputTest {
     private static final String fileName =
-            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample2.json";
+            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample3-schema.json";
     private static final String schemaEx =
         "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample3-schema.json";
     private static final String fileEx =
@@ -84,7 +84,7 @@ class OutputTest {
     void validationOutput() {
         final var validator = new Validator();
         final var ok = validator.validateFile(schemaEx, fileEx);
-        assertTrue(ok.isOk());
+        assertTrue(ok.isOk(), ok.toString());
     }
 
     @Test
