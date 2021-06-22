@@ -131,10 +131,13 @@ for use in e.g. external validators, like this:
 
 `java -jar jsondoc.jar SCHEMA /path/to/input/myExtendedSchema.json > myBasicSchema.json`
 
-Definitions (e.g. conditionals),
-can be given after the input file name with `name=value`, e.g.
+If the definition `strict=true` is provided together with SCHEMA, an `additionalProperties: false`-clause
+is added to all `properties` in the schema. Strict indicates that no other properties than those explicitly mentioned
+in the schema are allowed (JSON Schema is normally lax about this).
 
-`java -jar jsondoc.jar SCHEMA myExtendedSchema.json variant=plain > myPlainSchema.json`
+Definitions (e.g. conditionals), can be given after the input file name with `name=value`, e.g.
+
+`java -jar jsondoc.jar SCHEMA myExtendedSchema.json strict=true variant=plain > myPlainSchema.json`
 
 
 ## Performing validation

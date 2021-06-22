@@ -82,9 +82,9 @@ public final class JsonDoc {
             GRAPH:    output a script to create a graph using graphviz/dot
             WIKI:     output in Confluence wiki XHTML format
             SAMPLE:   output sample data -- Note: Experimental!
-            VALIDATE: perform validation of datafiles against a schema -- Note: Experimental!
+            VALIDATE: perform validation of datafiles against a schema
         SCHEMAFILE: name of extended JSON Schema file
-        DEFINTIONS: follows the pattern name=value, and comes after the inputfile""");
+        DEFINITIONS: follows the pattern name=value, and comes after the inputfile""");
         System.out.println("    " + Context.VARIANT + "=foo could define a context for \""
                 + JsonDocNames.XIF_PREFIX + Context.VARIANT + "\": \"foo\"");
         System.out.println("    " + Context.EXCLUDE_COLUMNS + "=col1,col2,... to exclude named columns");
@@ -92,7 +92,7 @@ public final class JsonDoc {
         System.out.println("    " + Context.EMBED_ROWS + "=n defines embedding in HTML tables");
         System.out.println("    " + Context.SAMPLE_COLUMNS + "=col1,... defines columns to use for sample output");
         System.out.println("    " + Context.FILES + "=file1,... required with VALIDATE to name files to validate");
-        System.out.println("    " + Context.STRICT + "=true with VALIDATE to have strict validation");
+        System.out.println("    " + Context.STRICT + "=true with SCHEMA/VALIDATE to have strict schema/validation");
         System.out.println("""
                 Output is written to stdout and should be redirected.""");
         System.exit(err);

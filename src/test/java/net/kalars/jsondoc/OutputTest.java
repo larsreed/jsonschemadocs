@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OutputTest {
     private static final String fileName =
-            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample3-schema.json";
+            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample6.json";
     private static final String schemaEx =
         "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample3-schema.json";
     private static final String fileEx =
@@ -66,7 +66,7 @@ class OutputTest {
 
     @Test
     void schemaOutput() {
-        final var context = ctx("SCHEMA");
+        final var context = ctx("SCHEMA").add(Context.STRICT, Boolean.TRUE+"");
         final var root = new JsonDocParser(context).parseFile(fileName);
         final var printer = new SchemaPrinter(root);
         System.out.println(printer);

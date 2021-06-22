@@ -2,7 +2,10 @@ package net.kalars.jsondoc;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 
