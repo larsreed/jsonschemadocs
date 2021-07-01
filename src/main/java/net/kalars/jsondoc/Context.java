@@ -12,6 +12,8 @@ class Context {
     static final String EMBED_ROWS = "embedUpToRows";
     static final String EXCLUDE_COLUMNS = "excludeColumns";
     static final String FILES = "files";
+    static final String LANG = "lang";
+    static final String LANG_EN = "en";
     static final String MODE = "mode";
     static final String SAMPLE_COLUMNS = "sampleColumns";
     static final String SCHEMA_MODE = "SCHEMA";
@@ -21,10 +23,13 @@ class Context {
 
     private final Map<String, String> map = new LinkedHashMap<>();
 
-    Context(final String mode) { this.map.put(MODE, mode); }
+    Context(final String mode) {
+        map.put(MODE, mode);
+        map.put(LANG, LANG_EN);
+    }
 
     Context add(final String key, final String value) {
-        this.map.put(key, value);
+        map.put(key, value);
         return this;
     }
 
@@ -36,15 +41,15 @@ class Context {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    boolean isSchemaMode() {return SCHEMA_MODE.equalsIgnoreCase(this.map.get(MODE)); }
-    Optional<String> value(final String key) { return Optional.ofNullable(this.map.get(key)); }
+    boolean isSchemaMode() {return SCHEMA_MODE.equalsIgnoreCase(map.get(MODE)); }
+    Optional<String> value(final String key) { return Optional.ofNullable(map.get(key)); }
     boolean contains(final String key) { return map.containsKey(key); }
     @Override public String toString() { return "Context{"  + map + '}'; }
 
     /** Does the given key exist in the context, and does it contain the given value toMatch?
      *  The value is read as comma-separated, and case-insensitive. */
     Optional<Boolean> anyMatch(final String key, final String toMatch) {
-        final var hit = this.map.get(key);
+        final var hit = map.get(key);
         if (hit==null || hit.isEmpty()) return Optional.empty();
         final var candidates = toMatch.split(", *");
         final var keys = hit.split(", *");
@@ -55,7 +60,7 @@ class Context {
     }
 
     boolean isExcluded(final String column) {
-        final var excluded = this.map.get(EXCLUDE_COLUMNS);
+        final var excluded = map.get(EXCLUDE_COLUMNS);
         if (excluded==null) return false; // no columns excluded
         return Arrays.stream(excluded.split(", *"))
                 .anyMatch(excl -> excl.equalsIgnoreCase(column) ||

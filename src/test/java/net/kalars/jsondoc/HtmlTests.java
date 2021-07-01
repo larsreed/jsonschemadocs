@@ -20,13 +20,13 @@ class HtmlTests {
     private String runHtml(final String data) {
         final var context = ctx("HTML");
         final var root = new JsonDocParser(context).parseString(data);
-        return new HtmlPrinter(root).toString();
+        return new HtmlPrinter(root, context).toString();
     }
 
     private String runXhtml(final String data) {
         final var context = ctx("XHTML");
         final var root = new JsonDocParser(context).parseString(data);
-        return new WikiPrinter(root).toString();
+        return new WikiPrinter(root, context).toString();
     }
 
     @Test
@@ -60,12 +60,28 @@ class HtmlTests {
         final var data = new JsonBuilder()
                 .properties()
                     .object("foo")
-                        .v("x-bar", "linkTo(http://github.com,  target)")
+                       .v("x-bar", "linkTo(http://github.com,  target)")
                     .endObject()
                 .endProperties()
                 .toString();
         final var res = runHtml(data);
         assertTrue(res.matches("(?s).*<a href=.http://github.com.>target</a>.*"), res);
+    }
+
+    @Test
+    void html_langAttr() {
+        final var data = new JsonBuilder()
+                .properties()
+                    .object("foo")
+                        .v("x-bar", "linkTo(http://github.com,  target)")
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var res = runHtml(data);
+        assertTrue(res.matches("(?s).*lang=." + Context.LANG_EN + ".*"), res);
+        final var context2 = ctx("HTML").add(Context.LANG, "no");
+        final var res2 =  new HtmlPrinter(new JsonDocParser(context2).parseString(data), context2).toString();
+        assertTrue(res2.matches("(?s).*lang=.no.*"), res);
     }
 
     @Test

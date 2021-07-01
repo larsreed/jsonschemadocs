@@ -95,8 +95,12 @@ class Node {
                 "", " > ", "");
     }
 
-    /** Title for tables etc. */
+    /** Title for tables etc. Quotes are removed due to usage in HTML, graphs etc. */
     String displayName() {
+        return displayNameRaw().replaceAll("'", "").replaceAll("\"", "");
+    }
+
+    private String displayNameRaw() {
         if (!name.isEmpty())  return name;
         final var titleNode = getChild(JsonDocNames.TITLE);
         final var vals = titleNode.map(n -> n.values).orElse(new NodeValues());

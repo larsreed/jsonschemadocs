@@ -28,7 +28,7 @@ class OutputTest {
     void htmlOutput() {
         final var context = ctx("HTML");
         final var root = new JsonDocParser(context).parseFile(fileName);
-        final var printer = new HtmlPrinter(root);
+        final var printer = new HtmlPrinter(root, context);
         System.out.println(printer);
     }
 
@@ -36,7 +36,7 @@ class OutputTest {
     void wikiHtmlOutput() {
         final var context = ctx("HTML");
         final var root = new JsonDocParser(context).parseFile(fileName);
-        final var printer = new WikiPrinter(root);
+        final var printer = new WikiPrinter(root, context);
         System.out.println(printer);
     }
 

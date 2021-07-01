@@ -32,12 +32,12 @@ public final class JsonDoc {
         switch (outType.toUpperCase()) {
             case "HTML" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
-                final var printer = new HtmlPrinter(root);
+                final var printer = new HtmlPrinter(root, context);
                 System.out.println(printer);
             }
             case "WIKI" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
-                final var printer = new WikiPrinter(root);
+                final var printer = new WikiPrinter(root, context);
                 System.out.println(printer);
             }
             case "MARKDOWN" -> {
@@ -93,6 +93,8 @@ public final class JsonDoc {
         System.out.println("    " + Context.SAMPLE_COLUMNS + "=col1,... defines columns to use for sample output");
         System.out.println("    " + Context.FILES + "=file1,... required with VALIDATE to name files to validate");
         System.out.println("    " + Context.STRICT + "=true with SCHEMA/VALIDATE to have strict schema/validation");
+        System.out.println("    " + Context.LANG + "=xx sets the HTML5 lang attribute (default " + Context.LANG_EN
+                + ")");
         System.out.println("""
                 Output is written to stdout and should be redirected.""");
         System.exit(err);

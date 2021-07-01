@@ -79,9 +79,13 @@ class HtmlPrinter extends Printer {
           th { padding-top: 12px; padding-bottom: 12px; text-align: left; background-color: #12404F; color: white; }
         </style>
         """;
+    private final Context context;
 
 
-    HtmlPrinter(final Node rootNode) { super(rootNode); }
+    HtmlPrinter(final Node rootNode, final Context context) {
+        super(rootNode);
+        this.context = context;
+    }
 
     @Override
     protected String q(final String s) {
@@ -99,17 +103,19 @@ class HtmlPrinter extends Printer {
     }
 
     protected void head() {
-        buffer.append("""
-                <!doctype html>
-                <html>
-                  <head>
-                    <meta charset=utf-8>
-                    """)
-                .append(STYLE)
-                .append("""
-                          </head>
-                          <body>
-                        """);
+        buffer.append("<!doctype html>\n")
+              .append("<html lang='")
+              .append(context.value(Context.LANG).orElse(""))
+              .append("'>\n")
+              .append("<head title='")
+              .append(rootNode.displayName())
+              .append("'>\n")
+              .append("<meta charset=utf-8>\n")
+              .append(STYLE)
+              .append("""
+                      </head>
+                      <body>
+                      """);
     }
 
     protected void tail() {
@@ -230,7 +236,7 @@ class HtmlPrinter extends Printer {
 
 /** Output XHTML documentation adapted for Confluence wiki storage format. */
 class WikiPrinter extends HtmlPrinter {
-    WikiPrinter(final Node rootNode) { super(rootNode); }
+    WikiPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
 
     @Override protected void head() {}
     @Override protected void tail() {}
