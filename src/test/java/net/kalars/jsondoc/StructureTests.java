@@ -450,7 +450,7 @@ class StructureTests {
         assertTrue(vals.contains("==42"), "const");
         assertTrue(vals.contains(JsonDocNames.MULTIPLE_OF + " 13"), "multiple");
         assertTrue(vals.contains(JsonDocNames.DEFAULT + "=q1"), "default");
-        assertTrue(vals.contains(JsonDocNames.ADDITIONAL_PROPERTIES_DISP), vals);
+        assertTrue(vals.contains(JsonDocNames.ADDITIONAL_DISP), vals);
         assertTrue(vals.contains(JsonDocNames.PROPERTY_NAMES_DISP), vals);
     }
 

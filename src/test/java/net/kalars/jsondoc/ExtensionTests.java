@@ -278,7 +278,7 @@ class ExtensionTests {
     }
 
     @Test
-    void addnoextra_introducesExtraProperty() {
+    void strict_introducesExtraProperty() {
         final var data = new JsonBuilder()
                 .properties()
                     .v("title", "X")
@@ -290,5 +290,25 @@ class ExtensionTests {
         final var context = ctx("SCHEMA").add(Context.STRICT, "true");
         final var res = new SchemaPrinter(new JsonDocParser(context).parseString(data)).toString();
         assertTrue(res.matches("(?s).*" + JsonDocNames.ADDITIONAL_PROPERTIES + ".: false.*"), res);
+    }
+
+    @Test
+    void strict_introducesExtraItems() {
+        final var data = new JsonBuilder()
+                .properties()
+                    .v("title", "X")
+                    .object("foo")
+                        .v("type", "array")
+                        .object("items")
+                            .v("type", "string")
+                        .endObject()
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var context = ctx("SCHEMA").add(Context.STRICT, "true");
+        final var res = new SchemaPrinter(new JsonDocParser(context).parseString(data)).toString();
+        System.err.println(data);
+        System.err.println(res);
+        assertTrue(res.matches("(?s).*" + JsonDocNames.ADDITIONAL_ITEMS + ".: false.*"), res);
     }
 }

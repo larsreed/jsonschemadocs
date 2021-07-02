@@ -80,8 +80,10 @@ Note that these are the `id`-tags, look in the generated code if you are uncerta
 The definition `embedUpToRows=n` (where 'n' is a number) may be appended,
 denoting that tables of up to N rows should be embedded in its parent.
 
+Use `lang=xy` to change default setting of lang=en on the root element.
+
 A sample with such definitions:
-`java -jar jsondoc.jar HTML myExtendedSchema.json embedUpToRows=1 excludedColumns=sample,note > myLittleSchema.html`
+`java -jar jsondoc.jar HTML myExtendedSchema.json embedUpToRows=1 excludedColumns=sample,note lang=no > myLittleSchema.html`
 
 
 ## Wiki
@@ -132,7 +134,8 @@ for use in e.g. external validators, like this:
 `java -jar jsondoc.jar SCHEMA /path/to/input/myExtendedSchema.json > myBasicSchema.json`
 
 If the definition `strict=true` is provided together with SCHEMA, an `additionalProperties: false`-clause
-is added to all `properties` in the schema. Strict indicates that no other properties than those explicitly mentioned
+is added to all `properties` in the schema, likewise, `additionalItems: false` is added to besides any "items" within an array.
+Strict indicates that no other properties than those explicitly mentioned
 in the schema are allowed (JSON Schema is normally lax about this).
 
 Definitions (e.g. conditionals), can be given after the input file name with `name=value`, e.g.

@@ -178,12 +178,7 @@ class Node {
             // Convert "required" to attributes
             if (nodeType.equals(NodeType.Array) && JsonDocNames.REQUIRED.equals(name)) return convertRequired();
         }
-        if (context.isSchemaMode() && context.contains(Context.STRICT)
-                && this.nodeType.equals(NodeType.Object) && JsonDocNames.PROPERTIES.equals(name) ) {
-            @SuppressWarnings("unused")
-            final var add = new Node(JsonDocNames.ADDITIONAL_PROPERTIES, NodeType.Value, DataType.BooleanType,
-                    Boolean.FALSE, parent, context); // Automatically inserted
-        }
+        addStrict();
         if ( nodeType.equals(NodeType.Value))  handleXif();
         defineColumns();
         if (context.isExcluded(name)) visible = false;
@@ -197,6 +192,26 @@ class Node {
             }
         }
         return this;
+    }
+
+    private void addStrict() {
+        if (!context.isSchemaMode()) return;
+        if (!context.contains(Context.STRICT)) return;
+        if (nodeType.equals(NodeType.Object) && JsonDocNames.PROPERTIES.equals(name) ) {
+            @SuppressWarnings("unused")
+            final var add = new Node(JsonDocNames.ADDITIONAL_PROPERTIES, NodeType.Value, DataType.BooleanType,
+                    Boolean.FALSE, parent, context); // Automatically inserted
+        }
+        // Looking for "items" with a sibling "type:array"
+        if (!JsonDocNames.ITEMS.equals(name)) return;
+        if (parent==null) return;
+        final var match = parent.children.stream().anyMatch(n ->
+                n.name.equals(JsonDocNames.TYPE) && JsonDocNames.ARRAY.equals(n.values.first().toString()));
+        if (match) {
+            @SuppressWarnings("unused")
+            final var add = new Node(JsonDocNames.ADDITIONAL_ITEMS, NodeType.Value, DataType.BooleanType,
+                    Boolean.FALSE, parent, context); // Automatically inserted
+        }
     }
 
     private void finalizeTable() {
@@ -344,7 +359,7 @@ class Node {
         if (addProp.isEmpty()) return;
         if (addProp.get(0).toString().equalsIgnoreCase(Boolean.TRUE.toString())) return;
         if (addProp.get(0).toString().equalsIgnoreCase(Boolean.FALSE.toString()))
-            addToType(JsonDocNames.ADDITIONAL_PROPERTIES_DISP);
+            addToType(JsonDocNames.ADDITIONAL_DISP);
         else addToType(JsonDocNames.ADDITIONAL_PROPERTIES + " " + addProp);
     }
 

@@ -19,7 +19,9 @@ interface JsonDocNames {
 
     // JSON Schema names
     String ADDITIONAL_PROPERTIES = "additionalProperties";
-    String ADDITIONAL_PROPERTIES_DISP = "NO extra fields!"; // display as
+    String ADDITIONAL_ITEMS = "additionalItems";
+    String ADDITIONAL_DISP = "NO extra fields!"; // display as
+    String ARRAY = "array";
     String CONTENT_ENCODING = "contentEncoding";
     String CONTENT_MEDIA_TYPE = "contentMediaType";
     String CONTENT_SCHEMA = "contentSchema";
