@@ -37,7 +37,6 @@ class Node {
         else { // A node we might need to keep root node properties
             topRow = new Node("", NodeType.Object, this, context);
             topRow.representation = NodeRepresentation.HiddenRow;
-            if (!context.isSchemaMode()) children.add(topRow); // leave schema untouched
         }
         setDefaultRepresentation();
     }

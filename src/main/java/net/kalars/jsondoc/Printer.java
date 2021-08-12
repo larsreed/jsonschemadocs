@@ -107,10 +107,10 @@ class HtmlPrinter extends Printer {
               .append("<html lang='")
               .append(context.value(Context.LANG).orElse(""))
               .append("'>\n")
-              .append("<head title='")
+              .append("  <head title='")
               .append(rootNode.displayName())
               .append("'>\n")
-              .append("<meta charset=utf-8>\n")
+              .append("  <meta charset=utf-8>\n")
               .append(STYLE)
               .append("""
                       </head>
