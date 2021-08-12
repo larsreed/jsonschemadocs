@@ -452,7 +452,7 @@ class Node {
         if (!JsonDocNames.ENUM.equals(name) || !NodeType.Array.equals(nodeType)) return;
         final var vx = children.stream().map(n -> n.values).flatMap(v -> v.all().stream()).toList();
         visible = false;
-        final var cvt = NodeValues.listToString(vx, "{", ", ", "}");
+        final var cvt = NodeValues.listToString(vx, "{ ", ", ", " }");
         if (!cvt.isEmpty()) parent.addToType(cvt);
     }
 
