@@ -510,6 +510,7 @@ class SchemaPrinter extends Printer {
 /** EXPERIMENTAL - creates a sample JSON file based on given columns and/or generated values. */
 class SamplePrinter extends SchemaPrinter {
 
+    /** Explicitly specified (on command line) possible sample column names. */
     final List<String> sampleCols = new LinkedList<>();
     private static final Random random = new Random();
 
@@ -557,16 +558,31 @@ class SamplePrinter extends SchemaPrinter {
         final var possible = new LinkedList<>();
         final var type = node.getChild(JsonDocNames.TYPE).map(n-> n.values.first().toString()).orElse("string");
 
+        // Use explicitly given column names if possible
         for (final var c : sampleCols) {
             final var child = node.getChild(c);
             child.ifPresent(value -> possible.addAll(value.values.all()));
         }
+        // Otherwise, use examples attribute
         if (possible.isEmpty()) {
             final var ex = node.getChild(JsonDocNames.EXAMPLES);
             if (ex.isPresent()) for (final var child : ex.get().children) {
                 possible.addAll(child.values.all());
             }
         }
+        // Otherwise, if this is a const, the sample is given...
+        if (possible.isEmpty()) {
+            final var fix = node.getChild(JsonDocNames.CONST);
+            if (fix.isPresent())  possible.addAll(fix.get().values.all());
+        }
+        // Or if this is an enum, pick a value
+        if (possible.isEmpty()) {
+            final var enums = node.getChild(JsonDocNames.ENUM);
+            if (enums.isPresent()) for (final var child : enums.get().children) {
+                possible.addAll(child.values.all());
+            }
+        }
+        // If all else fails, generate a type dependent default
         possible.add(defaultSample(node, type));
         possible.remove(null); // if any have snuck in
 

@@ -31,10 +31,22 @@ public class JsonBuilder {
         return v;
     }
 
-    public JsonBuilder array(final String key, final String... strings ) {
+    public JsonBuilder array(final String key) {
         addRaw(key, "[", 1);
+        return this;
+    }
+
+    public JsonBuilder array(final String key, final String... strings) {
+        array(key);
         for (final var s : strings) indent().append('"').append(s).append('"').append(",\n");
         if (strings.length>0) buffer.setLength(buffer.length()-2);
+        return this;
+    }
+
+    public JsonBuilder array(final String key, final int... ints) {
+        array(key);
+        for (final var i : ints) indent().append(i).append(",\n");
+        if (ints.length>0) buffer.setLength(buffer.length()-2);
         return this;
     }
 
