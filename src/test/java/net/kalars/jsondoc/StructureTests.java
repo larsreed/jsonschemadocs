@@ -1,6 +1,7 @@
 package net.kalars.jsondoc;
 
 import net.kalars.jsondoc.tools.JsonBuilder;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -558,5 +559,25 @@ class StructureTests {
         final var res2 = new DebugPrinter(new JsonDocParser(ctx("HTML")).parseString(data2)).toString()
                 .replaceAll("2", "");
         assertEquals(res2, res);
+    }
+
+    @Test @Ignore
+    void embedding_correctColumns() {
+        final var data = new JsonBuilder()
+                .properties()
+                    .v("x", "y")
+                    .object("fooList")
+                        .v("description", "foo")
+                        .v("type", "array")
+                        .array("x-sample", "oh!").endArray()
+                        .object("items")
+                            .v("type", "string")
+                        .endObject()
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var res = runHtml(data);
+        System.err.println(res);
+        // FIXME fail();
     }
 }
