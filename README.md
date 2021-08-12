@@ -124,7 +124,8 @@ Create sample data from one or more embedded sample columns:
 
 You can define one or more (comma-separated) sample columns using `sampleColumns=...` as shown above.
 Without any such column given or present, we will try the JSON Schema standard `examples` array if present,
-or, as a last resort ,try to generate a value.
+or, if the attribute is a const or enum, use one of those,
+or, as a last resort, try to generate a value based on the data type.
 
 ## Extracting schema for validation
 
