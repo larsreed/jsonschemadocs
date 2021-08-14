@@ -24,6 +24,11 @@ abstract class Printer {
         return key;
     }
 
+    protected boolean isLocalRef(final Node node) {
+        if (!JsonDocNames.REF.equals(node.name)) return false;
+        return node.values.toString().startsWith(JsonDocNames.REF_LOCAL_PFX);
+    }
+
     protected final String replaceNextLink(final String content) {
         final var matchUserLink = USER_LINK_REGEXP.matcher(content);
         if (matchUserLink.find()) {
@@ -171,32 +176,41 @@ class HtmlPrinter extends Printer {
     private void handleRowNode(final Node rowNode, final int level) {
         if (!rowNode.isVisible()) return; // Hidden or already processed
         doneIfNotTable(rowNode);
-        buffer.append("<tr>")
-                   .append("<td>")
-                   .append(q(rowNode.name))
-                   .append("</td>");
-        for (final var row : rowNode.parent().columns()) {
-            if (JsonDocNames.FIELD.equals(row)) continue; // handled above
+        final var isDefs = JsonDocNames.DEFS.equals(rowNode.name);
+        buffer.append("<tr>") .append("<td>")
+              .append(isDefs? "(" : "")
+              .append(q(rowNode.name))
+              .append(isDefs? ")" : "")
+              .append("</td>");
+        for (final var col : rowNode.parent().columns()) {
+            if (JsonDocNames.FIELD.equals(col)) continue; // handled above
             buffer.append("<td>");
-            final var cellNode = rowNode.getChild(row);
+            final var cellNode = rowNode.getChild(col);
             if (cellNode.isPresent()) {
                 createCell(cellNode.get());
                 doneIfNotTable(cellNode.get());
             }
-            if (JsonDocNames.DESCRIPTION.equals(row) && rowNode.values.isNonEmpty()) {
-                // If there are values directly on the row node, add it to description
-                lineBreakIfNeeded();
-                createCell(rowNode);
-            }
-            if (JsonDocNames.DESCRIPTION.equals(row) && rowNode.isTable()) {
-                // Possible embedding
-                lineBreakIfNeeded();
-                if (shouldEmbed(rowNode, level)) {
-                    handleTableNode(rowNode, level+1);
-                    rowNode.done();
+            if (JsonDocNames.DESCRIPTION.equals(col)) {
+                if (isLocalRef(rowNode)) {
+                    // If this is a local $ref, link to it
+                    lineBreakIfNeeded();
+                    buffer.append(createRefLink(rowNode));
                 }
-                else if (rowNode.rows().size()>0) {
-                    buffer.append(createInternalLink(rowNode));
+                else if (rowNode.values.isNonEmpty()) {
+                    // If there are values directly on the row node, add it to description
+                    lineBreakIfNeeded();
+                    createCell(rowNode);
+                }
+                if (rowNode.isTable()) {
+                    // Possible embedding
+                    lineBreakIfNeeded();
+                    if (shouldEmbed(rowNode, level)) {
+                        handleTableNode(rowNode, level + 1);
+                        rowNode.done();
+                    }
+                    else if (rowNode.rows().size() > 0) {
+                        buffer.append(createInternalLink(rowNode));
+                    }
                 }
             }
             buffer.append("</td>");
@@ -232,6 +246,12 @@ class HtmlPrinter extends Printer {
     protected String createInternalLink(final Node node) {
         return "<a href=\"#" + node.extId() + "\">" + node.name + "&gt;</a>";
     }
+
+    protected String createRefLink(final Node node) {
+        if (!isLocalRef(node)) return node.values.toString();
+        final var ref = node.values.toString().substring(JsonDocNames.REF_LOCAL_PFX.length());
+        return "<a href=\"#$defs__" + ref + "\">[" + node.values.toString() + "]</a>";
+    }
 }
 
 /** Output XHTML documentation adapted for Confluence wiki storage format. */
@@ -255,6 +275,15 @@ class WikiPrinter extends HtmlPrinter {
     protected String createInternalLink(final Node node) {
         return "<ac:link ac:anchor=\"" + node.extId() + "\">" +
                 "<ac:plain-text-link-body><![CDATA[" + node.name + ">]]></ac:plain-text-link-body>" +
+                "</ac:link>";
+    }
+
+    @Override
+    protected String createRefLink(final Node node) {
+        if (!isLocalRef(node)) return node.values.toString();
+        final var ref = node.values.toString().substring(JsonDocNames.REF_LOCAL_PFX.length());
+        return "<ac:link ac:anchor=\"$defs__" + ref + "\">" +
+                "<ac:plain-text-link-body><![CDATA[[" + node.values.toString() + "]>]]></ac:plain-text-link-body>" +
                 "</ac:link>";
     }
 }
@@ -313,8 +342,11 @@ class MarkdownPrinter extends Printer {
     private void handleRowNode(final Node rowNode, final int level) {
         if (!rowNode.isVisible()) return; // Hidden or already processed
         doneIfNotTable(rowNode);
+        final var isDefs = JsonDocNames.DEFS.equals(rowNode.name);
         buffer.append("| ")
+                .append(isDefs? "(" : "")
                 .append(q(rowNode.name))
+                .append(isDefs? ")" : "")
                 .append(" |");
         for (final var row : rowNode.parent().columns()) {
             if (JsonDocNames.FIELD.equals(row)) continue; // handled above
@@ -324,20 +356,28 @@ class MarkdownPrinter extends Printer {
                 createCell(cellNode.get());
                 doneIfNotTable(cellNode.get());
             }
-            if (JsonDocNames.DESCRIPTION.equals(row) && rowNode.values.isNonEmpty()) {
-                // If there are values directly on the row node, add it to description
-                lineBreakIfNeeded();
-                createCell(rowNode);
-            }
-            if (JsonDocNames.DESCRIPTION.equals(row) && rowNode.isTable()) {
-                // Possible embedding
-                lineBreakIfNeeded();
-                //noinspection ConstantConditions
-                if (shouldEmbed(rowNode, level)) {
-                    handleTableNode(rowNode, level+1);
-                    rowNode.done();
+            if (JsonDocNames.DESCRIPTION.equals(row)) {
+                // FIXME $ref here as well
+                if (isLocalRef(rowNode)) {
+                    // If this is a local $ref, link to it
+                    lineBreakIfNeeded();
+                    buffer.append(createRefLink(rowNode));
                 }
-                else if (rowNode.rows().size()>0) buffer.append(createInternalLink(rowNode));
+                else if (rowNode.values.isNonEmpty()) {
+                    // If there are values directly on the row node, add it to description
+                    lineBreakIfNeeded();
+                    createCell(rowNode);
+                }
+                if (rowNode.isTable()) {
+                    // Possible embedding
+                    lineBreakIfNeeded();
+                    //noinspection ConstantConditions
+                    if (shouldEmbed(rowNode, level)) {
+                        handleTableNode(rowNode, level + 1);
+                        rowNode.done();
+                    }
+                    else if (rowNode.rows().size() > 0) buffer.append(createInternalLink(rowNode));
+                }
             }
             buffer.append(" |");
         }
@@ -369,10 +409,16 @@ class MarkdownPrinter extends Printer {
     @Override
     protected String createUrlLink(final String url, final String optText) {
         if (optText==null || "".equals(optText)) return "[" + url + "]";
-        return "[" + optText + "](" + url + ")";
+        return "[" + optText + "](" + url + ") ";
     }
 
     private String createInternalLink(final Node node) { return "[" + node.name + ">](#" + node.extId() + ")"; }
+
+    protected String createRefLink(final Node node) {
+        if (!isLocalRef(node)) return node.values.toString();
+        final var ref = node.values.toString().substring(JsonDocNames.REF_LOCAL_PFX.length());
+        return "[&#91;" + node.values.toString() + "&#93;](#$defs__" + ref +")";
+    }
 }
 
 /** Output a graph description for Graphviz' dot generator. */
@@ -430,9 +476,17 @@ digraph G {
     }
 
     private void createEdge(final Node node) {
-        buffer.append("        ")
+        final var isDefs = JsonDocNames.DEFS.equals(node.name);
+        final var indent = "        ";
+        buffer.append(indent)
               .append(q(node.parent().qName())).append(" -> ").append(q(node.qName()))
-              .append(" [ label = \"").append(node.cardinality()).append("\" ]")
+              .append(" [ ");
+        if (isDefs) buffer.append('\n')
+                          .append(indent).append("  ").append("style = dashed").append('\n')
+                          .append(indent).append("  ");
+        buffer.append("label = \"").append(node.cardinality()).append("\"");
+        if (isDefs) buffer.append('\n').append(indent);
+        buffer.append(" ]")
               .append("\n\n");
     }
 }

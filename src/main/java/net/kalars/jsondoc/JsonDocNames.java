@@ -27,6 +27,7 @@ interface JsonDocNames {
     String CONTENT_SCHEMA = "contentSchema";
     String CONST = "const";
     String DEFAULT = "default";
+    String DEFS = "$defs";
     String DEPRECATED = "deprecated";
     String DESCRIPTION = "description";
     String ENUM = "enum";
@@ -49,6 +50,8 @@ interface JsonDocNames {
     String PROPERTY_NAMES = "propertyNames";
     String PROPERTY_NAMES_DISP = "name structure";
     String READ_ONLY = "readOnly";
+    String REF = "$ref";
+    String REF_LOCAL_PFX = "#/$defs/"; // Start of an internal $ref
     String REQUIRED = "required";
     String TITLE = "title";
     String TYPE = "type";

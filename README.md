@@ -204,9 +204,9 @@ Output is written to stdout and should be redirected.
 The parser does not yet promise to support all of JSON Schema, it has only been tested on the parts 
 I have been working with.
 
-                TODO:
-                - $defs & $ref (?)
-                - dependencies
+ TODO:
+ * more $defs & $ref (?)
+ * dependencies
 
 Support is currently *not* planned for
 
@@ -214,6 +214,15 @@ Support is currently *not* planned for
 * maxContains, minContains, contains
 * maxProperties, minProperties
 * dependentRequired
+
+### $defs and $ref
+
+There is _some_ rudimentary support for this construct.
+
+* If you have anything named `$defs`, its name will be placed in parentheses in tables, 
+* and incoming edges to a graph node named `$defs` will be dashed.
+* If you have a `$ref` to a path beginning with `#/$defs/`, the documentation will contain the ref in brackets 
+  with an attempted hyperlink
 
 ## Code style
 

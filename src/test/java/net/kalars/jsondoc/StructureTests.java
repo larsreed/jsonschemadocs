@@ -561,6 +561,27 @@ class StructureTests {
         assertEquals(res2, res);
     }
 
+    @Test
+    void defref_convertsText() {
+        final var data = new JsonBuilder()
+                .properties()
+                    .object("foo")
+                        .v(JsonDocNames.REF, "#/$defs/foobar")
+                    .endObject()
+                    .object("$defs")
+                        .object("foobar")
+                            .v("aKey", "aValue")
+                        .endObject()
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var ctx = ctx("HTML");
+        final var vals = new HtmlPrinter(new JsonDocParser(ctx).parseString(data), ctx).toString();
+        assertTrue(vals.contains("<td>($defs)</td>"), "$defs in parens");
+        assertTrue(vals.contains("<td>$ref</td>"), "still uses $ref");
+        assertTrue(vals.contains("href=\"#$defs__foobar\""), "contains hyperlink");
+    }
+
     @Test @Ignore
     void embedding_correctColumns() {
         final var data = new JsonBuilder()

@@ -118,7 +118,7 @@ class Node {
     /** Unique id for use as anchor etc (not for display). */
     String extId() {
         final var names = heritage().stream()
-                .map(n -> n.name.replaceAll("[^a-zA-Z0-9-]", "_"))
+                .map(n -> n.name.replaceAll("[^_$a-zA-Z0-9-]", "_"))
                 .toList();
         return NodeValues.listToString(names, "", "__", "")
                 .replaceAll("^_+", "")
