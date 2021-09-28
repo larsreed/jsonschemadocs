@@ -173,6 +173,32 @@ class StructureTests {
     }
 
     @Test
+    void cardinality_arrayMinOnly() {
+        final var data = new JsonBuilder()
+                .properties()
+                    .object("foo")
+                        .v("type", "array")
+                        .v(JsonDocNames.MIN_LENGTH, 0)
+                        .object("items")
+                            .v("type", "object")
+                            .properties()
+                                .object("id")
+                                    .v("type", "string")
+                                .endObject()
+                            .endProperties()
+                        .endObject()
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
+                .flatMap(n -> n.getChild("type"))
+                .map(n -> n.values)
+                .map(NodeValues::toString)
+                .get();
+        assertTrue(vals.contains("[0...]"));
+    }
+
+    @Test
     void cardinality_minMax() {
         final var data = new JsonBuilder()
                 .properties()
