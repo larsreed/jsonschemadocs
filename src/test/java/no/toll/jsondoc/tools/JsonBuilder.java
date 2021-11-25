@@ -1,4 +1,4 @@
-package net.kalars.jsondoc.tools;
+package no.toll.jsondoc.tools;
 
 import java.util.Arrays;
 

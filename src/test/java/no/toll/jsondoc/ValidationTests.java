@@ -1,6 +1,6 @@
-package net.kalars.jsondoc;
+package no.toll.jsondoc;
 
-import net.kalars.jsondoc.tools.JsonBuilder;
+import no.toll.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -15,12 +15,12 @@ class ValidationTests {
                 .v("type", "object")
                 .properties()
                     .object("foo")
-                        .v(JsonDocNames.TYPE, "string")
-                        .v(JsonDocNames.DESCRIPTION, "fox")
+                        .v(no.toll.jsondoc.JsonDocNames.TYPE, "string")
+                        .v(no.toll.jsondoc.JsonDocNames.DESCRIPTION, "fox")
                     .endObject()
                     .object("bar")
-                        .v(JsonDocNames.TYPE, "integer")
-                        .v(JsonDocNames.DESCRIPTION, "box")
+                        .v(no.toll.jsondoc.JsonDocNames.TYPE, "integer")
+                        .v(no.toll.jsondoc.JsonDocNames.DESCRIPTION, "box")
                     .endObject()
                 .endProperties()
                 .required("foo")

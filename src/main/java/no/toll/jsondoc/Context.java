@@ -1,4 +1,4 @@
-package net.kalars.jsondoc;
+package no.toll.jsondoc;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -64,7 +64,7 @@ class Context {
         if (excluded==null) return false; // no columns excluded
         return Arrays.stream(excluded.split(", *"))
                 .anyMatch(excl -> excl.equalsIgnoreCase(column) ||
-                                  excl.equalsIgnoreCase(JsonDocNames.XDOC_PREFIX +
+                                  excl.equalsIgnoreCase(no.toll.jsondoc.JsonDocNames.XDOC_PREFIX +
                                           column.replaceAll(" ", "_")));
     }
 }

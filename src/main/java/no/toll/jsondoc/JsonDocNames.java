@@ -1,4 +1,4 @@
-package net.kalars.jsondoc;
+package no.toll.jsondoc;
 
 // This file contains all fixed schema names
 

@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>net.kalars</groupId>
+	<groupId>no.toll</groupId>
 	<artifactId>json-doc</artifactId>
 	<version>0.1</version>
 	<name>json-doc</name>
@@ -78,7 +78,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>net.kalars.jsondoc.JsonDoc</mainClass>
+							<mainClass>no.toll.jsondoc.JsonDoc</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>

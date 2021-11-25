@@ -1,4 +1,4 @@
-package net.kalars.jsondoc;
+package no.toll.jsondoc;
 
 import org.junit.jupiter.api.Test;
 

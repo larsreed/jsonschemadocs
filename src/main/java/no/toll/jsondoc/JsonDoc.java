@@ -1,4 +1,4 @@
-package net.kalars.jsondoc;
+package no.toll.jsondoc;
 
 import java.util.regex.Pattern;
 
@@ -86,7 +86,7 @@ public final class JsonDoc {
         SCHEMAFILE: name of extended JSON Schema file
         DEFINITIONS: follows the pattern name=value, and comes after the inputfile""");
         System.out.println("    " + Context.VARIANT + "=foo could define a context for \""
-                + JsonDocNames.XIF_PREFIX + Context.VARIANT + "\": \"foo\"");
+                + no.toll.jsondoc.JsonDocNames.XIF_PREFIX + Context.VARIANT + "\": \"foo\"");
         System.out.println("    " + Context.EXCLUDE_COLUMNS + "=col1,col2,... to exclude named columns");
         System.out.println("    " + Context.SKIP_TABLES + "=table1,table2,... to exclude tables with given IDs");
         System.out.println("    " + Context.EMBED_ROWS + "=n defines embedding in HTML tables");

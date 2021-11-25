@@ -1,6 +1,6 @@
-package net.kalars.jsondoc;
+package no.toll.jsondoc;
 
-import net.kalars.jsondoc.tools.JsonBuilder;
+import no.toll.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
