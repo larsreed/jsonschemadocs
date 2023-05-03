@@ -2,7 +2,7 @@
 
 A prototype of a simple utility to be able to embed more comprehensive documentation within a JSON Schema.
 
-Written by Lars Reed, spring 2021. I'd be happy for an attribution if you use this code for anything ;)
+Written by Lars Reed, 2021-2023. I'd love an attribution if you use this code for anything ;)
 
 # Writing schemas
 
@@ -29,27 +29,27 @@ For precise vocabulary, see https://tools.ietf.org/html/draft-bhutton-json-schem
 * Sample:
 ```json
         "eventId" : {
-          "type": "string",
-          "description": "UUID v4 format",
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-          "x-My_additional_info": "is recorded here",
-          "ignore-this" : "is ignored"
+            "type": "string",
+            "description": "UUID v4 format",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "x-My_additional_info": "is recorded here",
+            "ignore-this" : "is ignored"
         },
 ```
 
 ## Introduce conditionals
 
-You can introduce conditions. Give your condition a name, e.g. `variant` 
-and a set of possible values, e.g. `complete` and `concise`. 
-Then you can add one of the following conditionals to exclude a given node -- **and** all its children -- thus: 
+You can introduce conditions. Give your condition a name, e.g. `variant`
+and a set of possible values, e.g. `complete` and `concise`.
+Then you can add one of the following conditionals to exclude a given node -- **and** all its children -- thus:
 
-1. `"xif-variant" : "foo"` (where "variant" is your chosen condition name), 
+1. `"xif-variant" : "foo"` (where "variant" is your chosen condition name),
    the node (with children) will be included if 'variant' is undefined or defined and equal to "foo".
-   
+
 2. `"xif-variant" : "foo, bar"` like the previous, but both "foo" and "bar" are acceptable values.
    Legal values are separated by a comma ("foo, bar, baz" etc).
 
-3. `"xifnot-variant" : "foo"`, the node will be included if 'variant' is undefined 
+3. `"xifnot-variant" : "foo"`, the node will be included if 'variant' is undefined
    or if it is given, but not as "foo".
 
 4. `"xifnot-variant" : "foo, bar, baz"`, like the previous, but a list of values are accepted here as well.
@@ -100,13 +100,13 @@ Like the HTML version (same parameters etc), but producing Markdown.
 
 ## Diagram
 
- Requires Graphviz -- https://graphviz.org/download/
+Requires Graphviz -- https://graphviz.org/download/
 
- First: create the dot input:
+First: create the dot input:
 `java -jar jsondoc.jar GRAPH /path/to/input/myExtendedSchema.json > mySchema.txt`
 
- Then: create a diagram from the dot script:
- `& 'C:\Program Files\Graphviz\bin\dot' -T png -o mySchema.png mySchema.txt`
+Then: create a diagram from the dot script:
+`& 'C:\Program Files\Graphviz\bin\dot' -T png -o mySchema.png mySchema.txt`
 
 Sample output:
 
@@ -114,7 +114,7 @@ Sample output:
 
 # Validation and samples
 
-## **Creating sample data**
+## Creating sample data
 
 Note: this feature is experimental, you will probably have to correct the output somewhat...
 
@@ -123,7 +123,8 @@ Create sample data from one or more embedded sample columns:
 `java -jar jsondoc.jar SAMPLE /path/to/input/myExtendedSchema.json sampleColumns=x-sample> mySample.json`
 
 You can define one or more (comma-separated) sample columns using `sampleColumns=...` as shown above.
-Without any such column given or present, we will try the JSON Schema standard `examples` array if present,
+Without any such column given or present, we will try the JSON Schema standard `examples` array if present
+(if the array is present, but empty, no sample will be generated for that column),
 or, if the attribute is a const or enum, use one of those,
 or, as a last resort, try to generate a value based on the data type.
 
@@ -149,16 +150,16 @@ Definitions (e.g. conditionals), can be given after the input file name with `na
 You can also use this tool to perform validation of JSON data files against a schema directly (this is done through an embedded
 com.github.everit-org.json-schema).
 
-To validate, you 
+To validate, you
 
 1. supply the schema file as the main input file as usual
 
 2. list all the data files you want to validate, comma separated (make sure to use quotes if there are any spaces in
    the names) as the parameter **files=**, e.g. `files=/data/foo,/tmp/bar`
-   
+
 3. optionally add the parameter `strict=true`, which will (currently, behaviour could be added)
    append a new `"additionalProperties": false`-node to all `properties`-nodes,
-   indicating that no attributes except those mentioned in the schema are allowed. 
+   indicating that no attributes except those mentioned in the schema are allowed.
 
 Under the hood, validation is performed against a temporary schema created by running the given
 schema through the SCHEMA generator, adding the STRICT behaviour if requested.
@@ -201,12 +202,12 @@ Output is written to stdout and should be redirected.
 
 ## JSON Schema
 
-The parser does not yet promise to support all of JSON Schema, it has only been tested on the parts 
+The parser does not yet promise to support all of JSON Schema, it has only been tested on the parts
 I have been working with.
 
- TODO:
- * more $defs & $ref (?)
- * dependencies
+TODO:
+* more $defs & $ref (?)
+* dependencies
 
 Support is currently *not* planned for
 
@@ -219,35 +220,35 @@ Support is currently *not* planned for
 
 There is _some_ rudimentary support for this construct.
 
-* If you have anything named `$defs`, its name will be placed in parentheses in tables, 
+* If you have anything named `$defs`, its name will be placed in parentheses in tables,
 * and incoming edges to a graph node named `$defs` will be dashed.
-* If you have a `$ref` to a path beginning with `#/$defs/`, the documentation will contain the ref in brackets 
+* If you have a `$ref` to a path beginning with `#/$defs/`, the documentation will contain the ref in brackets
   with an attempted hyperlink
 
 ## Code style
 
 Having coded mostly in Scala (and a little Kotlin) lately, some classical Java conventions seem cumbersome...
-So the code here is not entirely idiomatic - but it's mine. 
+So the code here is not entirely idiomatic - but it's mine.
 
 * *What? Multiple classes in the same file, and hardly anything public?*
 
-    This is a small utility, and all classes fit nicely within a package. What should `public` do for me?
+  This is a small utility, and all classes fit nicely within a package. What should `public` do for me?
 
 * *Single line methods*
 
-    Why does a single, short Java statement have to occupy 3+ lines in a file?
-    It shouldn't...
+  Why does a single, short Java statement have to occupy 3+ lines in a file?
+  It shouldn't...
 
 * *Direct variable access*
 
-    As I said, the code base is small. I'll introduce accessors when I need to,
-    but having to write getters and setters really bugs me. So I generally don't,
-    except sometimes for accessing non-finals outside the same file,
-    but then I'll skip the get prefix.
+  As I said, the code base is small. I'll introduce accessors when I need to,
+  but having to write getters and setters really bugs me. So I generally don't,
+  except sometimes for accessing non-finals outside the same file,
+  but then I'll skip the get prefix.
 
 * *Etc*
 
-    Live with it :-) 
+  Live with it :-)
 
 ## Libraries
 `com.fasterxml.jackson` provides the basic parsing - see https://github.com/FasterXML/jackson
