@@ -418,8 +418,8 @@ class Node {
     String cardinality() {
         final var minNode = getChild(JsonDocNames.MIN_ITEMS);
         final var maxNode = getChild(JsonDocNames.MAX_ITEMS);
-        var min = minNode.isEmpty()? "" : NodeValues.listToString(minNode.get().values.all(), "", " ", "");
-        var max = maxNode.isEmpty()? "" : NodeValues.listToString(maxNode.get().values.all(), "", " ", "");
+        var min = minNode.map(node -> NodeValues.listToString(node.values.all(), "", " ", "")).orElse("");
+        var max = maxNode.map(node -> NodeValues.listToString(node.values.all(), "", " ", "")).orElse("");
 
         if (min.isEmpty() && max.isEmpty()) { // Unspecified
             return required? JsonDocNames.REQUIRED : "";

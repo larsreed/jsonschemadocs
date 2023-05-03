@@ -392,7 +392,7 @@ class MarkdownPrinter extends Printer {
     }
 
     // Embedding currently not supported
-    @SuppressWarnings({"PointlessBooleanExpression", "ConstantConditions", "unused"})
+    @SuppressWarnings({"PointlessBooleanExpression", "unused"})
     private boolean shouldEmbed(final Node node, final int level) { return false && node.isEmbeddable(); }
 
     private void createCell(final Node node) {
@@ -629,7 +629,7 @@ class SamplePrinter extends SchemaPrinter {
         // Otherwise, if this is a const, the sample is given...
         if (possible.isEmpty()) {
             final var fix = node.getChild(JsonDocNames.CONST);
-            if (fix.isPresent())  possible.addAll(fix.get().values.all());
+            fix.ifPresent(value -> possible.addAll(value.values.all()));
         }
         // Or if this is an enum, pick a value
         if (possible.isEmpty()) {
@@ -684,9 +684,7 @@ class SamplePrinter extends SchemaPrinter {
         final var max = new BigDecimal(optMax.orElse("" + Long.MAX_VALUE));
         final var range = max.subtract(min).add(new BigDecimal(1)).abs().doubleValue();
         final var rnd = min.doubleValue() + random.nextDouble(range);
-        final var res = new BigDecimal(rnd);
-        res.setScale(Math.max(min.scale(), max.scale()), RoundingMode.HALF_UP);
-        return res;
+        return new BigDecimal(rnd).setScale(Math.max(min.scale(), max.scale()), RoundingMode.HALF_UP);
     }
 }
 
