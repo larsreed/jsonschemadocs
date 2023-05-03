@@ -75,6 +75,7 @@ class DebugPrinter extends Printer {
 }
 
 /** Output documentation in a standalone HTML file. */
+@SuppressWarnings("UnnecessaryToStringCall")
 class HtmlPrinter extends Printer {
     private static final String STYLE = """
         <style>
@@ -257,6 +258,7 @@ class HtmlPrinter extends Printer {
 }
 
 /** Output XHTML documentation adapted for Confluence wiki storage format. */
+@SuppressWarnings("UnnecessaryToStringCall")
 class WikiPrinter extends HtmlPrinter {
     WikiPrinter(final Node rootNode, final Context context) { super(rootNode, context); }
 
@@ -291,6 +293,7 @@ class WikiPrinter extends HtmlPrinter {
 }
 
 /** Create documentation in Markdown format. */
+@SuppressWarnings("UnnecessaryToStringCall")
 class MarkdownPrinter extends Printer {
 
     private static final String BR = "<br />";
@@ -564,6 +567,7 @@ class SchemaPrinter extends Printer {
 }
 
 /** EXPERIMENTAL - creates a sample JSON file based on given columns and/or generated values. */
+@SuppressWarnings("UnnecessaryToStringCall")
 class SamplePrinter extends SchemaPrinter {
 
     /** Explicitly specified (on command line) possible sample column names. */
@@ -585,28 +589,35 @@ class SamplePrinter extends SchemaPrinter {
     }
 
     protected void handleNode(final Node node) {
-        final var visible = node.isVisible() && include(node)
-                && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr))
-                && !node.name.isEmpty()
-                && (node.isRow() || node.isTable())
-                && !node.children.isEmpty()
-                && node.nodeType.equals(NodeType.Object);
+        try {
+            final var visible = node.isVisible() && include(node)
+                    && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr))
+                    && !node.name.isEmpty()
+                    && (node.isRow() || node.isTable())
+                    && !node.children.isEmpty()
+                    && node.nodeType.equals(NodeType.Object);
 
-        if (visible)  {
-            if (node.parent()!=null) appendName(node);
-            if (node.representation.equals(NodeRepresentation.Table)) buffer.append("{\n");
-            else buffer.append(prioritizedSample(node)).append(",\n");
-        }
-
-        for (final var child : node.children) handleNode(child);
-
-        if (visible) {
-
-            if (node.representation.equals(NodeRepresentation.Table)) {
-                skipLastComma();
-                buffer.append('\n').append(makeIndent(node)).append("},\n");
+            if (visible)  {
+                if (node.parent()!=null) appendName(node);
+                if (node.representation.equals(NodeRepresentation.Table)) buffer.append("{\n");
+                else buffer.append(prioritizedSample(node)).append(",\n");
             }
-            if (node.parent()==null) skipLastComma();
+
+            for (final var child : node.children) handleNode(child);
+
+            if (visible) {
+
+                if (node.representation.equals(NodeRepresentation.Table)) {
+                    skipLastComma();
+                    buffer.append('\n').append(makeIndent(node)).append("},\n");
+                }
+                if (node.parent()==null) skipLastComma();
+            }
+        }
+        catch (final Throwable t) {
+            if (t instanceof final HandledException he)  throw he;
+            System.err.println(node.qName() + ": " + t.toString());
+            throw new HandledException(t);
         }
     }
 
