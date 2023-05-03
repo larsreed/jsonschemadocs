@@ -46,6 +46,12 @@ abstract class Printer {
     protected final void doneIfNotTable(final Node node) { if (!node.isTable())  node.done(); }
     protected String createUrlLink(final String url, final String linkText) { return url; }
     protected String q(final String s) { return s; }
+
+    protected void handleException(final Node node, final Throwable t) {
+        if (t instanceof final HandledException he)  throw he;
+        System.err.println(node.qName() + ": " + t.toString());
+        throw new HandledException(t);
+    }
 }
 
 /** Print out structure (for debugging). */
@@ -134,16 +140,19 @@ class HtmlPrinter extends Printer {
     }
 
     private void handleTableNode(final Node node, final int level) {
-        if (!node.isVisible()) return;
-        if (node.rows().size() > 0) {
-            if (level == 0) buffer.append(headingWithId(node)); // not embedded
-            buffer.append(tableHead(node));
-            for (final var row : node.rows()) handleRowNode(row, level);
-            buffer.append(tableEnd());
+        try {
+            if (!node.isVisible()) return;
+            if (node.rows().size() > 0) {
+                if (level == 0) buffer.append(headingWithId(node)); // not embedded
+                buffer.append(tableHead(node));
+                for (final var row : node.rows()) handleRowNode(row, level);
+                buffer.append(tableEnd());
+            }
+            for (final var sub : node.subTables())
+                if (level == 0) handleTableNode(sub, 0);
+                else node.parent().add(sub);
         }
-        for (final var sub : node.subTables())
-            if (level==0) handleTableNode(sub, 0);
-            else node.parent().add(sub);
+        catch (final Throwable t) { handleException(node, t); }
     }
 
     protected String headingWithId(final Node node) {
@@ -315,14 +324,17 @@ class MarkdownPrinter extends Printer {
     }
 
     private void handleTableNode(final Node node, final int level) {
-        if (!node.isVisible()) return;
-        if (node.rows().size() > 0) {
-            if (level == 0) buffer.append(headingWithId(node)); // not embedded
-            buffer.append(tableHead(node));
-            for (final var row : node.rows()) handleRowNode(row, level);
+        try {
+            if (!node.isVisible()) return;
+            if (node.rows().size() > 0) {
+                if (level == 0) buffer.append(headingWithId(node)); // not embedded
+                buffer.append(tableHead(node));
+                for (final var row : node.rows()) handleRowNode(row, level);
+            }
+            if (level > 0) return; // No embedding in embedding...
+            for (final var sub : node.subTables()) handleTableNode(sub, 0);
         }
-        if (level>0) return; // No embedding in embedding...
-        for (final var sub : node.subTables()) handleTableNode(sub, 0);
+        catch (final Throwable t) { handleException(node, t); }
     }
 
     private String headingWithId(final Node node) {
@@ -459,12 +471,15 @@ digraph G {
     }
 
     private void handleTableNode(final Node node) {
-        if (!node.isVisible()) return;
-        if (node.rows().size() > 0) {
-            makeNode(node);
-            for (final var row : node.rows()) handleRowNode(row);
+        try {
+            if (!node.isVisible()) return;
+            if (node.rows().size() > 0) {
+                makeNode(node);
+                for (final var row : node.rows()) handleRowNode(row);
+            }
+            for (final var sub : node.subTables()) handleTableNode(sub);
         }
-        for (final var sub : node.subTables()) handleTableNode(sub);
+        catch (final Throwable t) { handleException(node, t); }
     }
 
     private void makeNode(final Node node) {
@@ -516,46 +531,50 @@ class SchemaPrinter extends Printer {
     }
 
     protected void handleNode(final Node node) {
-        final var visible = node.isVisible() && include(node)
-                && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr));
-        final var vals = NodeValues.listToString(node.values.all(), "", "", "");
+        try {
+            final var visible = node.isVisible() && include(node)
+                    && HIDDEN.stream().noneMatch(nr -> node.representation.equals(nr));
+            final var vals = NodeValues.listToString(node.values.all(), "", "", "");
 
-        if (visible) switch (node.nodeType) {
-            case Object -> {
-                if (node.parent()!=null) appendName(node);
-                buffer.append("{\n");
-                if (!vals.isEmpty()) Logger.warn("Values directly on object", node.qName(), vals);
+            if (visible) switch (node.nodeType) {
+                case Object -> {
+                    if (node.parent() != null) appendName(node);
+                    buffer.append("{\n");
+                    if (!vals.isEmpty()) Logger.warn("Values directly on object", node.qName(), vals);
+                }
+                case Array -> {
+                    appendName(node).append("[\n");
+                    if (!vals.isEmpty()) Logger.warn("Values directly on array", node.qName(), vals);
+                }
+                case Value -> {
+                    if (node.parent().nodeType.equals(NodeType.Array)) buffer.append(makeIndent(node));
+                    else appendName(node);
+                    switch (node.dataType) {
+                        case NA -> Logger.error("Unknown data type for", node.qName());
+                        case NullValue -> buffer.append("null,\n");
+                        case StringType -> buffer.append('"').append(vals).append('"').append(",\n");
+                        case IntType, DoubleType, BooleanType -> buffer.append(vals).append(",\n");
+                    }
+                }
             }
-            case Array -> {
-                appendName(node).append("[\n");
-                if (!vals.isEmpty()) Logger.warn("Values directly on array", node.qName(), vals);
-            }
-            case Value -> {
-                if (node.parent().nodeType.equals(NodeType.Array)) buffer.append(makeIndent(node));
-                else appendName(node);
-                switch (node.dataType) {
-                    case NA -> Logger.error("Unknown data type for", node.qName());
-                    case NullValue -> buffer.append("null,\n");
-                    case StringType -> buffer.append('"').append(vals).append('"').append(",\n");
-                    case IntType, DoubleType, BooleanType -> buffer.append(vals).append(",\n");
+
+            for (final var child : node.children) handleNode(child);
+
+            if (visible) switch (node.nodeType) {
+                case Object -> {
+                    skipLastComma();
+                    buffer.append('\n').append(makeIndent(node)).append("},\n");
+                    if (node.parent() == null) skipLastComma();
+                }
+                case Array -> {
+                    skipLastComma();
+                    buffer.append('\n').append(makeIndent(node)).append("],\n");
+                }
+                case Value -> {
                 }
             }
         }
-
-        for (final var child : node.children) handleNode(child);
-
-        if (visible) switch (node.nodeType) {
-            case Object -> {
-                skipLastComma();
-                buffer.append('\n').append(makeIndent(node)).append("},\n");
-                if (node.parent()==null) skipLastComma();
-            }
-            case Array -> {
-                skipLastComma();
-                buffer.append('\n').append(makeIndent(node)).append("],\n");
-            }
-            case Value -> { }
-        }
+        catch (final Throwable t) { handleException(node, t); }
     }
 
     protected StringBuilder appendName(final Node node) {
@@ -619,11 +638,7 @@ class SamplePrinter extends SchemaPrinter {
                 if (node.parent()==null) skipLastComma();
             }
         }
-        catch (final Throwable t) {
-            if (t instanceof final HandledException he)  throw he;
-            System.err.println(node.qName() + ": " + t.toString());
-            throw new HandledException(t);
-        }
+        catch (final Throwable t) { handleException(node, t); }
     }
 
     private String prioritizedSample(final Node node) {
