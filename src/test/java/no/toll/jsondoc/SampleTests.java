@@ -146,6 +146,24 @@ class SampleTests {
     }
 
     @Test
+    void sample_generatesDecimalNumbers() {
+        final var data = new JsonBuilder()
+                .v("title", "X")
+                .properties()
+                    .object("foo")
+                        .v("type", "number")
+                        .v(JsonDocNames.MINIMUM, -1.3)
+                        .v(JsonDocNames.MAXIMUM, -1.25)
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var context = ctx("SAMPLE");
+        final var rootNode = new JsonDocParser(context).parseString(data);
+        final var res = new SamplePrinter(rootNode, context).toString();
+        assertTrue(res.matches("(?s).*foo.: -1[.][23][0-9].*"), res);
+    }
+
+    @Test
     void sample_emptyExamplesOmitsSample() {
         final var data = new JsonBuilder()
                 .v("title", "X")

@@ -698,7 +698,7 @@ class SamplePrinter extends SchemaPrinter {
         final var optMax = node.getChild(JsonDocNames.MAXIMUM).map(n -> n.values.first().toString());
         final var min = new BigDecimal(optMin.orElse("" + Long.MIN_VALUE));
         final var max = new BigDecimal(optMax.orElse("" + Long.MAX_VALUE));
-        final var range = max.subtract(min).add(new BigDecimal(1)).abs().doubleValue();
+        final var range = max.subtract(min).abs().doubleValue();
         final var rnd = min.doubleValue() + random.nextDouble(range);
         return new BigDecimal(rnd).setScale(Math.max(min.scale(), max.scale()), RoundingMode.HALF_UP);
     }
