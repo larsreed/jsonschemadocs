@@ -2,6 +2,8 @@ package no.toll.jsondoc;
 
 import org.apache.commons.text.StringEscapeUtils;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -660,7 +662,7 @@ class SamplePrinter extends SchemaPrinter {
                 return tst.substring(offs, midLen+offs);
             }
             case "integer" -> { return sampleInt(node); }
-            case "number" -> { return 0.0 + sampleInt(node); }
+            case "number" -> { return sampleNumber(node); }
             case "boolean" -> { return Boolean.TRUE; }
             case "null" -> { return "null"; }
         }
@@ -668,8 +670,6 @@ class SamplePrinter extends SchemaPrinter {
     }
 
     private static Integer sampleInt(final Node node) {
-        final var mult = node.getChild(JsonDocNames.MIN_LENGTH).map(n -> n.values.first().toString());
-        if (mult.isPresent()) return Integer.parseInt(mult.toString());
         final var optMin = node.getChild(JsonDocNames.MINIMUM).map(n -> n.values.first().toString());
         final var optMax = node.getChild(JsonDocNames.MAXIMUM).map(n -> n.values.first().toString());
         final var min = Integer.parseInt(optMin.orElse("0"));
@@ -677,9 +677,20 @@ class SamplePrinter extends SchemaPrinter {
         return min + random.nextInt((Math.abs(max-min+1)));
     }
 
+    private static BigDecimal sampleNumber(final Node node) {
+        final var optMin = node.getChild(JsonDocNames.MINIMUM).map(n -> n.values.first().toString());
+        final var optMax = node.getChild(JsonDocNames.MAXIMUM).map(n -> n.values.first().toString());
+        final var min = new BigDecimal(optMin.orElse("" + Long.MIN_VALUE));
+        final var max = new BigDecimal(optMax.orElse("" + Long.MAX_VALUE));
+        final var range = max.subtract(min).add(new BigDecimal(1)).abs().doubleValue();
+        final var rnd = min.doubleValue() + random.nextDouble(range);
+        final var res = new BigDecimal(rnd);
+        res.setScale(Math.max(min.scale(), max.scale()), RoundingMode.HALF_UP);
+        return res;
+    }
 }
 
-//   Copyright 2021, Lars Reed -- lars-at-kalars.net
+//   Copyright 2021-2023, Lars Reed -- lars-at-kalars.net
 //
 //           Licensed under the Apache License, Version 2.0 (the "License");
 //           you may not use this file except in compliance with the License.

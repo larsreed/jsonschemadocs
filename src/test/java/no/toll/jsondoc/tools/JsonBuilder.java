@@ -11,6 +11,7 @@ public class JsonBuilder {
     private StringBuilder indent() { return buffer.append(" ".repeat(currentLevel * 2)); }
     private void newLine() { buffer.append((buffer.toString().endsWith("{")? "\n" : ",\n")); }
     public JsonBuilder v(final String key, final String s) { return addRaw(key, '"' + s + '"'); }
+    public JsonBuilder vo(final String key, final String s) { return addRaw(key, s); }
     public JsonBuilder v(final String key, final long l) { return addRaw(key, "" + l); }
     public JsonBuilder v(final String key, final double d) { return addRaw(key, "" + d); }
     public JsonBuilder v(final String key, final boolean b) { return addRaw(key, "" + b); }
@@ -80,3 +81,17 @@ public class JsonBuilder {
         return buffer.toString();
     }
 }
+
+//   Copyright 2021-2023, Lars Reed -- lars-at-kalars.net
+//
+//           Licensed under the Apache License, Version 2.0 (the "License");
+//           you may not use this file except in compliance with the License.
+//           You may obtain a copy of the License at
+//
+//           http://www.apache.org/licenses/LICENSE-2.0
+//
+//           Unless required by applicable law or agreed to in writing, software
+//           distributed under the License is distributed on an "AS IS" BASIS,
+//           WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//           See the License for the specific language governing permissions and
+//           limitations under the License.

@@ -33,7 +33,7 @@ class SampleTests {
                 .toString();
         final var context = ctx("SAMPLE").add(Context.SAMPLE_COLUMNS, "x-smp");
         final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).toString();
-        assertTrue(res.matches("(?s).*foo.: [.0-9]+.*"), res);
+        assertTrue(res.matches("(?s).*foo.: [-.0-9]+.*"), res);
         assertTrue(res.matches("(?s).*bar.:.*"), res);
     }
 
@@ -126,4 +126,21 @@ class SampleTests {
         assertTrue(res.matches("(?s).*foo.: 42.*"), res);
         assertTrue(res.matches("(?s).*bar.:.*alfa.*"), res);
     }
-}
+
+    @Test
+    void sample_generatesBigNumbers() {
+        final var data = new JsonBuilder()
+                .v("title", "X")
+                    .properties()
+                        .object("foo")
+                            .v("type", "number")
+                            .vo(JsonDocNames.MINIMUM, "9999999999999990")
+                            .vo(JsonDocNames.MAXIMUM, "9999999999999999")
+                        .endObject()
+                    .endProperties()
+                .toString();
+        final var context = ctx("SAMPLE");
+        final var rootNode = new JsonDocParser(context).parseString(data);
+        final var res = new SamplePrinter(rootNode, context).toString();
+        assertTrue(res.matches("(?s).*foo.: 999999999999999[0-9].*"), res);
+    }}
