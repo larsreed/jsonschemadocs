@@ -131,16 +131,38 @@ class SampleTests {
     void sample_generatesBigNumbers() {
         final var data = new JsonBuilder()
                 .v("title", "X")
-                    .properties()
-                        .object("foo")
-                            .v("type", "number")
-                            .vo(JsonDocNames.MINIMUM, "9999999999999990")
-                            .vo(JsonDocNames.MAXIMUM, "9999999999999999")
-                        .endObject()
-                    .endProperties()
+                .properties()
+                    .object("foo")
+                        .v("type", "number")
+                        .vo(JsonDocNames.MINIMUM, "9999999999999990")
+                        .vo(JsonDocNames.MAXIMUM, "9999999999999999")
+                    .endObject()
+                .endProperties()
                 .toString();
         final var context = ctx("SAMPLE");
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).toString();
         assertTrue(res.matches("(?s).*foo.: 999999999999999[0-9].*"), res);
-    }}
+    }
+
+    @Test
+    void sample_emptyExamplesOmitsSample() {
+        final var data = new JsonBuilder()
+                .v("title", "X")
+                .properties()
+                    .object("foo")
+                        .v("type", "array")
+                        .vo("examples", "[]")
+                    .endObject()
+                    .object("bar")
+                        .v("type", "string")
+                        .array(JsonDocNames.ENUM, "alfa", "bravo", "charlie").endArray()
+                    .endObject()
+                .endProperties()
+                .toString();
+        final var context = ctx("SAMPLE");
+        final var rootNode = new JsonDocParser(context).parseString(data);
+        final var res = new SamplePrinter(rootNode, context).toString();
+        assertFalse(res.matches("(?s).*foo.*"), res);
+    }
+}

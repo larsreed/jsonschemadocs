@@ -590,12 +590,17 @@ class SamplePrinter extends SchemaPrinter {
 
     protected void handleNode(final Node node) {
         try {
+            // If there is an empty examples array, assume no sample is needed
+            final var ex = node.getChild(JsonDocNames.EXAMPLES);
+            final var emptyExample = ex.isPresent() && ex.get().children.isEmpty();
+
             final var visible = node.isVisible() && include(node)
                     && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr))
                     && !node.name.isEmpty()
                     && (node.isRow() || node.isTable())
                     && !node.children.isEmpty()
-                    && node.nodeType.equals(NodeType.Object);
+                    && node.nodeType.equals(NodeType.Object)
+                    && !emptyExample;
 
             if (visible)  {
                 if (node.parent()!=null) appendName(node);
@@ -603,10 +608,10 @@ class SamplePrinter extends SchemaPrinter {
                 else buffer.append(prioritizedSample(node)).append(",\n");
             }
 
-            for (final var child : node.children) handleNode(child);
+            if (!emptyExample)
+                for (final var child : node.children) handleNode(child);
 
             if (visible) {
-
                 if (node.representation.equals(NodeRepresentation.Table)) {
                     skipLastComma();
                     buffer.append('\n').append(makeIndent(node)).append("},\n");
