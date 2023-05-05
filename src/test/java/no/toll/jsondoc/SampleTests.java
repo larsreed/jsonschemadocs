@@ -183,4 +183,30 @@ class SampleTests {
         final var res = new SamplePrinter(rootNode, context).toString();
         assertFalse(res.matches("(?s).*foo.*"), res);
     }
+
+    @Test
+    void sample_emitsArrayType() {
+        final var data = new JsonBuilder()
+                .v("title", "X")
+                .properties()
+                    .object("foo")
+                        .v("type", "array")
+                        .object("items")
+                            .v("type", "object")
+                            .properties()
+                                .object("bar")
+                                    .v("type", "integer")
+                                    .vo("examples", "[ 4, 5, 6]")
+                                .endObject()
+                            .endProperties()
+                        .endObject()
+                    .endObject()
+                .endProperties()
+                .toString();
+
+        final var context = ctx("SAMPLE");
+        final var rootNode = new JsonDocParser(context).parseString(data);
+        final var res = new SamplePrinter(rootNode, context).toString();
+        assertTrue(res.matches("(?s).*foo.+\\[.*bar...[4-6].*].*"), res);
+    }
 }
