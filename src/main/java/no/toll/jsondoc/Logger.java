@@ -30,7 +30,8 @@ public final class Logger  {
     }
 }
 
-class HandledException extends RuntimeException { HandledException(Throwable t) { super(t); } }
+/** Wrapping of exceptions that have been reported */
+class HandledException extends RuntimeException { HandledException(final Throwable t) { super(t); } }
 
 //   Copyright 2021-2023, Lars Reed -- lars-at-kalars.net
 //
