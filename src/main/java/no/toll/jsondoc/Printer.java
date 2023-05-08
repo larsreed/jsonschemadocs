@@ -610,7 +610,8 @@ class SamplePrinter extends SchemaPrinter {
         try {
             // If there is an empty examples array, assume no sample is needed
             final var ex = node.getChild(JsonDocNames.EXAMPLES);
-            final var emptyExample = ex.isPresent() && ex.get().children.isEmpty();
+            final var emptyExample = ex.isPresent() && ex.get().children.isEmpty()
+                    && ! JsonDocNames.EXAMPLES.equals(ex.get().parent().name); // array members
             final var arrayItem = node.parent() != null
                     && node.parent().declaredAsArray()
                     && JsonDocNames.ITEMS.equals(node.name);
@@ -619,7 +620,8 @@ class SamplePrinter extends SchemaPrinter {
                     && !node.name.isEmpty()
                     && (node.isRow() || node.isTable())
                     && !node.children.isEmpty()
-                    && node.nodeType.equals(NodeType.Object)
+                    && ( node.nodeType.equals(NodeType.Object)
+                      || node.nodeType.equals(NodeType.Array) )
                     && !emptyExample
                     && !arrayItem;
 
