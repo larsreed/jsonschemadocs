@@ -1,6 +1,5 @@
 package no.toll.jsondoc;
 
-import no.toll.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -8,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SampleTests {
 
-    private Context ctx(final String mode) {
-        return new Context(mode)
+    private Context ctx() {
+        return new Context("SAMPLE")
                 .add("test", "true")
 //                .add("sampleColumns", "eksempel")
 //                .add(Context.SKIP_TABLES,"metadata,data")
@@ -20,18 +19,20 @@ class SampleTests {
 
     @Test
     void sample_willCreateIfNotPresent() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("title", "X")
-                    .object("foo")
-                        .v("type", "number")
-                    .endObject()
-                    .object("bar")
-                        .v("type", "string")
-                    .endObject()
-                .endProperties()
-                .toString();
-        final var context = ctx("SAMPLE").add(Context.SAMPLE_COLUMNS, "x-smp");
+        final var data = """
+{
+  "properties": {
+    "title": "X",
+    "foo": {
+      "type": "number"
+    },
+    "bar": {
+      "type": "string"
+    }
+  }
+}
+                """;
+        final var context = ctx().add(Context.SAMPLE_COLUMNS, "x-smp");
         final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).toString();
         assertTrue(res.matches("(?s).*foo.: [-.0-9]+.*"), res);
         assertTrue(res.matches("(?s).*bar.:.*"), res);
@@ -39,20 +40,21 @@ class SampleTests {
 
     @Test
     void sample_willUseNamedColumn() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("title", "X")
-                    .object("foo")
-                        .v("type", "number")
-                        .v("x-smp", 8048.6)
-                    .endObject()
-                    .object("bar")
-                        .v("type", "string")
-                        .v("x-smp", "smpl")
-                    .endObject()
-                .endProperties()
-                .toString();
-        final var context = ctx("SAMPLE").add(Context.SAMPLE_COLUMNS, "x-smp");
+        final var data = """
+{
+  "properties": {
+    "title": "X",
+    "foo": {
+      "type": "number",
+      "x-smp": 8048.6
+    },
+    "bar": {
+      "type": "string",
+      "x-smp": "smpl"
+    }
+  }
+}""";
+        final var context = ctx().add(Context.SAMPLE_COLUMNS, "x-smp");
         final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).testString();
         assertFalse(res.contains("x-smp"), res);
         assertTrue(res.contains("foo:8048.6"), res);
@@ -61,21 +63,28 @@ class SampleTests {
 
     @Test
     void sample_canUseExamples() {
-        final var data = new JsonBuilder()
-                .v("title", "X")
-                .properties()
-                    .object("foo")
-                        .v("type", "number")
-                        .v("x-smp", 8048.6)
-                        .array(JsonDocNames.EXAMPLES, "747", "757", "777").endArray()
-                    .endObject()
-                    .object("bar")
-                        .v("type", "string")
-                        .array(JsonDocNames.EXAMPLES, "747", "757", "777").endArray()
-                    .endObject()
-                .endProperties()
-                .toString();
-        final var context = ctx("SAMPLE").add(Context.SAMPLE_COLUMNS, "x-smp");
+        final var data = """
+{
+  "title": "X",
+  "properties": {
+    "foo": {
+      "type": "number",
+      "x-smp": 8048.6,
+      "examples": [        "747",
+        "757",
+        "777"
+      ]
+    },
+    "bar": {
+      "type": "string",
+      "examples": [        "747",
+        "757",
+        "777"
+      ]
+    }
+  }
+}""";
+        final var context = ctx().add(Context.SAMPLE_COLUMNS, "x-smp");
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
         assertFalse(res.contains("x-smp"), res);
@@ -85,20 +94,21 @@ class SampleTests {
 
     @Test
     void sample_canUseConstants() {
-        final var data = new JsonBuilder()
-                .v("title", "X")
-                .properties()
-                    .object("foo")
-                        .v("type", "number")
-                        .v(JsonDocNames.CONST, 42)
-                    .endObject()
-                    .object("bar")
-                        .v("type", "string")
-                        .v(JsonDocNames.CONST, "forty-two")
-                    .endObject()
-                .endProperties()
-                .toString();
-        final var context = ctx("SAMPLE");
+        final var data = """
+{
+  "title": "X",
+  "properties": {
+    "foo": {
+      "type": "number",
+      "const": 42
+    },
+    "bar": {
+      "type": "string",
+      "const": "forty-two"
+    }
+  }
+}""";
+        final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
         assertTrue(res.contains("foo:42"), res);
@@ -107,20 +117,27 @@ class SampleTests {
 
     @Test
     void sample_canUseEnum() {
-        final var data = new JsonBuilder()
-                .v("title", "X")
-                .properties()
-                    .object("foo")
-                        .v("type", "number")
-                        .array(JsonDocNames.ENUM, 42, 43, 44).endArray()
-                    .endObject()
-                    .object("bar")
-                        .v("type", "string")
-                        .array(JsonDocNames.ENUM, "alfa", "bravo", "charlie").endArray()
-                    .endObject()
-                .endProperties()
-                .toString();
-        final var context = ctx("SAMPLE");
+        final var data = """
+{
+  "title": "X",
+  "properties": {
+    "foo": {
+      "type": "number",
+      "enum": [        42,
+        43,
+        44
+      ]
+    },
+    "bar": {
+      "type": "string",
+      "enum": [        "alfa",
+        "bravo",
+        "charlie"
+      ]
+    }
+  }
+}""";
+        final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
         assertTrue(res.contains("foo:42"), res);
@@ -129,17 +146,18 @@ class SampleTests {
 
     @Test
     void sample_generatesBigNumbers() {
-        final var data = new JsonBuilder()
-                .v("title", "X")
-                .properties()
-                    .object("foo")
-                        .v("type", "number")
-                        .vo(JsonDocNames.MINIMUM, "9999999999999990")
-                        .vo(JsonDocNames.MAXIMUM, "9999999999999999")
-                    .endObject()
-                .endProperties()
-                .toString();
-        final var context = ctx("SAMPLE");
+        final var data = """
+{
+  "title": "X",
+  "properties": {
+    "foo": {
+      "type": "number",
+      "minimum": 9999999999999990,
+      "maximum": 9999999999999999
+    }
+  }
+}""";
+        final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).toString();
         assertTrue(res.matches("(?s).*foo.: 999999999999999[0-9].*"), res);
@@ -147,17 +165,18 @@ class SampleTests {
 
     @Test
     void sample_generatesDecimalNumbers() {
-        final var data = new JsonBuilder()
-                .v("title", "X")
-                .properties()
-                    .object("foo")
-                        .v("type", "number")
-                        .v(JsonDocNames.MINIMUM, -1.3)
-                        .v(JsonDocNames.MAXIMUM, -1.25)
-                    .endObject()
-                .endProperties()
-                .toString();
-        final var context = ctx("SAMPLE");
+        final var data = """
+{
+  "title": "X",
+  "properties": {
+    "foo": {
+      "type": "number",
+      "minimum": -1.3,
+      "maximum": -1.25
+    }
+  }
+}""";
+        final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).toString();
         assertTrue(res.matches("(?s).*foo.: -1[.][23][0-9].*"), res);
@@ -183,7 +202,7 @@ class SampleTests {
 }
 """;
 
-        final var context = ctx("SAMPLE");
+        final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
         assertTrue(res.contains("{codeList:[JAVA]}"), res);
@@ -194,26 +213,37 @@ class SampleTests {
         final var data = """
 {
   "properties": {
-     "triggerList": {
-        "minItems": 1,
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "trigger": {
-              "type": "string",
-              "examples": [
-                "BANG"
-              ]
+    "data": {
+      "type": "object",
+      "properties": {
+        "decision": {
+          "type": "string",
+          "examples": [
+            "1"
+          ]
+        },
+        "triggerList": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+            "type": "object",
+            "properties": {
+                "trigger": {
+                    "type": "string",
+                    "examples": [
+                      "BANG"
+                    ]
+                }
             }
           }
         }
-     }
-   }
+      }
+    }
+  }
 }
 """;
 
-        final var context = ctx("SAMPLE");
+        final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
         assertTrue(res.contains("triggerList:[{trigger:BANG}]"), res);
@@ -221,53 +251,27 @@ class SampleTests {
     @Test
     void sample_emitsArrayType() {
         final var data = """
-{
-  "title": "X",
-  "properties": {
-    "foo": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "bar": {
-            "type": "integer",
-            "examples": [ 4, 5, 6 ]
-          }
-        }
-      }
-    }
-  }
-}
-                """;
-        final var context = ctx("SAMPLE");
+                {
+                  "title": "X",
+                  "properties": {
+                    "foo": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "bar": {
+                            "type": "integer",
+                            "examples": [ 4, 5, 6 ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                                """;
+        final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
         assertTrue(res.contains("{foo:[{bar:4}]}"), res);
-    }
-
-    @Test
-    void sample_emitsArrayType() {
-        final var data = """
-{
-  "properties": {
-    "codeList": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "string",
-        "description": "code",
-        "examples": [
-          "JAVA"
-        ]
-      }
-    }
-  }
-}
-""";
-
-        final var context = ctx("SAMPLE");
-        final var rootNode = new JsonDocParser(context).parseString(data);
-        final var res = new SamplePrinter(rootNode, context).toString();
-        assertTrue(res.matches("(?s).*codeList:.*code.*JAVA.*"), res);
     }
 }

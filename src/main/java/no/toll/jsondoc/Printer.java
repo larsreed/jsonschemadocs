@@ -632,18 +632,21 @@ class SamplePrinter extends SchemaPrinter {
                     && !emptyExample;
 
             if (visible)  {
-                if (node.parent()!=null && !arrayItem) appendName(node);
+                if (arrayItem) buffer.append(makeIndent (node));
+                else if (node.parent()!=null) appendName(node);
+
                 if (node.representation.equals(NodeRepresentation.Table))
                     buffer.append(node.declaredAsArray()? '[' : '{');
+                else if (node.declaredAsArray()) buffer.append("[");
                 else buffer.append(prioritizedSample(node)).append(",");
-                buffer.append('\n');
+                buffer.append("\n");
             }
 
             if (!emptyExample)
                 for (final var child : node.children) handleNode(child);
 
             if (visible) {
-                if (node.representation.equals(NodeRepresentation.Table)) {
+                if (node.representation.equals(NodeRepresentation.Table) || node.declaredAsArray()) {
                     skipLastComma();
                     buffer.append('\n')
                             .append(makeIndent(node))
