@@ -208,6 +208,7 @@ I have been working with.
 TODO:
 * more $defs & $ref (?)
 * dependencies
+* upgrade JSON validation library
 
 Support is currently *not* planned for
 

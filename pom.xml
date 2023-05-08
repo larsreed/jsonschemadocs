@@ -45,6 +45,11 @@
 			<groupId>com.github.everit-org.json-schema</groupId>
 			<artifactId>org.everit.json.schema</artifactId>
 			<version>1.14.2</version>
+			<!--
+                        <groupId>com.github.erosb</groupId>
+                        <artifactId>json-sKema</artifactId>
+                        <version>0.6.0</version>
+            -->
 		</dependency>
 	</dependencies>
 
