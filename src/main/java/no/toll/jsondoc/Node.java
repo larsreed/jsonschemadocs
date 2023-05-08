@@ -477,6 +477,11 @@ class Node {
         final var idf = NodeValues.listToString(extract(JsonDocNames.ID), "", ", ", "");
         if (!idf.isEmpty()) addToDescription("id=" + idf);
     }
+
+    boolean declaredAsArray() {
+        final var typeNode = getChild(JsonDocNames.TYPE).map(node -> node.values.first()).map(Object::toString);
+        return typeNode.isPresent() && JsonDocNames.ARRAY.equals(typeNode.get());
+    }
 }
 
 enum NodeType {
@@ -525,7 +530,7 @@ class NodeValues {
     @Override public String toString() { return listToString(values, "", "\n", ""); }
 }
 
-//   Copyright 2021, Lars Reed -- lars-at-kalars.net
+//   Copyright 2021-2023, Lars Reed -- lars-at-kalars.net
 //
 //           Licensed under the Apache License, Version 2.0 (the "License");
 //           you may not use this file except in compliance with the License.

@@ -586,7 +586,6 @@ class SchemaPrinter extends Printer {
 }
 
 /** EXPERIMENTAL - creates a sample JSON file based on given columns and/or generated values. */
-@SuppressWarnings("UnnecessaryToStringCall")
 class SamplePrinter extends SchemaPrinter {
 
     /** Explicitly specified (on command line) possible sample column names. */
@@ -607,11 +606,22 @@ class SamplePrinter extends SchemaPrinter {
         return buffer.append("\n}").toString();
     }
 
+    /** Test output stripped of blanks and quotes. */
+    String testString() {
+        return toString()
+                .replaceAll("\\s+", "")
+                .replaceAll("\"", "")
+                .replaceAll("'", "");
+    }
+
     protected void handleNode(final Node node) {
         try {
             // If there is an empty examples array, assume no sample is needed
             final var ex = node.getChild(JsonDocNames.EXAMPLES);
             final var emptyExample = ex.isPresent() && ex.get().children.isEmpty();
+            final var arrayItem = node.parent() != null
+                    && node.parent().declaredAsArray()
+                    && JsonDocNames.ITEMS.equals(node.name);
 
             final var visible = node.isVisible() && include(node)
                     && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr))
@@ -619,12 +629,15 @@ class SamplePrinter extends SchemaPrinter {
                     && (node.isRow() || node.isTable())
                     && !node.children.isEmpty()
                     && node.nodeType.equals(NodeType.Object)
-                    && !emptyExample;
+                    && !emptyExample
+                    ;
 
             if (visible)  {
-                if (node.parent()!=null) appendName(node);
-                if (node.representation.equals(NodeRepresentation.Table)) buffer.append("{\n");
-                else buffer.append(prioritizedSample(node)).append(",\n");
+                if (node.parent()!=null && !arrayItem) appendName(node);
+                if (node.representation.equals(NodeRepresentation.Table))
+                    buffer.append(node.declaredAsArray()? '[' : '{');
+                else buffer.append(prioritizedSample(node)).append(",");
+                buffer.append('\n');
             }
 
             if (!emptyExample)
@@ -633,7 +646,10 @@ class SamplePrinter extends SchemaPrinter {
             if (visible) {
                 if (node.representation.equals(NodeRepresentation.Table)) {
                     skipLastComma();
-                    buffer.append('\n').append(makeIndent(node)).append("},\n");
+                    buffer.append('\n')
+                            .append(makeIndent(node))
+                            .append(node.declaredAsArray()? ']' : '}')
+                            .append(",\n");
                 }
                 if (node.parent()==null) skipLastComma();
             }
