@@ -53,10 +53,10 @@ class SampleTests {
                 .endProperties()
                 .toString();
         final var context = ctx("SAMPLE").add(Context.SAMPLE_COLUMNS, "x-smp");
-        final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).toString();
-        assertFalse(res.matches("(?s).*x-smp.*"), res);
-        assertTrue(res.matches("(?s).*foo.: 8048.6.*"), res);
-        assertTrue(res.matches("(?s).*bar.:.*smpl.*"), res);
+        final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).testString();
+        assertFalse(res.contains("x-smp"), res);
+        assertTrue(res.contains("foo:8048.6"), res);
+        assertTrue(res.contains("bar:smpl"), res);
     }
 
     @Test
@@ -77,10 +77,10 @@ class SampleTests {
                 .toString();
         final var context = ctx("SAMPLE").add(Context.SAMPLE_COLUMNS, "x-smp");
         final var rootNode = new JsonDocParser(context).parseString(data);
-        final var res = new SamplePrinter(rootNode, context).toString();
-        assertFalse(res.matches("(?s).*x-smp.*"), res);
-        assertTrue(res.matches("(?s).*foo.: 8048.6.*"), res);
-        assertTrue(res.matches("(?s).*bar.:.*747.*"), res);
+        final var res = new SamplePrinter(rootNode, context).testString();
+        assertFalse(res.contains("x-smp"), res);
+        assertTrue(res.contains("foo:8048.6"), res);
+        assertTrue(res.contains("bar:747"), res);
     }
 
     @Test
@@ -100,9 +100,9 @@ class SampleTests {
                 .toString();
         final var context = ctx("SAMPLE");
         final var rootNode = new JsonDocParser(context).parseString(data);
-        final var res = new SamplePrinter(rootNode, context).toString();
-        assertTrue(res.matches("(?s).*foo.: 42.*"), res);
-        assertTrue(res.matches("(?s).*bar.:.*forty-two.*"), res);
+        final var res = new SamplePrinter(rootNode, context).testString();
+        assertTrue(res.contains("foo:42"), res);
+        assertTrue(res.contains("bar:forty-two"), res);
     }
 
     @Test
@@ -122,9 +122,9 @@ class SampleTests {
                 .toString();
         final var context = ctx("SAMPLE");
         final var rootNode = new JsonDocParser(context).parseString(data);
-        final var res = new SamplePrinter(rootNode, context).toString();
-        assertTrue(res.matches("(?s).*foo.: 42.*"), res);
-        assertTrue(res.matches("(?s).*bar.:.*alfa.*"), res);
+        final var res = new SamplePrinter(rootNode, context).testString();
+        assertTrue(res.contains("foo:42"), res);
+        assertTrue(res.contains("bar:alfa"), res);
     }
 
     @Test
@@ -164,24 +164,85 @@ class SampleTests {
     }
 
     @Test
-    void sample_emptyExamplesOmitsSample() {
-        final var data = new JsonBuilder()
-                .v("title", "X")
-                .properties()
-                    .object("foo")
-                        .v("type", "array")
-                        .vo("examples", "[]")
-                    .endObject()
-                    .object("bar")
-                        .v("type", "string")
-                        .array(JsonDocNames.ENUM, "alfa", "bravo", "charlie").endArray()
-                    .endObject()
-                .endProperties()
-                .toString();
+    void sample_emitsArrayTypeForSimpleArrayItem() {
+        final var data = """
+{
+  "properties": {
+    "codeList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "description": "code",
+        "examples": [
+          "JAVA"
+        ]
+      }
+    }
+  }
+}
+""";
+
         final var context = ctx("SAMPLE");
         final var rootNode = new JsonDocParser(context).parseString(data);
-        final var res = new SamplePrinter(rootNode, context).toString();
-        assertFalse(res.matches("(?s).*foo.*"), res);
+        final var res = new SamplePrinter(rootNode, context).testString();
+        assertTrue(res.contains("{codeList:[JAVA]}"), res);
+    }
+
+    @Test
+    void sample_emitsArrayTypeForObjectArray() {
+        final var data = """
+{
+  "properties": {
+     "triggerList": {
+        "minItems": 1,
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "trigger": {
+              "type": "string",
+              "examples": [
+                "BANG"
+              ]
+            }
+          }
+        }
+     }
+   }
+}
+""";
+
+        final var context = ctx("SAMPLE");
+        final var rootNode = new JsonDocParser(context).parseString(data);
+        final var res = new SamplePrinter(rootNode, context).testString();
+        assertTrue(res.contains("triggerList:[{trigger:BANG}]"), res);
+    }
+    @Test
+    void sample_emitsArrayType() {
+        final var data = """
+{
+  "title": "X",
+  "properties": {
+    "foo": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bar": {
+            "type": "integer",
+            "examples": [ 4, 5, 6 ]
+          }
+        }
+      }
+    }
+  }
+}
+                """;
+        final var context = ctx("SAMPLE");
+        final var rootNode = new JsonDocParser(context).parseString(data);
+        final var res = new SamplePrinter(rootNode, context).testString();
+        assertTrue(res.contains("{foo:[{bar:4}]}"), res);
     }
 
     @Test

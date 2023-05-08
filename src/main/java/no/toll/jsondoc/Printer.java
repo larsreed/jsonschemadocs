@@ -606,31 +606,37 @@ class SamplePrinter extends SchemaPrinter {
         return buffer.append("\n}").toString();
     }
 
+    /** Test output stripped of blanks and quotes. */
+    String testString() {
+        return toString()
+                .replaceAll("\\s+", "")
+                .replaceAll("\"", "")
+                .replaceAll("'", "");
+    }
+
     protected void handleNode(final Node node) {
         try {
             // If there is an empty examples array, assume no sample is needed
             final var ex = node.getChild(JsonDocNames.EXAMPLES);
-            final var emptyExample = ex.isPresent() && ex.get().children.isEmpty()
-                    && ! JsonDocNames.EXAMPLES.equals(ex.get().parent().name); // array members
+            final var emptyExample = ex.isPresent() && ex.get().children.isEmpty();
             final var arrayItem = node.parent() != null
                     && node.parent().declaredAsArray()
                     && JsonDocNames.ITEMS.equals(node.name);
+
             final var visible = node.isVisible() && include(node)
                     && HIDDEN.stream().noneMatch(nr-> node.representation.equals(nr))
                     && !node.name.isEmpty()
                     && (node.isRow() || node.isTable())
                     && !node.children.isEmpty()
-                    && ( node.nodeType.equals(NodeType.Object)
-                      || node.nodeType.equals(NodeType.Array) )
-                    && !emptyExample
-                    && !arrayItem;
+                    && node.nodeType.equals(NodeType.Object)
+                    && !emptyExample;
 
             if (visible)  {
-                if (node.parent()!=null) appendName(node);
+                if (node.parent()!=null && !arrayItem) appendName(node);
                 if (node.representation.equals(NodeRepresentation.Table))
                     buffer.append(node.declaredAsArray()? '[' : '{');
                 else buffer.append(prioritizedSample(node)).append(",");
-                buffer.append("\n");
+                buffer.append('\n');
             }
 
             if (!emptyExample)
