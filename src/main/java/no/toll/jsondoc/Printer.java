@@ -4,10 +4,7 @@ import org.apache.commons.text.StringEscapeUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Pattern;
 
 
@@ -601,7 +598,7 @@ class SamplePrinter extends SchemaPrinter {
     @Override
     public String toString() {
         buffer.append("{\n");
-        handleNode(rootNode);
+        handleSampleNode(rootNode, 0, 0);
         skipLastComma();
         return buffer.append("\n}").toString();
     }
@@ -614,7 +611,19 @@ class SamplePrinter extends SchemaPrinter {
                 .replaceAll("'", "");
     }
 
-    protected void handleNode(final Node node) {
+    private int noOfItems(final Node node) {
+        // If this is an array "items" -- return the parent items minItems if it exists, that is the number of
+        // array samples to produce. For all other items, or if minItems is not set, return 1
+        if (node.parent()==null) return 1;
+        final var parent = node.parent();
+        if (!parent.declaredAsArray()) return 1;
+        final var minVal = parent.getChild(JsonDocNames.MIN_ITEMS)
+                .map(n-> n.values.first().toString())
+                .map(Integer::parseInt);
+        return minVal.orElse(1);
+    }
+
+    protected boolean handleSampleNode(final Node node, final int nth, final int relativeChild) {
         try {
             // If there is an empty examples array, assume no sample is needed
             final var ex = node.getChild(JsonDocNames.EXAMPLES);
@@ -632,18 +641,29 @@ class SamplePrinter extends SchemaPrinter {
                     && !emptyExample;
 
             if (visible)  {
-                if (arrayItem) buffer.append(makeIndent (node));
+                if (nth>0 && relativeChild==0)
+                    buffer.append(makeIndent(node.parent()))
+                            .append("},\n")
+                            .append(makeIndent(node.parent()))
+                            .append("{\n");
+                if (arrayItem) buffer.append(makeIndent(node));
                 else if (node.parent()!=null) appendName(node);
 
                 if (node.representation.equals(NodeRepresentation.Table))
                     buffer.append(node.declaredAsArray()? '[' : '{');
                 else if (node.declaredAsArray()) buffer.append("[");
-                else buffer.append(prioritizedSample(node)).append(",");
+                else buffer.append(prioritizedSample(node, nth)).append(",");
                 buffer.append("\n");
             }
 
-            if (!emptyExample)
-                for (final var child : node.children) handleNode(child);
+            if (!emptyExample) {
+                final var exampleCount = noOfItems(node);
+                for (int i = 0; i < exampleCount; i++) {
+                    int relative = 0;
+                    for (final var child : node.children)
+                        if (handleSampleNode(child, i, relative)) relative++;
+                }
+            }
 
             if (visible) {
                 if (node.representation.equals(NodeRepresentation.Table) || node.declaredAsArray()) {
@@ -655,11 +675,15 @@ class SamplePrinter extends SchemaPrinter {
                 }
                 if (node.parent()==null) skipLastComma();
             }
+            return visible;
         }
-        catch (final Throwable t) { handleException(node, t); }
+        catch (final Throwable t) {
+            handleException(node, t);
+            return false;
+        }
     }
 
-    private String prioritizedSample(final Node node) {
+    private String prioritizedSample(final Node node, final int nth) {
         final var possible = new LinkedList<>();
         final var type = node.getChild(JsonDocNames.TYPE).map(n-> n.values.first().toString()).orElse("string");
 
@@ -688,10 +712,11 @@ class SamplePrinter extends SchemaPrinter {
             }
         }
         // If all else fails, generate a type dependent default
-        possible.add(defaultSample(node, type));
+        if (possible.isEmpty()) possible.add(defaultSample(node, type));
         possible.remove(null); // if any have snuck in
 
-        final var smp = (possible.isEmpty())? "" : possible.get(0);
+        // possibly rotate over the candidates
+        final var smp = (possible.isEmpty())? "" : possible.get(nth % possible.size());
         if ("string".equals(type)) return '"' + smp.toString() + '"';
         return smp.toString();
     }

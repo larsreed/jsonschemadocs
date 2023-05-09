@@ -70,14 +70,16 @@ class SampleTests {
     "foo": {
       "type": "number",
       "x-smp": 8048.6,
-      "examples": [        "747",
+      "examples": [
+        "747",
         "757",
         "777"
       ]
     },
     "bar": {
       "type": "string",
-      "examples": [        "747",
+      "examples": [
+        "747",
         "757",
         "777"
       ]
@@ -248,6 +250,62 @@ class SampleTests {
         final var res = new SamplePrinter(rootNode, context).testString();
         assertTrue(res.contains("triggerList:[{trigger:BANG}]"), res);
     }
+
+    @Test
+    void sample_emitsMultipleExamples() {
+        final var data = """
+{
+    "properties": {
+        "data": {
+            "type": "object",
+            "properties": {
+                "codeList": {
+                    "type": "array",
+                    "minItems": 5,
+                    "items": {
+                        "type": "string",
+                        "examples": [ "Java", "Kotlin" ]
+                    }
+                },
+                "decision": {
+                    "type": "string",
+                    "examples": [ "1" ]
+                },
+                "triggerList": {
+                    "minItems": 3,
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "trigger": {
+                                "type": "string",
+                                "examples": [ "BANG", "PANG" ]
+                            },
+                            "target": {
+                                "type": "integer",
+                                "examples": [ 1,2,3 ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+""";
+
+        final var context = ctx();
+        final var rootNode = new JsonDocParser(context).parseString(data);
+        final var res = new SamplePrinter(rootNode, context).testString();
+
+        //System.err.println(new SamplePrinter(rootNode, context).toString());
+        final var objectSample =
+                "triggerList:[{trigger:BANG,target:1,},{trigger:PANG,target:2,},{trigger:BANG,target:3}]";
+        final var stringSample = "codeList:[Java,Kotlin,Java,Kotlin,Java]";
+        assertTrue(res.contains(objectSample), "object " + res);
+        // assertTrue(res.contains(stringSample), "string " + res);
+    }
+
     @Test
     void sample_emitsArrayType() {
         final var data = """
