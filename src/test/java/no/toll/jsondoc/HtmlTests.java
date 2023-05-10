@@ -20,13 +20,13 @@ class HtmlTests {
     private String runHtml(final String data) {
         final var context = ctx("HTML");
         final var root = new JsonDocParser(context).parseString(data);
-        return new HtmlPrinter(root, context).toString();
+        return new HtmlPrinter(root, context).create();
     }
 
     private String runXhtml(final String data) {
         final var context = ctx("XHTML");
         final var root = new JsonDocParser(context).parseString(data);
-        return new WikiPrinter(root, context).toString();
+        return new WikiPrinter(root, context).create();
     }
 
     @Test
@@ -80,7 +80,7 @@ class HtmlTests {
         final var res = runHtml(data);
         assertTrue(res.matches("(?s).*lang=." + Context.LANG_EN + ".*"), res);
         final var context2 = ctx("HTML").add(Context.LANG, "no");
-        final var res2 =  new HtmlPrinter(new JsonDocParser(context2).parseString(data), context2).toString();
+        final var res2 =  new HtmlPrinter(new JsonDocParser(context2).parseString(data), context2).create();
         assertTrue(res2.matches("(?s).*lang=.no.*"), res);
     }
 

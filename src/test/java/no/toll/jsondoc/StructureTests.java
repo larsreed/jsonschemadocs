@@ -21,13 +21,13 @@ class StructureTests {
 
     private String runHtml(final String data) {
         final var context = ctx("HTML");
-        return new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        return new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
     }
 
     private String runSchema(final String data) {
         final var context = ctx("SCHEMA");
         final var root = new JsonDocParser(context).parseString(data);
-        return new SchemaPrinter(root).toString();
+        return new SchemaPrinter(root).create();
     }
 
     @Test
@@ -580,9 +580,9 @@ class StructureTests {
                     .required("type2", "field2")
                 .endObject()
                 .toString();
-        final var res = new DebugPrinter(new JsonDocParser(ctx("HTML")).parseString(data)).toString()
+        final var res = new DebugPrinter(new JsonDocParser(ctx("HTML")).parseString(data)).create()
                 .replaceAll("2", "");
-        final var res2 = new DebugPrinter(new JsonDocParser(ctx("HTML")).parseString(data2)).toString()
+        final var res2 = new DebugPrinter(new JsonDocParser(ctx("HTML")).parseString(data2)).create()
                 .replaceAll("2", "");
         assertEquals(res2, res);
     }
@@ -602,7 +602,7 @@ class StructureTests {
                 .endProperties()
                 .toString();
         final var ctx = ctx("HTML");
-        final var vals = new HtmlPrinter(new JsonDocParser(ctx).parseString(data), ctx).toString();
+        final var vals = new HtmlPrinter(new JsonDocParser(ctx).parseString(data), ctx).create();
         assertTrue(vals.contains("<td>($defs)</td>"), "$defs in parens");
         assertTrue(vals.contains("<td>$ref</td>"), "still uses $ref");
         assertTrue(vals.contains("href=\"#$defs__foobar\""), "contains hyperlink");

@@ -33,7 +33,7 @@ class SampleTests {
 }
                 """;
         final var context = ctx().add(Context.SAMPLE_COLUMNS, "x-smp");
-        final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).create();
         assertTrue(res.matches("(?s).*foo.: [-.0-9]+.*"), res);
         assertTrue(res.matches("(?s).*bar.:.*"), res);
     }
@@ -161,7 +161,7 @@ class SampleTests {
 }""";
         final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
-        final var res = new SamplePrinter(rootNode, context).toString();
+        final var res = new SamplePrinter(rootNode, context).create();
         assertTrue(res.matches("(?s).*foo.: 999999999999999[0-9].*"), res);
     }
 
@@ -180,7 +180,7 @@ class SampleTests {
 }""";
         final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
-        final var res = new SamplePrinter(rootNode, context).toString();
+        final var res = new SamplePrinter(rootNode, context).create();
         assertTrue(res.matches("(?s).*foo.: -1[.][23][0-9].*"), res);
     }
 
@@ -298,12 +298,62 @@ class SampleTests {
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
 
-        //System.err.println(new SamplePrinter(rootNode, context).toString());
+        System.err.println(new SamplePrinter(rootNode, context).create());
         final var objectSample =
-                "triggerList:[{trigger:BANG,target:1,},{trigger:PANG,target:2,},{trigger:BANG,target:3}]";
+                "triggerList:[{trigger:BANG,target:1},{trigger:PANG,target:2},{trigger:BANG,target:3}]";
         final var stringSample = "codeList:[Java,Kotlin,Java,Kotlin,Java]";
         assertTrue(res.contains(objectSample), "object " + res);
-        // assertTrue(res.contains(stringSample), "string " + res);
+        assertTrue(res.contains(stringSample), "string " + res);
+    }
+
+    @Test
+    void sample_createsAtLeastOneExample() {
+        final var data = """
+{
+    "properties": {
+        "data": {
+            "type": "object",
+            "properties": {
+                "codeList": {
+                    "type": "array",
+                    "minItems": 0,
+                    "items": {
+                        "type": "string",
+                        "examples": [ "Java", "Kotlin" ]
+                    }
+                },
+                "triggerList": {
+                    "minItems": 0,
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "trigger": {
+                                "type": "string",
+                                "examples": [ "BANG", "PANG" ]
+                            },
+                            "target": {
+                                "type": "integer",
+                                "examples": [ 1,2,3 ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+""";
+
+        final var context = ctx();
+        final var rootNode = new JsonDocParser(context).parseString(data);
+        final var res = new SamplePrinter(rootNode, context).testString();
+
+        System.err.println(new SamplePrinter(rootNode, context).create());
+        final var objectSample = "triggerList:[{trigger:BANG,target:1}]";
+        final var stringSample = "codeList:[Java]";
+        assertTrue(res.contains(objectSample), "object " + res);
+        assertTrue(res.contains(stringSample), "string " + res);
     }
 
     @Test

@@ -23,7 +23,7 @@ class ExtensionTests {
     private String runHtml(final String data) {
         final var context = ctx("HTML");
         final var root = new JsonDocParser(context).parseString(data);
-        return new HtmlPrinter(root, context).toString();
+        return new HtmlPrinter(root, context).create();
     }
 
     @Test
@@ -42,7 +42,7 @@ class ExtensionTests {
                 .endProperties()
                 .toString();
         final var context = ctx("HTML");
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertTrue(res.contains("<td>Y<"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -68,7 +68,7 @@ class ExtensionTests {
                 .toString();
         final var context = ctx("HTML")
                 .add("variant", "var1"); // This is different from previous test
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertTrue(res.contains("<td>Y"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -94,7 +94,7 @@ class ExtensionTests {
                 .toString();
         final var context = ctx("HTML")
                 .add("variant", "var2"); // This is different from previous test
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertFalse(res.contains("<td>Y"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -119,7 +119,7 @@ class ExtensionTests {
                 .endProperties()
                 .toString();
         final var context = ctx("HTML");
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertTrue(res.contains("<td>Y<"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -145,7 +145,7 @@ class ExtensionTests {
                 .toString();
         final var context = ctx("HTML")
                 .add("variant", "var1"); // This is different from previous test
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertFalse(res.contains("<td>Y"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -171,7 +171,7 @@ class ExtensionTests {
                 .toString();
         final var context = ctx("HTML")
                 .add("variant", "var2"); // This is different from previous test
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
         assertTrue(res.contains("<td>X</td>"), "title");
         assertTrue(res.contains("<td>Y"), "description");
         assertTrue(res.contains("<td>bar</td>"), "bar");
@@ -207,9 +207,9 @@ class ExtensionTests {
                 .endProperties()
                 .toString();
         final var context = ctx("HTML").add(Context.EXCLUDE_COLUMNS, "Q,B,W");
-        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).toString();
-        assertTrue(res.contains("<td>A</td>"), "A");
-        assertFalse(res.contains("<td>B</td>"), "B");
+        final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
+        assertTrue(res.contains("<td>A</td>"), "A " + res);
+        assertFalse(res.contains("<td>B</td>"), "B " + res);
     }
 
     @Test
@@ -223,7 +223,7 @@ class ExtensionTests {
                 .endProperties()
                 .toString();
         final var context = ctx("SCHEMA").add(Context.STRICT, "true");
-        final var res = new SchemaPrinter(new JsonDocParser(context).parseString(data)).toString();
+        final var res = new SchemaPrinter(new JsonDocParser(context).parseString(data)).create();
         assertTrue(res.matches("(?s).*" + JsonDocNames.ADDITIONAL_PROPERTIES + ".: false.*"), res);
     }
 
@@ -241,7 +241,7 @@ class ExtensionTests {
                 .endProperties()
                 .toString();
         final var context = ctx("SCHEMA").add(Context.STRICT, "true");
-        final var res = new SchemaPrinter(new JsonDocParser(context).parseString(data)).toString();
+        final var res = new SchemaPrinter(new JsonDocParser(context).parseString(data)).create();
         System.err.println(data);
         System.err.println(res);
         assertTrue(res.matches("(?s).*" + JsonDocNames.ADDITIONAL_ITEMS + ".: false.*"), res);

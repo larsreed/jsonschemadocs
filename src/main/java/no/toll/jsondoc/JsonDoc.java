@@ -33,32 +33,32 @@ public final class JsonDoc {
             case "HTML" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
                 final var printer = new HtmlPrinter(root, context);
-                System.out.println(printer);
+                System.out.println(printer.create());
             }
             case "WIKI" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
                 final var printer = new WikiPrinter(root, context);
-                System.out.println(printer);
+                System.out.println(printer.create());
             }
             case "MARKDOWN" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
                 final var printer = new MarkdownPrinter(root);
-                System.out.println(printer);
+                System.out.println(printer.create());
             }
             case "GRAPH" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
                 final var printer = new GraphPrinter(root);
-                System.out.println(printer);
+                System.out.println(printer.create());
             }
             case "SCHEMA" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
                 final var printer = new SchemaPrinter(root);
-                System.out.println(printer);
+                System.out.println(printer.create());
             }
             case "SAMPLE" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
                 final var printer = new SamplePrinter(root, context);
-                System.out.println(printer);
+                System.out.println(printer.create());
             }
             case "VALIDATE" -> {
                 final ValidationResult res = Validator.validate(inputfile, context);
@@ -101,7 +101,7 @@ public final class JsonDoc {
     }
 }
 
-//   Copyright 2021, Lars Reed -- lars-at-kalars.net
+//   Copyright 2021-2023, Lars Reed -- lars-at-kalars.net
 //
 //           Licensed under the Apache License, Version 2.0 (the "License");
 //           you may not use this file except in compliance with the License.

@@ -4,7 +4,11 @@ import org.apache.commons.text.StringEscapeUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 
@@ -58,8 +62,7 @@ class DebugPrinter extends Printer {
 
     private String makeIndent(final int level) { return "  ".repeat(level); }
 
-    @Override
-    public String toString() {
+    public String create() {
         handleNode(rootNode, 0);
         return buffer.toString();
     }
@@ -105,8 +108,7 @@ class HtmlPrinter extends Printer {
                 .replaceAll("\n", "<br/>");
     }
 
-    @Override
-    public String toString() {
+    public String create() {
         head();
         handleTableNode(rootNode, 0);
         tail();
@@ -314,8 +316,7 @@ class MarkdownPrinter extends Printer {
                 .replaceAll("\n", BR);
     }
 
-    @Override
-    public String toString() {
+    public String create() {
         handleTableNode(rootNode, 0);
         return buffer.toString();
     }
@@ -459,8 +460,7 @@ digraph G {
     GraphPrinter(final Node rootNode) { super(rootNode); }
     @Override protected String q(final String s) { return "\"" + s + "\""; }
 
-    @Override
-    public String toString() {
+    public String create() {
         buffer.append(PREAMBLE);
         handleTableNode(rootNode);
         buffer.append("}\n");
@@ -519,12 +519,16 @@ class SchemaPrinter extends Printer {
     SchemaPrinter(final Node rootNode) { super(rootNode); }
     boolean include(final Node node) { return EXCLUDE_PREFIXES.stream().noneMatch(node.name::startsWith); }
     protected String makeIndent(final Node node) { return " ".repeat(2* (node.level()-1));}
-    void skipLastComma() { buffer.setLength((buffer.length()-2)); }
+    void skipLastComma() { /*buffer.setLength((buffer.length()-2)); */}
 
-    @Override
-    public String toString() {
+    protected static String schemaClean(final String s) {
+        return s.replaceAll("(?s),(\\s*[\\]\\[}])","$1")
+                .replaceAll("\n\n+", "\n");
+    }
+
+    public String create() {
         handleNode(rootNode);
-        return buffer.toString();
+        return schemaClean(buffer.toString());
     }
 
     protected void handleNode(final Node node) {
@@ -596,16 +600,17 @@ class SamplePrinter extends SchemaPrinter {
     }
 
     @Override
-    public String toString() {
+    public String create() {
         buffer.append("{\n");
         handleSampleNode(rootNode, 0, 0);
         skipLastComma();
-        return buffer.append("\n}").toString();
+        buffer.append("\n}");
+        return schemaClean(buffer.toString());
     }
 
     /** Test output stripped of blanks and quotes. */
     String testString() {
-        return toString()
+        return create()
                 .replaceAll("\\s+", "")
                 .replaceAll("\"", "")
                 .replaceAll("'", "");
@@ -620,7 +625,7 @@ class SamplePrinter extends SchemaPrinter {
         final var minVal = parent.getChild(JsonDocNames.MIN_ITEMS)
                 .map(n-> n.values.first().toString())
                 .map(Integer::parseInt);
-        return minVal.orElse(1);
+        return Math.max(minVal.orElse(1), 1);
     }
 
     protected boolean handleSampleNode(final Node node, final int nth, final int relativeChild) {

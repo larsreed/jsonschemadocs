@@ -29,7 +29,7 @@ class OutputTest {
         final var context = ctx("HTML");
         final var root = new JsonDocParser(context).parseFile(fileName);
         final var printer = new HtmlPrinter(root, context);
-        System.out.println(printer);
+        System.out.println(printer.create());
     }
 
     @Test
@@ -37,7 +37,7 @@ class OutputTest {
         final var context = ctx("HTML");
         final var root = new JsonDocParser(context).parseFile(fileName);
         final var printer = new WikiPrinter(root, context);
-        System.out.println(printer);
+        System.out.println(printer.create());
     }
 
     @Test
@@ -45,7 +45,7 @@ class OutputTest {
         final var context = ctx("MARKDOWN");
         final var root = new JsonDocParser(context).parseFile(fileName);
         final var printer = new MarkdownPrinter(root);
-        System.out.println(printer);
+        System.out.println(printer.create());
     }
 
     @Test
@@ -53,7 +53,7 @@ class OutputTest {
         final var context = ctx("GRAPH");
         final var root = new JsonDocParser(context).parseFile(fileName);
         final var printer = new GraphPrinter(root);
-        System.out.println(printer);
+        System.out.println(printer.create());
     }
 
     @Test
@@ -61,7 +61,7 @@ class OutputTest {
         final var context = ctx("SAMPLE");
         final var root = new JsonDocParser(context).parseFile(fileName);
         final var printer = new SamplePrinter(root, context);
-        System.out.println(printer);
+        System.out.println(printer.create());
     }
 
     @Test
@@ -69,7 +69,7 @@ class OutputTest {
         final var context = ctx("SCHEMA").add(Context.STRICT, Boolean.TRUE+"");
         final var root = new JsonDocParser(context).parseFile(fileName);
         final var printer = new SchemaPrinter(root);
-        System.out.println(printer);
+        System.out.println(printer.create());
     }
 
     @Test
@@ -77,7 +77,7 @@ class OutputTest {
         final var ctx = ctx("DEBUG");
         final var node = new JsonDocParser(ctx).parseFile(fileName);
         final var printer = new DebugPrinter(node);
-        System.out.println(printer);
+        System.out.println(printer.create());
     }
 
     @Test
