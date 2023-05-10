@@ -298,7 +298,6 @@ class SampleTests {
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
 
-        System.err.println(new SamplePrinter(rootNode, context).create());
         final var objectSample =
                 "triggerList:[{trigger:BANG,target:1},{trigger:PANG,target:2},{trigger:BANG,target:3}]";
         final var stringSample = "codeList:[Java,Kotlin,Java,Kotlin,Java]";
@@ -349,7 +348,6 @@ class SampleTests {
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
 
-        System.err.println(new SamplePrinter(rootNode, context).create());
         final var objectSample = "triggerList:[{trigger:BANG,target:1}]";
         final var stringSample = "codeList:[Java]";
         assertTrue(res.contains(objectSample), "object " + res);

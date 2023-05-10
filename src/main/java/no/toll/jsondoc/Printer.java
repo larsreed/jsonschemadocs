@@ -519,7 +519,7 @@ class SchemaPrinter extends Printer {
     SchemaPrinter(final Node rootNode) { super(rootNode); }
     boolean include(final Node node) { return EXCLUDE_PREFIXES.stream().noneMatch(node.name::startsWith); }
     protected String makeIndent(final Node node) { return " ".repeat(2* (node.level()-1));}
-    void skipLastComma() { /*buffer.setLength((buffer.length()-2)); */}
+    void skipLastComma() { /*Delete when sure it won't be missed...:  buffer.setLength((buffer.length()-2)); */}
 
     protected static String schemaClean(final String s) {
         return s.replaceAll("(?s),(\\s*[\\]\\[}])","$1")
@@ -612,8 +612,7 @@ class SamplePrinter extends SchemaPrinter {
     String testString() {
         return create()
                 .replaceAll("\\s+", "")
-                .replaceAll("\"", "")
-                .replaceAll("'", "");
+                .replaceAll("[\"']", "");
     }
 
     private int noOfItems(final Node node) {
@@ -657,6 +656,11 @@ class SamplePrinter extends SchemaPrinter {
                 if (node.representation.equals(NodeRepresentation.Table))
                     buffer.append(node.declaredAsArray()? '[' : '{');
                 else if (node.declaredAsArray()) buffer.append("[");
+                else if (arrayItem) {
+                    final var exampleCount = noOfItems(node);
+                    for (int i = 0; i < exampleCount; i++)
+                        buffer.append(prioritizedSample(node, i)).append(",");
+                }
                 else buffer.append(prioritizedSample(node, nth)).append(",");
                 buffer.append("\n");
             }
