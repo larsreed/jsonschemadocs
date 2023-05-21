@@ -1,11 +1,11 @@
 package no.toll.jsondoc;
 
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+
+import net.jimblackler.jsonschemafriend.GenerationException;
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.ValidationException;
+import net.jimblackler.jsonschemafriend.Validator;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -14,13 +14,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-class Validator {
+class GeneralJSONValidator {
 
     private ValidationResult result = new ValidationResult("input");
 
@@ -29,7 +30,7 @@ class Validator {
         final var printer = new SchemaPrinter(parser.parseFile(inputfile));
         final String pureSchema = makeTempSchema(printer.create());
 
-        final var validator = new Validator();
+        final var validator = new GeneralJSONValidator();
         final var optFiles = context.value(Context.FILES);
         if (optFiles.isEmpty())
             return new ValidationResult(inputfile).fail().add("No " + Context.FILES + "= specified");
@@ -56,19 +57,18 @@ class Validator {
     }
 
     ValidationResult validateString(final String schemaFile, final String data) {
-        try (final FileInputStream schemaStream = new FileInputStream(schemaFile)) {
-            final JSONObject rawSchema = new JSONObject(new JSONTokener(schemaStream));
-            final Schema schema = SchemaLoader.load(rawSchema);
-            schema.validate(new JSONObject(data)); // throws a ValidationException if this object is invalid
+        try {
+            final SchemaStore schemaStore = new SchemaStore(); // Initialize a SchemaStore.
+            final Schema schema = schemaStore.loadSchema(Paths.get(schemaFile).toUri());
+            final Validator validator = new Validator(); // Create a validator.
+            validator.validateJson(schema, data);
             return result;
         }
-        catch (final IOException | JSONException e) {
+        catch (final GenerationException e) {
             return result.add(e.getMessage()).fail();
         }
         catch (final ValidationException e) {
             handle(e);
-            final var causes = e.getCausingExceptions();
-            causes.forEach(this::handle);
             return result.fail();
         }
     }
@@ -88,13 +88,8 @@ class Validator {
     }
 
     private void handle(final ValidationException e) {
-        final String buf = e.getMessage() +
-                " Keyword: " + e.getKeyword() +
-                "  Pointer: " + e.getPointerToViolation() +
-                "  Definition: " + e.getSchemaLocation();
+        final String buf = e.getMessage();
         result.add(buf);
-        final var causes = e.getCausingExceptions();
-        if (causes!=null) causes.forEach(this::handle);
     }
 }
 

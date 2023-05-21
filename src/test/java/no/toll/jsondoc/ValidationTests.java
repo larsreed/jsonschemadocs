@@ -34,8 +34,8 @@ class ValidationTests {
                 .v("bar", 1)
                 .v("baz", "bam")
                 .toString();
-        final var schemaFile = Validator.makeTempSchema(simpleSchema());
-        final var result = new Validator().validateString(schemaFile, data);
+        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema());
+        final var result = new GeneralJSONValidator().validateString(schemaFile, data);
         assertTrue(result.isOk(), result.toString());
     }
 
@@ -46,8 +46,8 @@ class ValidationTests {
                 .v("bar", "one")
                 .v("baz", "bam")
                 .toString();
-        final var schemaFile = Validator.makeTempSchema(simpleSchema());
-        final var result = new Validator().validateString(schemaFile, data);
+        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema());
+        final var result = new GeneralJSONValidator().validateString(schemaFile, data);
         assertFalse(result.isOk(), result.toString());
     }
 
@@ -56,8 +56,8 @@ class ValidationTests {
         final var data = new JsonBuilder()
                 .v("bar", 1)
                 .toString();
-        final var schemaFile = Validator.makeTempSchema(simpleSchema());
-        final var result = new Validator().validateString(schemaFile, data);
+        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema());
+        final var result = new GeneralJSONValidator().validateString(schemaFile, data);
         assertFalse(result.isOk(), result.toString());
     }
 
@@ -68,12 +68,12 @@ class ValidationTests {
                 .v("bar", 1)
                 .v("baz", "bam")
                 .toString();
-        final var schemaFile = Validator.makeTempSchema(simpleSchema());
-        final var dataFile = Validator.makeTempSchema(data);
+        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema());
+        final var dataFile = GeneralJSONValidator.makeTempSchema(data);
         final var context = new Context("VALIDATE")
                 .add(Context.STRICT, "true")
                 .add(Context.FILES, dataFile);
-        final var result = Validator.validate(schemaFile, context);
+        final var result = GeneralJSONValidator.validate(schemaFile, context);
         assertFalse(result.isOk(), result.toString());
     }
 }

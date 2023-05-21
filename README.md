@@ -254,5 +254,5 @@ So the code here is not entirely idiomatic - but it's mine.
 ## Libraries
 `com.fasterxml.jackson` provides the basic parsing - see https://github.com/FasterXML/jackson
 
-`com.github.everit-org.json-schema` (https://github.com/everit-org/json-schema) provides validation,
+`jsonschemafriend` (https://github.com/jimblackler/jsonschemafriend) provides validation,
 this library is distributed under the [Apache License 2.0](https://github.com/everit-org/json-schema/blob/master/LICENSE). 

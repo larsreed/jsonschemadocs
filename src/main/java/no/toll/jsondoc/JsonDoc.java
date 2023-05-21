@@ -61,7 +61,7 @@ public final class JsonDoc {
                 System.out.println(printer.create());
             }
             case "VALIDATE" -> {
-                final ValidationResult res = Validator.validate(inputfile, context);
+                final ValidationResult res = GeneralJSONValidator.validate(inputfile, context);
                 System.out.println(res);
                 if (!res.isOk()) System.exit(EDATA);
             }
