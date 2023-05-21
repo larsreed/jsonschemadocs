@@ -27,7 +27,7 @@ class Validator {
     static ValidationResult validate(final String inputfile, final Context context) {
         final var parser = new JsonDocParser(context.clone(Context.SCHEMA_MODE));
         final var printer = new SchemaPrinter(parser.parseFile(inputfile));
-        final String pureSchema = makeTempSchema(printer.toString());
+        final String pureSchema = makeTempSchema(printer.create());
 
         final var validator = new Validator();
         final var optFiles = context.value(Context.FILES);
