@@ -526,6 +526,8 @@ class SchemaPrinter extends Printer {
                 .replaceAll("\n\n+", "\n");
     }
 
+    protected String q(final String s) { return s.replaceAll("\n", "\\\\n"); }
+
     public String create() {
         handleNode(rootNode);
         return schemaClean(buffer.toString());
@@ -553,7 +555,7 @@ class SchemaPrinter extends Printer {
                     switch (node.dataType) {
                         case NA -> Logger.error("Unknown data type for", node.qName());
                         case NullValue -> buffer.append("null,\n");
-                        case StringType -> buffer.append('"').append(vals).append('"').append(",\n");
+                        case StringType -> buffer.append('"').append(q(vals)).append('"').append(",\n");
                         case IntType, DoubleType, BooleanType -> buffer.append(vals).append(",\n");
                     }
                 }
