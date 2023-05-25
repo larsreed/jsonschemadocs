@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ValidationTests {
 
-    private String simpleSchema = """
+    private final String simpleSchema = """
                 {
                   "$schema": "https://json-schema.org/draft/2020-12/schema",
                   "type": "object",
