@@ -1,18 +1,31 @@
 package no.toll.jsondoc;
 
-import no.toll.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 class OutputTest {
-    private static final String fileName =
-            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample8.json";
-    private static final String schemaEx =
-        "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample3-schema.json";
-    private static final String fileEx =
-            "C:\\data\\projects\\json-doc\\src\\test\\resources\\local-sample3.json";
+    private static final String schema = """
+            {
+              "$id": "https://example.com/person.schema.json",
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "title": "Person",
+              "type": "object",
+              "properties": {
+                "firstName": {
+                  "type": "string",
+                  "description": "The person's first name."
+                },
+                "lastName": {
+                  "type": "string",
+                  "description": "The person's last name."
+                },
+                "age": {
+                  "description": "Age in years which must be equal to or greater than zero.",
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }""";
 
     private Context ctx(final String mode) {
         return new Context(mode)
@@ -27,7 +40,7 @@ class OutputTest {
     @Test
     void htmlOutput() {
         final var context = ctx("HTML");
-        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var root = new JsonDocParser(context).parseString(schema);
         final var printer = new HtmlPrinter(root, context);
         System.out.println(printer.create());
     }
@@ -35,7 +48,7 @@ class OutputTest {
     @Test
     void wikiHtmlOutput() {
         final var context = ctx("HTML");
-        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var root = new JsonDocParser(context).parseString(schema);
         final var printer = new WikiPrinter(root, context);
         System.out.println(printer.create());
     }
@@ -43,7 +56,7 @@ class OutputTest {
     @Test
     void markdownOutput() {
         final var context = ctx("MARKDOWN");
-        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var root = new JsonDocParser(context).parseString(schema);
         final var printer = new MarkdownPrinter(root);
         System.out.println(printer.create());
     }
@@ -51,7 +64,7 @@ class OutputTest {
     @Test
     void graphOutput() {
         final var context = ctx("GRAPH");
-        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var root = new JsonDocParser(context).parseString(schema);
         final var printer = new GraphPrinter(root);
         System.out.println(printer.create());
     }
@@ -59,7 +72,7 @@ class OutputTest {
     @Test
     void sampleOutput() {
         final var context = ctx("SAMPLE");
-        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var root = new JsonDocParser(context).parseString(schema);
         final var printer = new SamplePrinter(root, context);
         System.out.println(printer.create());
     }
@@ -67,7 +80,7 @@ class OutputTest {
     @Test
     void schemaOutput() {
         final var context = ctx("SCHEMA").add(Context.STRICT, Boolean.TRUE+"");
-        final var root = new JsonDocParser(context).parseFile(fileName);
+        final var root = new JsonDocParser(context).parseString(schema);
         final var printer = new SchemaPrinter(root);
         System.out.println(printer.create());
     }
@@ -75,28 +88,8 @@ class OutputTest {
     @Test
     void debugOutput() {
         final var ctx = ctx("DEBUG");
-        final var node = new JsonDocParser(ctx).parseFile(fileName);
+        final var node = new JsonDocParser(ctx).parseString(schema);
         final var printer = new DebugPrinter(node);
         System.out.println(printer.create());
-    }
-
-    @Test
-    void validationOutput() {
-        final var validator = new GeneralJSONValidator();
-        final var ok = validator.validateFile(schemaEx, fileEx);
-        assertTrue(ok.isOk(), ok.toString());
-    }
-
-    @Test
-    void builderOutput() {
-        final var s = new JsonBuilder()
-                .v("title", "x")
-                .object("properties")
-                  .v("x-test", 4)
-                  .v("x-y", false)
-                .endObject()
-                .required("x-test")
-                .toString();
-        System.out.println(s);
     }
 }

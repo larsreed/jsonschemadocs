@@ -1,6 +1,5 @@
 package no.toll.jsondoc;
 
-import no.toll.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -20,27 +19,22 @@ class ExtensionTests {
                 ;
     }
 
-    private String runHtml(final String data) {
-        final var context = ctx("HTML");
-        final var root = new JsonDocParser(context).parseString(data);
-        return new HtmlPrinter(root, context).create();
-    }
-
     @Test
     void xif_isIgnoredIfNoVariants() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("title", "X")
-                    .object("foo")
-                        .v("baz", "Z")
-                        .v("description", "Y")
-                        .v("xif-variant", "var1")
-                    .endObject()
-                    .object("bar")
-                        .v("key", "Q")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+            {
+              "properties": {
+                "title": "X",
+                "foo": {
+                  "baz": "Z",
+                  "description": "Y",
+                  "xif-variant": "var1"
+                },
+                "bar": {
+                  "key": "Q"
+                }
+              }
+            }""";
         final var context = ctx("HTML");
         final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
         assertTrue(res.contains("<td>X</td>"), "title");
@@ -53,19 +47,20 @@ class ExtensionTests {
 
     @Test
     void xif_includesOnCorrectVariable() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("title", "X")
-                    .object("foo")
-                        .v("baz", "Z")
-                        .v("description", "Y")
-                        .v("xif-variant", "var1")
-                    .endObject()
-                    .object("bar")
-                        .v("key", "Q")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+            {
+              "properties": {
+                "title": "X",
+                "foo": {
+                  "baz": "Z",
+                  "description": "Y",
+                  "xif-variant": "var1"
+                },
+                "bar": {
+                  "key": "Q"
+                }
+              }
+            }""";
         final var context = ctx("HTML")
                 .add("variant", "var1"); // This is different from previous test
         final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
@@ -79,19 +74,20 @@ class ExtensionTests {
 
     @Test
     void xif_excludesOnOtherVariable() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("title", "X")
-                    .object("foo")
-                        .v("baz", "Z")
-                        .v("description", "Y")
-                        .v("xif-variant", "var1")
-                    .endObject()
-                    .object("bar")
-                        .v("key", "Q")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+            {
+              "properties": {
+                "title": "X",
+                "foo": {
+                  "baz": "Z",
+                  "description": "Y",
+                  "xif-variant": "var1"
+                },
+                "bar": {
+                  "key": "Q"
+                }
+              }
+            }""";
         final var context = ctx("HTML")
                 .add("variant", "var2"); // This is different from previous test
         final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
@@ -105,19 +101,20 @@ class ExtensionTests {
 
     @Test
     void xifnot_isIgnoredIfNoVariants() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("title", "X")
-                    .object("foo")
-                        .v("baz", "Z")
-                        .v("description", "Y")
-                        .v("xifnot-variant", "var1")
-                    .endObject()
-                        .object("bar")
-                    .v("key", "Q")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "title": "X",
+                    "foo": {
+                      "baz": "Z",
+                      "description": "Y",
+                      "xifnot-variant": "var1"
+                    },
+                    "bar": {
+                      "key": "Q"
+                    }
+                  }
+                }""";
         final var context = ctx("HTML");
         final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
         assertTrue(res.contains("<td>X</td>"), "title");
@@ -130,19 +127,21 @@ class ExtensionTests {
 
     @Test
     void xifnot_excludesOnCorrectVariable() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("title", "X")
-                    .object("foo")
-                        .v("baz", "Z")
-                        .v("description", "Y")
-                        .v("xifnot-variant", "var1")
-                    .endObject()
-                    .object("bar")
-                        .v("key", "Q")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "title": "X",
+                    "foo": {
+                      "baz": "Z",
+                      "description": "Y",
+                      "xifnot-variant": "var1"
+                    },
+                    "bar": {
+                      "key": "Q"
+                    }
+                  }
+                }
+                """;
         final var context = ctx("HTML")
                 .add("variant", "var1"); // This is different from previous test
         final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
@@ -156,19 +155,21 @@ class ExtensionTests {
 
     @Test
     void xifnot_includesOnOtherVariable() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("title", "X")
-                    .object("foo")
-                        .v("baz", "Z")
-                        .v("description", "Y")
-                        .v("xifnot-variant", "var1")
-                    .endObject()
-                    .object("bar")
-                        .v("key", "Q")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "title": "X",
+                    "foo": {
+                      "baz": "Z",
+                      "description": "Y",
+                      "xifnot-variant": "var1"
+                    },
+                    "bar": {
+                      "key": "Q"
+                    }
+                  }
+                }
+                """;
         final var context = ctx("HTML")
                 .add("variant", "var2"); // This is different from previous test
         final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
@@ -182,16 +183,19 @@ class ExtensionTests {
 
     @Test
     void xdoc_convertsToColumn() {
-        final var data = new JsonBuilder()
-                .v("title", "X")
-                .properties()
-                    .object("foo")
-                        .v("baz", "Z")
-                        .v("x-bar_ba_DOS", "Y")
-                    .endObject()
-                .endProperties()
-                .toString();
-        final var res = runHtml(data);
+        final var data = """
+                {
+                  "title": "X",
+                  "properties": {
+                    "foo": {
+                      "baz": "Z",
+                      "x-bar_ba_DOS": "Y"
+                    }
+                  }
+                }""";
+        final var context = ctx("HTML");
+        final var root = new JsonDocParser(context).parseString(data);
+        final var res = new HtmlPrinter(root, context).create();
         assertTrue(res.contains("<td>baz</td>"), "row");
         assertTrue(res.contains("<th>Bar ba DOS</th>"), "row");
         assertFalse(res.contains("x-bar"), "xif");
@@ -199,13 +203,14 @@ class ExtensionTests {
 
     @Test
     void excludedColumns_excludes() {
-        final var data = new JsonBuilder()
-                .properties()
-                .v("title", "X")
-                .v("A", 1.0)
-                .v("B", true)
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "title": "X",
+                    "A": 1.0,
+                    "B": true
+                  }
+                }""";
         final var context = ctx("HTML").add(Context.EXCLUDE_COLUMNS, "Q,B,W");
         final var res = new HtmlPrinter(new JsonDocParser(context).parseString(data), context).create();
         assertTrue(res.contains("<td>A</td>"), "A " + res);
@@ -214,14 +219,15 @@ class ExtensionTests {
 
     @Test
     void strict_introducesExtraProperty() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("title", "X")
-                    .object("foo")
-                        .v("type", "number")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "title": "X",
+                    "foo": {
+                      "type": "number"
+                    }
+                  }
+                }""";
         final var context = ctx("SCHEMA").add(Context.STRICT, "true");
         final var res = new SchemaPrinter(new JsonDocParser(context).parseString(data)).create();
         assertTrue(res.matches("(?s).*" + JsonDocNames.ADDITIONAL_PROPERTIES + ".: false.*"), res);
@@ -229,21 +235,20 @@ class ExtensionTests {
 
     @Test
     void strict_introducesExtraItems() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("title", "X")
-                    .object("foo")
-                        .v("type", "array")
-                        .object("items")
-                            .v("type", "string")
-                        .endObject()
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "title": "X",
+                    "foo": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }""";
         final var context = ctx("SCHEMA").add(Context.STRICT, "true");
         final var res = new SchemaPrinter(new JsonDocParser(context).parseString(data)).create();
-        System.err.println(data);
-        System.err.println(res);
         assertTrue(res.matches("(?s).*" + JsonDocNames.ADDITIONAL_ITEMS + ".: false.*"), res);
     }
 }

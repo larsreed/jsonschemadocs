@@ -1,6 +1,5 @@
 package no.toll.jsondoc;
 
-import no.toll.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,60 +25,64 @@ class MarkdownTests {
 
     @Test
     void markdown_lineBreaks() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("x-bar", "ab\\nc")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "x-bar": "ab\\nc"
+                    }
+                  }
+                }""";
         final var res = runMarkdown(data);
-        assertTrue(res.matches("(?s).*ab<br />c.*"));
+        assertTrue(res.contains("ab<br />c"));
     }
 
     @Test
     void markdown_simpleLink() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("x-bar", "linkTo(http://github.com)")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "x-bar": "linkTo(http://github.com)"
+                    }
+                  }
+                }""";
         final var res = runMarkdown(data);
         assertTrue(res.matches("(?s).*\\[http://github.com].*"), res);
     }
 
     @Test
     void markdown_linkWithText() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("x-bar", "linkTo(http://github.com,  target)")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "x-bar": "linkTo(http://github.com,  target)"
+                    }
+                  }
+                }""";
         final var res = runMarkdown(data);
         assertTrue(res.matches("(?s).*\\[target]\\(http://github.com\\).*"), res);
     }
 
     @Test
     void markdown_linkToTable() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("description", "1")
-                        .object("bar")
-                            .v("description", "2")
-                            .v("ting", "tang")
-                        .endObject()
-                        .object("baz")
-                            .v("description", "3")
-                            .v("ting", "tang")
-                        .endObject()
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "description": "1",
+                      "bar": {
+                        "description": "2",
+                        "ting": "tang"
+                      },
+                      "baz": {
+                        "description": "3",
+                        "ting": "tang"
+                      }
+                    }
+                  }
+                }""";
         final var res = runMarkdown(data);
         assertTrue(res.matches("(?s).*\\[bar>]\\(#foo__bar\\).*"), res);
     }

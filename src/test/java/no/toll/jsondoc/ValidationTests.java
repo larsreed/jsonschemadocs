@@ -1,6 +1,5 @@
 package no.toll.jsondoc;
 
-import no.toll.jsondoc.tools.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -9,66 +8,71 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ValidationTests {
 
-    private String simpleSchema() {
-        return new JsonBuilder()
-                .v("$schema", "http://json-schema.org/draft-07/schema")
-                .v("type", "object")
-                .properties()
-                    .object("foo")
-                        .v(no.toll.jsondoc.JsonDocNames.TYPE, "string")
-                        .v(no.toll.jsondoc.JsonDocNames.DESCRIPTION, "fox")
-                    .endObject()
-                    .object("bar")
-                        .v(no.toll.jsondoc.JsonDocNames.TYPE, "integer")
-                        .v(no.toll.jsondoc.JsonDocNames.DESCRIPTION, "box")
-                    .endObject()
-                .endProperties()
-                .required("foo")
-                .toString();
-    }
+    private String simpleSchema = """
+                {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "foo": {
+                      "type": "string",
+                      "description": "fox"
+                    },
+                    "bar": {
+                      "type": "integer",
+                      "description": "box"
+                    }
+                  },
+                  "required": [
+                    "foo"
+                  ]
+                }""";
 
     @Test
     void validation_non_strict_ok() {
-        final var data = new JsonBuilder()
-                .v("foo", "bad")
-                .v("bar", 1)
-                .v("baz", "bam")
-                .toString();
-        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema());
+        final var data = """
+                {
+                  "foo": "bad",
+                  "bar": 1,
+                  "baz": "bam"
+                }""";
+        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema);
         final var result = new GeneralJSONValidator().validateString(schemaFile, data);
         assertTrue(result.isOk(), result.toString());
     }
 
     @Test
     void validation_failsOnWrongType() {
-        final var data = new JsonBuilder()
-                .v("foo", "bad")
-                .v("bar", "one")
-                .v("baz", "bam")
-                .toString();
-        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema());
+        final var data = """
+                {
+                  "foo": "bad",
+                  "bar": "one",
+                  "baz": "bam"
+                }""";
+        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema);
         final var result = new GeneralJSONValidator().validateString(schemaFile, data);
         assertFalse(result.isOk(), result.toString());
     }
 
     @Test
     void validation_failsOnMissingRequired() {
-        final var data = new JsonBuilder()
-                .v("bar", 1)
-                .toString();
-        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema());
+        final var data = """
+                {
+                  "bar": 1
+                }""";
+        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema);
         final var result = new GeneralJSONValidator().validateString(schemaFile, data);
         assertFalse(result.isOk(), result.toString());
     }
 
     @Test
     void validation_fails_extra_attribute_on_strict() {
-        final var data = new JsonBuilder()
-                .v("foo", "bad")
-                .v("bar", 1)
-                .v("baz", "bam")
-                .toString();
-        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema());
+        final var data = """
+                {
+                  "foo": "bad",
+                  "bar": 1,
+                  "baz": "bam"
+                }""";
+        final var schemaFile = GeneralJSONValidator.makeTempSchema(simpleSchema);
         final var dataFile = GeneralJSONValidator.makeTempSchema(data);
         final var context = new Context("VALIDATE")
                 .add(Context.STRICT, "true")

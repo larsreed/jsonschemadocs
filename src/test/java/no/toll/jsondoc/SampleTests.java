@@ -41,19 +41,19 @@ class SampleTests {
     @Test
     void sample_willUseNamedColumn() {
         final var data = """
-{
-  "properties": {
-    "title": "X",
-    "foo": {
-      "type": "number",
-      "x-smp": 8048.6
-    },
-    "bar": {
-      "type": "string",
-      "x-smp": "smpl"
-    }
-  }
-}""";
+            {
+              "properties": {
+                "title": "X",
+                "foo": {
+                  "type": "number",
+                  "x-smp": 8048.6
+                },
+                "bar": {
+                  "type": "string",
+                  "x-smp": "smpl"
+                }
+              }
+            }""";
         final var context = ctx().add(Context.SAMPLE_COLUMNS, "x-smp");
         final var res = new SamplePrinter(new JsonDocParser(context).parseString(data), context).testString();
         assertFalse(res.contains("x-smp"), res);
@@ -64,28 +64,28 @@ class SampleTests {
     @Test
     void sample_canUseExamples() {
         final var data = """
-{
-  "title": "X",
-  "properties": {
-    "foo": {
-      "type": "number",
-      "x-smp": 8048.6,
-      "examples": [
-        "747",
-        "757",
-        "777"
-      ]
-    },
-    "bar": {
-      "type": "string",
-      "examples": [
-        "747",
-        "757",
-        "777"
-      ]
-    }
-  }
-}""";
+            {
+              "title": "X",
+              "properties": {
+                "foo": {
+                  "type": "number",
+                  "x-smp": 8048.6,
+                  "examples": [
+                    "747",
+                    "757",
+                    "777"
+                  ]
+                },
+                "bar": {
+                  "type": "string",
+                  "examples": [
+                    "747",
+                    "757",
+                    "777"
+                  ]
+                }
+              }
+            }""";
         final var context = ctx().add(Context.SAMPLE_COLUMNS, "x-smp");
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
@@ -97,19 +97,19 @@ class SampleTests {
     @Test
     void sample_canUseConstants() {
         final var data = """
-{
-  "title": "X",
-  "properties": {
-    "foo": {
-      "type": "number",
-      "const": 42
-    },
-    "bar": {
-      "type": "string",
-      "const": "forty-two"
-    }
-  }
-}""";
+            {
+              "title": "X",
+              "properties": {
+                "foo": {
+                  "type": "number",
+                  "const": 42
+                },
+                "bar": {
+                  "type": "string",
+                  "const": "forty-two"
+                }
+              }
+            }""";
         final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
@@ -120,25 +120,25 @@ class SampleTests {
     @Test
     void sample_canUseEnum() {
         final var data = """
-{
-  "title": "X",
-  "properties": {
-    "foo": {
-      "type": "number",
-      "enum": [        42,
-        43,
-        44
-      ]
-    },
-    "bar": {
-      "type": "string",
-      "enum": [        "alfa",
-        "bravo",
-        "charlie"
-      ]
-    }
-  }
-}""";
+            {
+              "title": "X",
+              "properties": {
+                "foo": {
+                  "type": "number",
+                  "enum": [        42,
+                    43,
+                    44
+                  ]
+                },
+                "bar": {
+                  "type": "string",
+                  "enum": [        "alfa",
+                    "bravo",
+                    "charlie"
+                  ]
+                }
+              }
+            }""";
         final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).testString();
@@ -149,16 +149,16 @@ class SampleTests {
     @Test
     void sample_generatesBigNumbers() {
         final var data = """
-{
-  "title": "X",
-  "properties": {
-    "foo": {
-      "type": "number",
-      "minimum": 9999999999999990,
-      "maximum": 9999999999999999
-    }
-  }
-}""";
+            {
+              "title": "X",
+              "properties": {
+                "foo": {
+                  "type": "number",
+                  "minimum": 9999999999999990,
+                  "maximum": 9999999999999999
+                }
+              }
+            }""";
         final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).create();
@@ -168,16 +168,16 @@ class SampleTests {
     @Test
     void sample_generatesDecimalNumbers() {
         final var data = """
-{
-  "title": "X",
-  "properties": {
-    "foo": {
-      "type": "number",
-      "minimum": -1.3,
-      "maximum": -1.25
-    }
-  }
-}""";
+            {
+              "title": "X",
+              "properties": {
+                "foo": {
+                  "type": "number",
+                  "minimum": -1.3,
+                  "maximum": -1.25
+                }
+              }
+            }""";
         final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
         final var res = new SamplePrinter(rootNode, context).create();
@@ -187,22 +187,22 @@ class SampleTests {
     @Test
     void sample_emitsArrayTypeForSimpleArrayItem() {
         final var data = """
-{
-  "properties": {
-    "codeList": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "string",
-        "description": "code",
-        "examples": [
-          "JAVA"
-        ]
-      }
-    }
-  }
-}
-""";
+            {
+              "properties": {
+                "codeList": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "description": "code",
+                    "examples": [
+                      "JAVA"
+                    ]
+                  }
+                }
+              }
+            }
+            """;
 
         final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
@@ -213,37 +213,37 @@ class SampleTests {
     @Test
     void sample_emitsArrayTypeForObjectArray() {
         final var data = """
-{
-  "properties": {
-    "data": {
-      "type": "object",
-      "properties": {
-        "decision": {
-          "type": "string",
-          "examples": [
-            "1"
-          ]
-        },
-        "triggerList": {
-            "minItems": 1,
-            "type": "array",
-            "items": {
-            "type": "object",
-            "properties": {
-                "trigger": {
-                    "type": "string",
-                    "examples": [
-                      "BANG"
-                    ]
+            {
+              "properties": {
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "decision": {
+                      "type": "string",
+                      "examples": [
+                        "1"
+                      ]
+                    },
+                    "triggerList": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                        "type": "object",
+                        "properties": {
+                            "trigger": {
+                                "type": "string",
+                                "examples": [
+                                  "BANG"
+                                ]
+                            }
+                        }
+                      }
+                    }
+                  }
                 }
+              }
             }
-          }
-        }
-      }
-    }
-  }
-}
-""";
+            """;
 
         final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
@@ -254,45 +254,45 @@ class SampleTests {
     @Test
     void sample_emitsMultipleExamples() {
         final var data = """
-{
-    "properties": {
-        "data": {
-            "type": "object",
-            "properties": {
-                "codeList": {
-                    "type": "array",
-                    "minItems": 5,
-                    "items": {
-                        "type": "string",
-                        "examples": [ "Java", "Kotlin" ]
-                    }
-                },
-                "decision": {
-                    "type": "string",
-                    "examples": [ "1" ]
-                },
-                "triggerList": {
-                    "minItems": 3,
-                    "type": "array",
-                    "items": {
+            {
+                "properties": {
+                    "data": {
                         "type": "object",
                         "properties": {
-                            "trigger": {
-                                "type": "string",
-                                "examples": [ "BANG", "PANG" ]
+                            "codeList": {
+                                "type": "array",
+                                "minItems": 5,
+                                "items": {
+                                    "type": "string",
+                                    "examples": [ "Java", "Kotlin" ]
+                                }
                             },
-                            "target": {
-                                "type": "integer",
-                                "examples": [ 1,2,3 ]
+                            "decision": {
+                                "type": "string",
+                                "examples": [ "1" ]
+                            },
+                            "triggerList": {
+                                "minItems": 3,
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "trigger": {
+                                            "type": "string",
+                                            "examples": [ "BANG", "PANG" ]
+                                        },
+                                        "target": {
+                                            "type": "integer",
+                                            "examples": [ 1,2,3 ]
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-    }
-}
-""";
+            """;
 
         final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);
@@ -308,41 +308,41 @@ class SampleTests {
     @Test
     void sample_createsAtLeastOneExample() {
         final var data = """
-{
-    "properties": {
-        "data": {
-            "type": "object",
-            "properties": {
-                "codeList": {
-                    "type": "array",
-                    "minItems": 0,
-                    "items": {
-                        "type": "string",
-                        "examples": [ "Java", "Kotlin" ]
-                    }
-                },
-                "triggerList": {
-                    "minItems": 0,
-                    "type": "array",
-                    "items": {
+            {
+                "properties": {
+                    "data": {
                         "type": "object",
                         "properties": {
-                            "trigger": {
-                                "type": "string",
-                                "examples": [ "BANG", "PANG" ]
+                            "codeList": {
+                                "type": "array",
+                                "minItems": 0,
+                                "items": {
+                                    "type": "string",
+                                    "examples": [ "Java", "Kotlin" ]
+                                }
                             },
-                            "target": {
-                                "type": "integer",
-                                "examples": [ 1,2,3 ]
+                            "triggerList": {
+                                "minItems": 0,
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "trigger": {
+                                            "type": "string",
+                                            "examples": [ "BANG", "PANG" ]
+                                        },
+                                        "target": {
+                                            "type": "integer",
+                                            "examples": [ 1,2,3 ]
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-    }
-}
-""";
+            """;
 
         final var context = ctx();
         final var rootNode = new JsonDocParser(context).parseString(data);

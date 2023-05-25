@@ -1,6 +1,5 @@
 package no.toll.jsondoc;
 
-import no.toll.jsondoc.tools.JsonBuilder;
 import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
@@ -32,26 +31,40 @@ class StructureTests {
 
     @Test
     void attributesOnTopNode_areShown() {
-        final var data = new JsonBuilder().v("description", "Top!").v("title", "X").toString();
+        final var data = """
+                {
+                  "description": "Top!",
+                  "title": "X"
+                }""";
         assertTrue(runHtml(data).contains("Top!"));
     }
 
     @Test
     void required_areHiddenForHtmlAndShownForSchema() {
-        final var data = new JsonBuilder().v("title", "X").required("A").toString();
+        final var data = """
+                {
+                  "title": "X",
+                  "required": [
+                    "A"
+                  ]
+                }""";
         assertFalse(runHtml(data).contains(no.toll.jsondoc.JsonDocNames.REQUIRED));
         assertTrue(runSchema(data).contains(no.toll.jsondoc.JsonDocNames.REQUIRED));
     }
 
     @Test
     void required_marksAttribute() {
-        final var data = new JsonBuilder()
-                .properties()
-                  .v("title", "X")
-                  .v("B", true)
-                .endProperties()
-                .required("A", "title")
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "title": "X",
+                    "B": true
+                  },
+                  "required": [
+                    "A",
+                    "title"
+                  ]
+                }""";
         final var root = new JsonDocParser(ctx("HTML")).parseString(data);
         assertFalse(root.isRequired(), "root");
         for (final var c : root.children) {
@@ -62,55 +75,67 @@ class StructureTests {
 
     @Test
     void properties_areRemovedForHtmlAndShownForSchema() {
-        final var data = new JsonBuilder().v("title", "X")
-                .properties()
-                .v("A", "b")
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "title": "X",
+                  "properties": {
+                    "A": "b"
+                  }
+                }""";
         assertFalse(runHtml(data).contains(no.toll.jsondoc.JsonDocNames.PROPERTIES));
         assertTrue(runSchema(data).contains(no.toll.jsondoc.JsonDocNames.PROPERTIES));
     }
 
     @Test
     void properties_areMovedToParent() {
-        final var data = new JsonBuilder().v("top", "")
-                .properties()
-                  .v("prop", "")
-                .endProperties()
-                .toString();
-        assertTrue(runHtml(data).matches("(?s).*<td>top(<[/]?td>)+</tr>(\\s*\\R*\\s*)*<tr><td>prop</td>.*"));
+        final var data = """
+                {
+                  "top": "",
+                  "properties": {
+                    "prop": ""
+                  }
+                }""";
+        assertTrue(runHtml(data).matches("(?s).*<td>top(</?td>)+</tr>(\\s*\\R*\\s*)*<tr><td>prop</td>.*"));
     }
 
     @Test
     void type_canContainArray() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("A", "b")
-                    .object("foo")
-                        .array("type", "string", "null")
-                        .endArray()
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "A": "b",
+                    "foo": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }""";
         assertTrue(runHtml(data).contains("string, null"));
     }
 
     @Test
     void alwaysColumns_areThere() {
-        final var data = new JsonBuilder().v("A", "b").toString();
+        final var data = """
+                {
+                  "A": "b"
+                }""";
         final var res = runHtml(data).toUpperCase();
-        for (final var c: no.toll.jsondoc.JsonDocNames.ALWAYS_COLUMNS) assertTrue(res.contains("<TH>" + c.toUpperCase() + "</TH>"), c);
+        for (final var c: no.toll.jsondoc.JsonDocNames.ALWAYS_COLUMNS)
+            assertTrue(res.contains("<TH>" + c.toUpperCase() + "</TH>"), c);
     }
 
     @Test
     void cardinality_none() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x"
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("Type"))
                 .map(n -> n.values)
@@ -120,14 +145,17 @@ class StructureTests {
 
     @Test
     void cardinality_required() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                    .endObject()
-                .endProperties()
-                .required("foo")
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x"
+                    }
+                  },
+                  "required": [
+                    "foo"
+                  ]
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -138,14 +166,15 @@ class StructureTests {
 
     @Test
     void cardinality_minOnly() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MIN_ITEMS, 11)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "minItems": 11
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -156,14 +185,15 @@ class StructureTests {
 
     @Test
     void cardinality_maxOnly() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MAX_ITEMS, 12)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "maxItems": 12
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -174,22 +204,23 @@ class StructureTests {
 
     @Test
     void cardinality_arrayMinOnly() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("type", "array")
-                        .v(no.toll.jsondoc.JsonDocNames.MIN_LENGTH, 0)
-                        .object("items")
-                            .v("type", "object")
-                            .properties()
-                                .object("id")
-                                    .v("type", "string")
-                                .endObject()
-                            .endProperties()
-                        .endObject()
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "type": "array",
+                      "minLength": 0,
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -200,15 +231,16 @@ class StructureTests {
 
     @Test
     void cardinality_minMax() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MIN_ITEMS, 30)
-                        .v(no.toll.jsondoc.JsonDocNames.MAX_ITEMS, 20) // illogical ...
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "minItems": 30,
+                      "maxItems": 20
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -219,15 +251,16 @@ class StructureTests {
 
     @Test
     void cardinality_minMaxEqual() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MIN_ITEMS, 3)
-                        .v(no.toll.jsondoc.JsonDocNames.MAX_ITEMS, 3)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "minItems": 3,
+                      "maxItems": 3
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -238,14 +271,15 @@ class StructureTests {
 
     @Test
     void length_minOnly() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MIN_LENGTH, 11)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "minLength": 11
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -256,14 +290,15 @@ class StructureTests {
 
     @Test
     void length_maxOnly() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MAX_LENGTH, 12)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "maxLength": 12
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -274,15 +309,16 @@ class StructureTests {
 
     @Test
     void length_minMax() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MIN_LENGTH, 30)
-                        .v(no.toll.jsondoc.JsonDocNames.MAX_LENGTH, 20) // illogical ...
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "minLength": 30,
+                      "maxLength": 20
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -293,15 +329,16 @@ class StructureTests {
 
     @Test
     void length_minMaxEqual() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MIN_LENGTH, 3)
-                        .v(no.toll.jsondoc.JsonDocNames.MAX_LENGTH, 3)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "minLength": 3,
+                      "maxLength": 3
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -312,14 +349,15 @@ class StructureTests {
 
     @Test
     void minmax_minOnly() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MINIMUM, 11)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "minimum": 11
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -330,14 +368,15 @@ class StructureTests {
 
     @Test
     void minmax_maxOnly() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MAXIMUM, 12)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "maximum": 12
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -348,15 +387,16 @@ class StructureTests {
 
     @Test
     void minmax_minMax() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MINIMUM, 20)
-                        .v(no.toll.jsondoc.JsonDocNames.MAXIMUM, 30)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "minimum": 20,
+                      "maximum": 30
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -367,15 +407,16 @@ class StructureTests {
 
     @Test
     void minmax_minMaxEqual() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.MINIMUM, 3)
-                        .v(no.toll.jsondoc.JsonDocNames.MAXIMUM, 3)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "minimum": 3,
+                      "maximum": 3
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -387,14 +428,15 @@ class StructureTests {
 
     @Test
     void minmaxExcl_minOnly() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.EXCLUSIVE_MINIMUM, 11)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "exclusiveMinimum": 11
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -405,14 +447,15 @@ class StructureTests {
 
     @Test
     void minmaxExcl_maxOnly() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.EXCLUSIVE_MAXIMUM, 12)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "exclusiveMaximum": 12
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -423,15 +466,16 @@ class StructureTests {
 
     @Test
     void minmaxExcl_minMax() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v("title", "x")
-                        .v(no.toll.jsondoc.JsonDocNames.EXCLUSIVE_MINIMUM, 20)
-                        .v(no.toll.jsondoc.JsonDocNames.EXCLUSIVE_MAXIMUM, 30)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "title": "x",
+                      "exclusiveMinimum": 20,
+                      "exclusiveMaximum": 30
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -442,25 +486,30 @@ class StructureTests {
 
     @Test
     void type_miscConversions() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v(no.toll.jsondoc.JsonDocNames.FORMAT, "date-time")
-                        .v(no.toll.jsondoc.JsonDocNames.TYPE, "string")
-                        .v(no.toll.jsondoc.JsonDocNames.UNIQUE_ITEMS, true)
-                        .v(no.toll.jsondoc.JsonDocNames.READ_ONLY, true)
-                        .v(no.toll.jsondoc.JsonDocNames.WRITE_ONLY, true)
-                        .v(no.toll.jsondoc.JsonDocNames.DEPRECATED, true)
-                        .v(no.toll.jsondoc.JsonDocNames.PATTERN, "^parrot$")
-                        .v(no.toll.jsondoc.JsonDocNames.PROPERTY_NAMES, "^bird$")
-                        .v(no.toll.jsondoc.JsonDocNames.CONST, 42)
-                        .v(no.toll.jsondoc.JsonDocNames.MULTIPLE_OF, 13)
-                        .v(no.toll.jsondoc.JsonDocNames.DEFAULT, "q1")
-                        .v(no.toll.jsondoc.JsonDocNames.ADDITIONAL_PROPERTIES, Boolean.FALSE)
-                        .array(no.toll.jsondoc.JsonDocNames.ENUM, "1", "2", "3").endArray()
-                .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "format": "date-time",
+                      "type": "string",
+                      "uniqueItems": true,
+                      "readOnly": true,
+                      "writeOnly": true,
+                      "deprecated": true,
+                      "pattern": "^parrot$",
+                      "propertyNames": "^bird$",
+                      "const": 42,
+                      "multipleOf": 13,
+                      "default": "q1",
+                      "additionalProperties": false,
+                      "enum": [
+                        "1",
+                        "2",
+                        "3"
+                      ]
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -483,17 +532,18 @@ class StructureTests {
 
     @Test
     void type_ignoreBooleanSwitches() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v(no.toll.jsondoc.JsonDocNames.FORMAT, "x")
-                        .v(no.toll.jsondoc.JsonDocNames.UNIQUE_ITEMS, false)
-                        .v(no.toll.jsondoc.JsonDocNames.READ_ONLY, false)
-                        .v(no.toll.jsondoc.JsonDocNames.WRITE_ONLY, false)
-                        .v(no.toll.jsondoc.JsonDocNames.DEPRECATED, false)
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "format": "x",
+                      "uniqueItems": false,
+                      "readOnly": false,
+                      "writeOnly": false,
+                      "deprecated": false
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild("type"))
                 .map(n -> n.values)
@@ -513,13 +563,14 @@ class StructureTests {
 
     @Test
     void description_convertsId() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v(no.toll.jsondoc.JsonDocNames.ID, "bar")
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "$id": "bar"
+                    }
+                  }
+                }""";
         final var vals = new JsonDocParser(ctx("HTML")).parseString(data).getChild("foo")
                 .flatMap(n -> n.getChild(no.toll.jsondoc.JsonDocNames.DESCRIPTION))
                 .map(n -> n.values)
@@ -532,54 +583,62 @@ class StructureTests {
 
     @Test
     void specialNames_notConfused() {
-        final var data = new JsonBuilder()
-                .object("foo")
-                    .v("type", "object")
-                    .properties()
-                        .object("type")
-                            .v("type", "string")
-                            .v("minLength", 1)
-                        .endObject()
-                        .object("required")
-                            .v("type", "string")
-                            .v("minLength", 1)
-                        .endObject()
-                    .endProperties()
-                    .object("description")
-                        .v("type", "string")
-                        .v("minLength", 1)
-                    .endObject()
-                    .object("field")
-                        .v("type", "string")
-                        .v("minLength", 1)
-                    .endObject()
-                    .required("type", "field")
-                .endObject()
-                .toString();
-        final var data2 = new JsonBuilder()
-                .object("foo")
-                    .v("type", "object")
-                    .properties()
-                        .object("type2")
-                            .v("type", "string")
-                            .v("minLength", 1)
-                        .endObject()
-                        .object("required2")
-                            .v("type", "string")
-                            .v("minLength", 1)
-                        .endObject()
-                        .object("description2")
-                            .v("type", "string")
-                            .v("minLength", 1)
-                        .endObject()
-                        .object("field2")
-                            .v("type", "string")
-                            .v("minLength", 1)
-                        .endObject()
-                    .endProperties()
-                    .required("type2", "field2")
-                .endObject()
-                .toString();
+        final var data = """
+                {
+                  "foo": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "required": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "description": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "field": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "required": [
+                      "type",
+                      "field"
+                    ]
+                  }
+                }""";
+        final var data2 = """
+                {
+                  "foo": {
+                    "type": "object",
+                    "properties": {
+                      "type2": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "required2": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description2": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "field2": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "type2",
+                      "field2"
+                    ]
+                  }
+                }""";
         final var res = new DebugPrinter(new JsonDocParser(ctx("HTML")).parseString(data)).create()
                 .replaceAll("2", "");
         final var res2 = new DebugPrinter(new JsonDocParser(ctx("HTML")).parseString(data2)).create()
@@ -589,18 +648,19 @@ class StructureTests {
 
     @Test
     void defref_convertsText() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .object("foo")
-                        .v(no.toll.jsondoc.JsonDocNames.REF, "#/$defs/foobar")
-                    .endObject()
-                    .object("$defs")
-                        .object("foobar")
-                            .v("aKey", "aValue")
-                        .endObject()
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "foo": {
+                      "$ref": "#/$defs/foobar"
+                    },
+                    "$defs": {
+                      "foobar": {
+                        "aKey": "aValue"
+                      }
+                    }
+                  }
+                }""";
         final var ctx = ctx("HTML");
         final var vals = new HtmlPrinter(new JsonDocParser(ctx).parseString(data), ctx).create();
         assertTrue(vals.contains("<td>($defs)</td>"), "$defs in parens");
@@ -610,21 +670,22 @@ class StructureTests {
 
     @Test @Ignore
     void embedding_correctColumns() {
-        final var data = new JsonBuilder()
-                .properties()
-                    .v("x", "y")
-                    .object("fooList")
-                        .v("description", "foo")
-                        .v("type", "array")
-                        .array("x-sample", "oh!").endArray()
-                        .object("items")
-                            .v("type", "string")
-                        .endObject()
-                    .endObject()
-                .endProperties()
-                .toString();
+        final var data = """
+                {
+                  "properties": {
+                    "x": "y",
+                    "fooList": {
+                      "description": "foo",
+                      "type": "array",
+                      "x-sample": [        "oh!"
+                      ],
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }""";
         final var res = runHtml(data);
-        System.err.println(res);
         // FIXME fail();
     }
 }

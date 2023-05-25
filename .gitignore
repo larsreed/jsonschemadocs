@@ -1,5 +1,7 @@
-HELP.md
 **/resources/local-*
+
+
+HELP.md
 npm-debug.log
 target/
 !.mvn/wrapper/maven-wrapper.jar
