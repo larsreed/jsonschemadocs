@@ -7,10 +7,7 @@ import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.ValidationException;
 import net.jimblackler.jsonschemafriend.Validator;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -75,12 +72,9 @@ class GeneralJSONValidator {
 
     ValidationResult validateFile(final String schemaFile, final String dataFile) {
         result = new ValidationResult(dataFile, result);
-        try (final FileInputStream dataStream = new FileInputStream(dataFile)) {
-            final var br = new BufferedReader(new InputStreamReader(dataStream));
-            String line;
-            final StringBuilder sb = new StringBuilder();
-            while ((line = br.readLine()) != null)  sb.append(line);
-            return validateString(schemaFile, sb.toString());
+        try {
+            var contents = Files.readString(Path.of(dataFile));
+            return validateString(schemaFile, contents);
         }
         catch (final IOException e) {
             return result.add(e.getMessage()).fail();
