@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 class JsonCodeGen {
@@ -34,10 +34,14 @@ class JsonCodeGen {
     String generate(final String inputFile) {
         final CodeGenerator codeGen = createGenerator();
         codeGen.generate(new File(inputFile));
-        final Set<String> files = listAllFiles(this.tmpdir.toFile().getAbsolutePath());
+        final List<String> files = listAllFiles(this.tmpdir.toFile().getAbsolutePath());
         final var results = new StringBuilder();
         for (final var file: files) {
-            try { results.append(Files.readString(Path.of(file))); }
+            try {
+                final var filePath = Path.of(file);
+                if (!Files.isDirectory(filePath)) results.append(Files.readString(filePath));
+                filePath.toFile().deleteOnExit();
+            }
             catch (final IOException e) { throw new RuntimeException(e);}
         }
         return results.toString();
@@ -52,11 +56,10 @@ class JsonCodeGen {
         return codeGen;
     }
 
-    private static Set<String> listAllFiles(final String startIn) {
+    private static List<String> listAllFiles(final String startIn) {
         try (final var tree = Files.walk(Paths.get(startIn), MAX_DEPTH)) {
-            return tree.filter(f -> !Files.isDirectory(f))
-                       .map(f-> f.toFile().getAbsolutePath())
-                       .collect(Collectors.toSet());
+            return tree.map(f-> f.toFile().getAbsolutePath())
+                       .collect(Collectors.toList());
         }
         catch (final IOException e) { throw new RuntimeException(e); }
     }
