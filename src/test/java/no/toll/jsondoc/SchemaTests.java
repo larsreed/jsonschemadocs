@@ -6,7 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 class SchemaTests {
-    private static final String schema = """
+    /** Shared with {@link no.toll.jsondoc.GeneratorTests }*/
+    static final String SCHEMA = """
             {
               "$schema": "https://json-schema.org/draft/2020-12/schema",
               "title": "TEST",
@@ -64,9 +65,9 @@ class SchemaTests {
         final var context = new Context("SCHEMA")
                 .add("test", "true")
                 .add("sampleColumns", "eksempel");
-        final var res1 = new SchemaPrinter(new JsonDocParser(context).parseString(schema)).create();
+        final var res1 = new SchemaPrinter(new JsonDocParser(context).parseString(SCHEMA)).create();
         final var res2 = new SchemaPrinter(new JsonDocParser(context).parseString(
-                new SchemaPrinter(new JsonDocParser(context).parseString(schema)).create()))
+                new SchemaPrinter(new JsonDocParser(context).parseString(SCHEMA)).create()))
                 .create();
         assertEquals(res1, res2);
     }
