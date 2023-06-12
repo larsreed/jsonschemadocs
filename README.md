@@ -112,7 +112,7 @@ Sample output:
 
 ![example](docs/sample-graph.png)
 
-# Validation and samples
+# Validation, data classes and samples
 
 ## Creating sample data
 
@@ -147,8 +147,8 @@ Definitions (e.g. conditionals), can be given after the input file name with `na
 
 ## Performing validation
 
-You can also use this tool to perform validation of JSON data files against a schema directly (this is done through an embedded
-com.github.everit-org.json-schema).
+You can also use this tool to perform validation of JSON data files against a schema directly (this is done through an 
+embedded net.jimblackler.jsonschemafriend).
 
 To validate, you
 
@@ -171,6 +171,16 @@ java -jar jsondoc.jar VALIDATE /path/to/myExtendedSchema.json files="/path/to/my
 [[ $? = 0 ]] || error ....
 ```
 
+## Generate data classes supporting the schema
+
+This options uses net.pwall.json.json-kotlin-schema-codegen to generate data classes supporting a schema.
+You can specify a language (Java, Kotlin, Typescript) using the `lang` variable (default Java).
+
+You can also specify a package name using `package`, add a marker interface using `markerInterface`,
+add a comment to each file using `generatorComment`
+
+`java -jar jsondoc.jar GENERATE mySchema.json code=Kotlin package=no.toll.sample generatorComment="Added comment" > mySchema.kt`
+
 # Command line help
 Run `java -jar jsondoc.jar HELP` to get online help.
 
@@ -186,6 +196,7 @@ TYPE:
     WIKI:     output in Confluence wiki XHTML format
     SAMPLE:   output sample data -- Note: Experimental!
     VALIDATE: perform validation of datafiles against a schema -- Note: Experimental!
+    GENERATE: generate data class from schema
 SCHEMAFILE: name of extended JSON Schema file
 DEFINTIONS: follows the pattern name=value, and comes after the inputfile
     variant=foo could define a context for "xif-variant": "foo"
@@ -195,6 +206,12 @@ DEFINTIONS: follows the pattern name=value, and comes after the inputfile
     sampleColumns=col1,... defines columns to use for sample output
     files=file1,... required with VALIDATE to name files to validate
     strict=true with VALIDATE to have strict validation
+    lang=xx sets the HTML5 lang attribute (default en)
+    code= Kotlin/Java/Typescript with GENERATE to set generated language (default Java)
+    package=no.toll.sample to set base package for GENERATE
+    markerInterface=no.toll.Marker to set data class marker interface for GENERATE
+    generatorComment="Added comment" for GENERATE"
+
 Output is written to stdout and should be redirected.
 ```
 
@@ -255,4 +272,13 @@ So the code here is not entirely idiomatic - but it's mine.
 `com.fasterxml.jackson` provides the basic parsing - see https://github.com/FasterXML/jackson
 
 `jsonschemafriend` (https://github.com/jimblackler/jsonschemafriend) provides validation,
-this library is distributed under the [Apache License 2.0](https://github.com/everit-org/json-schema/blob/master/LICENSE). 
+this library is distributed under the [Apache License 2.0](https://github.com/everit-org/json-schema/blob/master/LICENSE).
+
+`net.pwall.json.json-kotlin-schema-codegen` provides the data class generator - 
+see https://github.com/pwall567/json-kotlin-schema-codegen
+this library is distributed under the MIT License
+
+## Thanks to
+
+* Øyvind Bjerke for good ideas, testing and encouragement
+* Olav Mork Bjørnås for the data class generator idea

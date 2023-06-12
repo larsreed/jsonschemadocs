@@ -9,12 +9,16 @@ import java.util.Optional;
 @SuppressWarnings({"StaticMethodOnlyUsedInOneClass", "SameParameterValue"})
 class Context {
 
+    static final String CODE = "code";
     static final String EMBED_ROWS = "embedUpToRows";
     static final String EXCLUDE_COLUMNS = "excludeColumns";
     static final String FILES = "files";
+    static final String GEN_COMM = "generatorComment";
+    public static final String JAVA = "Java";
     static final String LANG = "lang";
     static final String LANG_EN = "en";
     static final String MODE = "mode";
+    static final String PACKAGE = "package";
     static final String SAMPLE_COLUMNS = "sampleColumns";
     static final String SCHEMA_MODE = "SCHEMA";
     static final String SKIP_TABLES = "skipTables";

@@ -1,11 +1,24 @@
 package no.toll.jsondoc;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 /** The CLI main class. */
 public final class JsonDoc {
+    private static final String TEMP_PFX = "jsonSchemaCodeGen";
+    private static Path tmpdir;
     private static final Pattern pattern = Pattern.compile("^([^=]+)=([^=]+)$");
     private static final int EDATA = 65;
+
+    static Path tempDir() {
+        try {
+            final var dir = Files.createTempDirectory(JsonDoc.TEMP_PFX);
+            dir.toFile().deleteOnExit();
+            return dir;
+        } catch (final IOException e) { throw new RuntimeException(e); }
+    }
 
     public static void main(final String[] args) {
         if (args.length == 1 && "help".equalsIgnoreCase(args[0])) help("Help", 0);
@@ -25,10 +38,16 @@ public final class JsonDoc {
             else help("Illegible argument " + arg, 1);
         }
 
+        try {
+            tmpdir = Files.createTempDirectory(JsonDoc.TEMP_PFX);
+            tmpdir.toFile().deleteOnExit();
+        } catch (final IOException e) { throw new RuntimeException(e); }
+
         runWith(args[0], inputFile, context);
     }
 
     private static void runWith(final String outType, final String inputfile, final Context context) {
+
         switch (outType.toUpperCase()) {
             case "HTML" -> {
                 final var root = new JsonDocParser(context).parseFile(inputfile);
@@ -65,6 +84,10 @@ public final class JsonDoc {
                 System.out.println(res);
                 if (!res.isOk()) System.exit(EDATA);
             }
+            case "GENERATE" -> {
+                final String res = new JsonCodeGen(context, tmpdir).generate(inputfile);
+                System.out.println(res);
+            }
             default -> help("Unknown type " + outType, 1);
         }
     }
@@ -83,6 +106,7 @@ public final class JsonDoc {
             WIKI:     output in Confluence wiki XHTML format
             SAMPLE:   output sample data -- Note: Experimental!
             VALIDATE: perform validation of datafiles against a schema
+            GENERATE: generate data class from schema
         SCHEMAFILE: name of extended JSON Schema file
         DEFINITIONS: follows the pattern name=value, and comes after the inputfile""");
         System.out.println("    " + Context.VARIANT + "=foo could define a context for \""
@@ -93,8 +117,10 @@ public final class JsonDoc {
         System.out.println("    " + Context.SAMPLE_COLUMNS + "=col1,... defines columns to use for sample output");
         System.out.println("    " + Context.FILES + "=file1,... required with VALIDATE to name files to validate");
         System.out.println("    " + Context.STRICT + "=true with SCHEMA/VALIDATE to have strict schema/validation");
-        System.out.println("    " + Context.LANG + "=xx sets the HTML5 lang attribute (default " + Context.LANG_EN
-                + ")");
+        System.out.println("    " + Context.LANG + "=xx sets the HTML5 lang attribute (default " + Context.LANG_EN+ ")");
+        System.out.println("    " + Context.CODE + "=Kotlin/Java/Typescript with GENERATE to set generated language (default Java)");
+        System.out.println("    " + Context.PACKAGE + "=no.toll.sample to set base package for GENERATE");
+        System.out.println("    " + Context.GEN_COMM + "=\"Added comment\" for GENERATE");
         System.out.println("""
                 Output is written to stdout and should be redirected.""");
         System.exit(err);
