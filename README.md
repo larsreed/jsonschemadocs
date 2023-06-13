@@ -64,7 +64,7 @@ Currently, four types of documentation are supported.
 
 To create an HTML document documenting the schema, run a visitor like this
 
-java -jar jsondoc.jar HTML /path/to/input/myExtendedSchema.json -DembedUpToRows=1 > mySchema.html`
+java -jar jsonschemadocs.jar HTML /path/to/input/myExtendedSchema.json -DembedUpToRows=1 > mySchema.html`
 
 Sample output:
 
@@ -83,19 +83,19 @@ denoting that tables of up to N rows should be embedded in its parent.
 Use `lang=xy` to change default setting of lang=en on the root element.
 
 A sample with such definitions:
-`java -jar jsondoc.jar HTML myExtendedSchema.json embedUpToRows=1 excludedColumns=sample,note lang=no > myLittleSchema.html`
+`java -jar jsonschemadocs.jar HTML myExtendedSchema.json embedUpToRows=1 excludedColumns=sample,note lang=no > myLittleSchema.html`
 
 
 ## Wiki
 
 Like the HTML version, but using Confluence wiki link syntax.
-`java -jar jsondoc.jar WIKI /path/to/input/myExtendedSchema.json > mySchema.xhtml`
+`java -jar jsonschemadocs.jar WIKI /path/to/input/myExtendedSchema.json > mySchema.xhtml`
 
 
 ## Markdown
 
 Like the HTML version (same parameters etc), but producing Markdown.
-`java -jar jsondoc.jar MARKDOWN /path/to/input/myExtendedSchema.json > mySchema.md`
+`java -jar jsonschemadocs.jar MARKDOWN /path/to/input/myExtendedSchema.json > mySchema.md`
 
 
 ## Diagram
@@ -103,7 +103,7 @@ Like the HTML version (same parameters etc), but producing Markdown.
 Requires Graphviz -- https://graphviz.org/download/
 
 First: create the dot input:
-`java -jar jsondoc.jar GRAPH /path/to/input/myExtendedSchema.json > mySchema.txt`
+`java -jar jsonschemadocs.jar GRAPH /path/to/input/myExtendedSchema.json > mySchema.txt`
 
 Then: create a diagram from the dot script:
 `& 'C:\Program Files\Graphviz\bin\dot' -T png -o mySchema.png mySchema.txt`
@@ -120,7 +120,7 @@ Note: this feature is experimental, you will probably have to correct the output
 
 Create sample data from one or more embedded sample columns:
 
-`java -jar jsondoc.jar SAMPLE /path/to/input/myExtendedSchema.json sampleColumns=x-sample> mySample.json`
+`java -jar jsonschemadocs.jar SAMPLE /path/to/input/myExtendedSchema.json sampleColumns=x-sample> mySample.json`
 
 You can define one or more (comma-separated) sample columns using `sampleColumns=...` as shown above.
 Without any such column given or present, we will try the JSON Schema standard `examples` array if present
@@ -133,7 +133,7 @@ or, as a last resort, try to generate a value based on the data type.
 The schema, without the documentation and ignored properties, can be recreated
 for use in e.g. external validators, like this:
 
-`java -jar jsondoc.jar SCHEMA /path/to/input/myExtendedSchema.json > myBasicSchema.json`
+`java -jar jsonschemadocs.jar SCHEMA /path/to/input/myExtendedSchema.json > myBasicSchema.json`
 
 If the definition `strict=true` is provided together with SCHEMA, an `additionalProperties: false`-clause
 is added to all `properties` in the schema, likewise, `additionalItems: false` is added to besides any "items" within an array.
@@ -142,7 +142,7 @@ in the schema are allowed (JSON Schema is normally lax about this).
 
 Definitions (e.g. conditionals), can be given after the input file name with `name=value`, e.g.
 
-`java -jar jsondoc.jar SCHEMA myExtendedSchema.json strict=true variant=plain > myPlainSchema.json`
+`java -jar jsonschemadocs.jar SCHEMA myExtendedSchema.json strict=true variant=plain > myPlainSchema.json`
 
 
 ## Performing validation
@@ -167,7 +167,7 @@ schema through the SCHEMA generator, adding the STRICT behaviour if requested.
 Any errors are printed to standard output, the exit is 0 if everything is OK, otherwise >0.
 
 ```
-java -jar jsondoc.jar VALIDATE /path/to/myExtendedSchema.json files="/path/to/myData.json" strict=true > myReport.txt
+java -jar jsonschemadocs.jar VALIDATE /path/to/myExtendedSchema.json files="/path/to/myData.json" strict=true > myReport.txt
 [[ $? = 0 ]] || error ....
 ```
 
@@ -179,14 +179,14 @@ You can specify a language (Java, Kotlin, Typescript) using the `lang` variable 
 You can also specify a package name using `package`, add a marker interface using `markerInterface`,
 add a comment to each file using `generatorComment`
 
-`java -jar jsondoc.jar GENERATE mySchema.json code=Kotlin package=no.toll.sample generatorComment="Added comment" > mySchema.kt`
+`java -jar jsonschemadocs.jar GENERATE mySchema.json code=Kotlin package=no.toll.sample generatorComment="Added comment" > mySchema.kt`
 
 # Command line help
-Run `java -jar jsondoc.jar HELP` to get online help.
+Run `java -jar jsonschemadocs.jar HELP` to get online help.
 
 ```text
 JSON SCHEMA DOCUMENTATION TOOL -- Lars Reed, 2021
-Usage: java -jar jsondoc.jar TYPE SCHEMAFILE [DEFINITIONS] > resultfile
+Usage: java -jar jsonschemadocs.jar TYPE SCHEMAFILE [DEFINITIONS] > resultfile
 
 TYPE:
     SCHEMA:   output a clean schema file, without additional attributes
