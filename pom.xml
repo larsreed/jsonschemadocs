@@ -50,7 +50,7 @@
 		<dependency>
 			<groupId>net.pwall.json</groupId>
 			<artifactId>json-kotlin-schema-codegen</artifactId>
-			<version>0.104</version>
+			<version>0.106</version>
 		</dependency>
 	</dependencies>
 
