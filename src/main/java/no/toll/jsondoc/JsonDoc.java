@@ -1,6 +1,7 @@
 package no.toll.jsondoc;
 
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
@@ -21,6 +22,7 @@ public final class JsonDoc {
     }
 
     public static void main(final String[] args) {
+        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, StandardCharsets.UTF_8));
         if (args.length == 1 && "help".equalsIgnoreCase(args[0])) help("Help", 0);
         else if (args.length < 2) help("At least two arguments required", 2);
 
