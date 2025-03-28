@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="JsonDoc sample" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="no.toll.jsondoc.JsonDoc" />
+    <module name="json-doc" />
+    <option name="PROGRAM_PARAMETERS" value="SAMPLE &quot;C:\data\projects\json-doc-ex\a.json&quot; sampleColumns=x-samplev" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="no.toll.jsondoc.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
