@@ -105,9 +105,9 @@
 
 	<repositories>
 		<repository>
-			<id>maven.scijava.org</id>
-			<url>https://maven.scijava.org/content/repositories/public/</url>
-		</repository>
+           <id>jitpack.io</id>
+           <url>https://jitpack.io</url>
+        </repository>
 	</repositories>
 
 </project>
